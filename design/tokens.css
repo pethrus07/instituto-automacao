@@ -84,46 +84,64 @@
   --paper:         #fbfaf8;
   --paper-raised:  #ffffff;
   --paper-sunken:  #f2f0ec;
-  --paper-invert:  #16161a;
+  --paper-invert:  #1a1816;
 
-  --ink:           #16161a;
-  --ink-muted:     #55555f;
-  --ink-faint:     #83838e;
+  /* Tinta levemente quente, para pertencer à mesma família do papel.
+     Tinta fria sobre papel quente embaça de um jeito difícil de nomear. */
+  --ink:           #1a1816;
+  --ink-muted:     #5a564f;
+  --ink-faint:     #8a857c;
   --ink-invert:    #fbfaf8;
 
   --rule:          #e4e1db;
   --rule-strong:   #c9c5bd;
 
-  /* Acentos dos quatro núcleos.
-     `-ink`  = seguro para texto sobre o papel (contraste >= 4.5:1)
-     `-mark` = fio, ponto, tarja — pode saturar mais
-     `-wash` = fundo de tarja discreta, nunca de bloco grande
+  /* ---------------------------------------------------------------------
+     AS DUAS CORES
 
-     Os quatro matizes ficam bem separados no círculo (âmbar, teal, índigo,
-     tijolo) para não dependerem de saturação para se distinguir — e
-     continuam legíveis para quem não distingue verde de vermelho. */
-  --industria-ink:      #8f4d07;
-  --industria-mark:     #b8650f;
-  --industria-wash:     #f7eddf;
+     Azul e laranja são a identidade do Instituto E os acentos dos dois
+     núcleos quentes, ao mesmo tempo. Duas cores e um sinal — é pouco de
+     propósito: paleta curta é o que faz parecer instituição, não portal.
 
-  --operacao-ink:       #0b6157;
-  --operacao-mark:      #0e7a6d;
-  --operacao-wash:      #e2f0ed;
+     Cada cor tem duas formas, e a distinção não é estética, é de contraste:
+       `-ink`  versão escura — a que CARREGA TEXTO (>= 4.5:1 sobre o papel)
+       `-mark` versão viva  — ponto, fio, tarja. Nunca texto pequeno.
+       `-wash` fundo de tarja discreta. Nunca bloco grande.
 
-  --observatorio-ink:   #443fa4;
-  --observatorio-mark:  #5852c4;
-  --observatorio-wash:  #e9e8f7;
+     O laranja que a pessoa vê é o vivo; o que ela lê é o bronze. Laranja
+     vivo sobre papel claro dá ~3:1 e reprova para texto — por isso os dois
+     pesos existem.
+     --------------------------------------------------------------------- */
 
-  --edificacoes-ink:    #9c3040;
-  --edificacoes-mark:   #bb3c4e;
-  --edificacoes-wash:   #f8e8ea;
+  /* Indústria · o laranja — latão, metal, faixa de advertência */
+  --industria-ink:      #a4530c;
+  --industria-mark:     #dd7f1e;
+  --industria-wash:     #fbeddc;
 
-  /* Sinais de estado */
-  --live:          #157f3b;   /* o relógio do "primeira mão" */
+  /* Observatório · o azul — tinta, noite, pensamento */
+  --observatorio-ink:   #1a4a8c;
+  --observatorio-mark:  #2f6cc0;
+  --observatorio-wash:  #e6eef8;
+
+  /* Operação e Edificações estão em modo Radar: NEUTROS até esquentarem.
+     Cor passa a significar "tem gente escrevendo aqui" — e a terceira e a
+     quarta se escolhem depois, vendo conteúdo real, derivadas deste par
+     (verde-petróleo ao lado do azul; terracota ao lado do laranja). */
+  --operacao-ink:       #5a564f;
+  --operacao-mark:      #8a857c;
+  --operacao-wash:      #f2f0ec;
+
+  --edificacoes-ink:    #5a564f;
+  --edificacoes-mark:   #8a857c;
+  --edificacoes-wash:   #f2f0ec;
+
+  /* Sinais de estado — o verde é o único terceiro matiz do site, e existe
+     só no relógio. "Revisão pendente" NÃO tem cor: é contorno neutro, que
+     é o que "provisório" parece. Cor de aviso ao lado do laranja da
+     Indústria viraria a mesma mancha. */
+  --live:          #157f3b;
   --live-wash:     #e4f2e8;
-  --alerta:        #9a5b00;   /* selo de revisão pendente */
-  --alerta-wash:   #f9efdc;
-  --focus:         #2563eb;
+  --focus:         #2f6cc0;
 
   /* Acento ativo. Cada seção do site sobrescreve estes três no seu
      container; todo componente lê daqui e nenhum precisa saber em que
@@ -155,40 +173,38 @@
 /* --- ESCURO por preferência do sistema (não pisa em cima do toggle) ----- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper:        #101013;
-    --paper-raised: #17171c;
-    --paper-sunken: #0b0b0e;
-    --paper-invert: #ededf0;
+    --paper:        #121110;
+    --paper-raised: #1a1917;
+    --paper-sunken: #0c0b0a;
+    --paper-invert: #ecebe7;
 
-    --ink:          #ededf0;
-    --ink-muted:    #a2a2ae;
-    --ink-faint:    #70707c;
-    --ink-invert:   #101013;
+    --ink:          #ecebe7;
+    --ink-muted:    #a5a099;
+    --ink-faint:    #736e66;
+    --ink-invert:   #121110;
 
-    --rule:         #26262e;
-    --rule-strong:  #3b3b46;
+    --rule:         #2a2825;
+    --rule-strong:  #3e3b37;
 
-    --industria-ink:     #f0a94f;
-    --industria-mark:    #e0932f;
-    --industria-wash:    #2a1f10;
+    --industria-ink:     #f0a44e;
+    --industria-mark:    #e08a24;
+    --industria-wash:    #2b1e0f;
 
-    --operacao-ink:      #46c7b4;
-    --operacao-mark:     #2fae9b;
-    --operacao-wash:     #0d2420;
+    --observatorio-ink:  #8ab6f2;
+    --observatorio-mark: #5f96e0;
+    --observatorio-wash: #111d31;
 
-    --observatorio-ink:  #a09bf8;
-    --observatorio-mark: #8781ee;
-    --observatorio-wash: #1a1930;
+    --operacao-ink:      #a5a099;
+    --operacao-mark:     #736e66;
+    --operacao-wash:     #1a1917;
 
-    --edificacoes-ink:   #f0899b;
-    --edificacoes-mark:  #dd6b7f;
-    --edificacoes-wash:  #2c151a;
+    --edificacoes-ink:   #a5a099;
+    --edificacoes-mark:  #736e66;
+    --edificacoes-wash:  #1a1917;
 
     --live:        #4ade80;
     --live-wash:   #0f2418;
-    --alerta:      #e0a94f;
-    --alerta-wash: #2a2010;
-    --focus:       #74a2ff;
+    --focus:       #8ab6f2;
 
     --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
   }
@@ -196,40 +212,38 @@
 
 /* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
 :root[data-theme="dark"] {
-  --paper:        #101013;
-  --paper-raised: #17171c;
-  --paper-sunken: #0b0b0e;
-  --paper-invert: #ededf0;
+  --paper:        #121110;
+  --paper-raised: #1a1917;
+  --paper-sunken: #0c0b0a;
+  --paper-invert: #ecebe7;
 
-  --ink:          #ededf0;
-  --ink-muted:    #a2a2ae;
-  --ink-faint:    #70707c;
-  --ink-invert:   #101013;
+  --ink:          #ecebe7;
+  --ink-muted:    #a5a099;
+  --ink-faint:    #736e66;
+  --ink-invert:   #121110;
 
-  --rule:         #26262e;
-  --rule-strong:  #3b3b46;
+  --rule:         #2a2825;
+  --rule-strong:  #3e3b37;
 
-  --industria-ink:     #f0a94f;
-  --industria-mark:    #e0932f;
-  --industria-wash:    #2a1f10;
+  --industria-ink:     #f0a44e;
+  --industria-mark:    #e08a24;
+  --industria-wash:    #2b1e0f;
 
-  --operacao-ink:      #46c7b4;
-  --operacao-mark:     #2fae9b;
-  --operacao-wash:     #0d2420;
+  --observatorio-ink:  #8ab6f2;
+  --observatorio-mark: #5f96e0;
+  --observatorio-wash: #111d31;
 
-  --observatorio-ink:  #a09bf8;
-  --observatorio-mark: #8781ee;
-  --observatorio-wash: #1a1930;
+  --operacao-ink:      #a5a099;
+  --operacao-mark:     #736e66;
+  --operacao-wash:     #1a1917;
 
-  --edificacoes-ink:   #f0899b;
-  --edificacoes-mark:  #dd6b7f;
-  --edificacoes-wash:  #2c151a;
+  --edificacoes-ink:   #a5a099;
+  --edificacoes-mark:  #736e66;
+  --edificacoes-wash:  #1a1917;
 
   --live:        #4ade80;
   --live-wash:   #0f2418;
-  --alerta:      #e0a94f;
-  --alerta-wash: #2a2010;
-  --focus:       #74a2ff;
+  --focus:       #8ab6f2;
 
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
 }

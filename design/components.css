@@ -90,7 +90,19 @@
 .selo--traducao  { background: var(--accent-wash); color: var(--accent-ink); }
 /* Honestidade em primeiro lugar: quando a IA traduziu e ninguém revisou
    ainda, o leitor precisa saber — e o selo some quando alguém revisa. */
-.selo--pendente  { background: var(--alerta-wash); color: var(--alerta); }
+.selo--pendente  {
+  background: transparent;
+  border: 1px dashed var(--rule-strong);
+  color: var(--ink-muted);
+}
+.selo--pendente::before {
+  content: "";
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  flex: none;
+}
 .selo--original  { border: var(--border-hair); color: var(--ink-muted); }
 
 /* -------------------------------------------------------------------------
