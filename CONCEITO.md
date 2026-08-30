@@ -294,17 +294,34 @@ uma Análise publicadas. Promete pouco, entrega inteiro, e começa a acumular a 
 - [x] Aprovação por WhatsApp via Commagente
 - [x] Regra dura: uma peça original com dado próprio por trimestre
 - [x] Acordo comercial 27/08: [valor combinado], máquina rodando até 31/12/2026
+- [x] **Só português, para sempre** — rota sem prefixo de idioma
+- [x] **Repositório privado agora**, público quando estiver apresentável e o código combinado
+- [x] **Pergunta-assinatura: o atraso entre a fronteira lá fora e o chão de fábrica daqui**
+- [x] **P0 · protótipo mínimo funcional em 15 dias — 12/09/2026**
+- [x] Stack: um Worker só · Hono + JSX · D1 + R2 + Cron · WhatsApp como backoffice
+- [x] Tema azul + laranja, paleta curta de duas cores
 
-## 13. Em aberto
+A pergunta-assinatura não é só editorial: **ela é requisito de schema.** Medir atraso exige
+agrupar itens de fontes e idiomas diferentes numa tabela `assunto`, e coletar fontes
+brasileiras que quase nunca serão publicadas — elas existem para marcar o relógio. Impossível
+fazer retroativamente, então entra no dia 1.
 
-1. **Público internacional ou só fonte internacional?** A suposição atual é fonte lá fora,
-   leitor brasileiro. Se um dia houver versão em inglês ou espanhol, `idioma` no conteúdo e
-   prefixo `/pt/` na rota entram **agora** — barato hoje, brutal depois.
-2. **A pergunta-assinatura.** Aquela perseguida por anos, que faz de alguém *a pessoa que
-   responde*. Candidatas: *quanto custa de fato automatizar no Brasil* · *o tamanho do atraso
-   entre a fronteira lá fora e o chão de fábrica daqui*. Sem escolher, a autoridade fica larga
-   e rasa.
-3. **Lista de fontes e classificação de licença** — primeiro trabalho braçal. Proposta inicial
-   em [docs/FONTES.md](docs/FONTES.md).
-4. **Os seis pontos de acordo interno** com o sócio.
-5. Identidade visual, provedor de newsletter, TLD exato do domínio.
+## 13. Planning
+
+| Documento | O que tem |
+|---|---|
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | o desenho, e uma decisão por eixo com as alternativas descartadas |
+| [docs/FLUXOS.md](docs/FLUXOS.md) | o caminho do item, do atraso, do evento e da obra |
+| [docs/ORGANOGRAMA.md](docs/ORGANOGRAMA.md) | quem faz o quê — e o contrato de esforço por semana |
+| [docs/MODELO-DADOS.md](docs/MODELO-DADOS.md) | o schema do D1 e o que o Panorama pergunta a ele |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | P0 em 15 dias, v0, fases e próximos passos |
+| [docs/FONTES.md](docs/FONTES.md) | candidatos por núcleo, separados por faixa de licença |
+| [design/](design/) | tokens, primitivas e o specimen do sistema de design |
+
+## 14. Em aberto
+
+1. **Domínio exato (TLD) e onde está o DNS** — e o acesso à conta Cloudflare do sócio.
+   É a única dependência **bloqueante** do deploy.
+2. **Lista de fontes e classificação de licença** — primeiro trabalho braçal, destrava o P0.
+3. **Os pontos de acordo interno** com o sócio.
+4. Data-alvo do v0 (proposta: 31/10), provedor de newsletter, marca e logotipo.
