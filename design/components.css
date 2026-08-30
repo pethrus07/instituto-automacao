@@ -1,0 +1,363 @@
+/* =========================================================================
+   Instituto Automação — primitivas
+   Nenhuma delas sabe em que núcleo está: todas leem --accent-*, que o
+   container define. É o que permite o mesmo card funcionar nos quatro.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   KICKER — o rótulo do núcleo
+   Caixa alta pequena precisa de entreletra, senão vira mancha.
+   ------------------------------------------------------------------------- */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+.kicker::before {
+  content: "";
+  inline-size: 1.75rem;
+  block-size: 2px;
+  background: var(--accent-mark);
+  flex: none;
+}
+.kicker--dot::before {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+/* -------------------------------------------------------------------------
+   RELÓGIO — a assinatura visual do projeto
+
+   "publicado 14 min após a fonte" explica o produto inteiro sem uma linha
+   de texto institucional. Por isso não é metadado cinza: é elemento
+   gráfico, com número tabular e um ponto vivo.
+   ------------------------------------------------------------------------- */
+.relogio {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-family: var(--face-dado);
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-normal);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.relogio__valor {
+  font-weight: var(--weight-semibold);
+  color: var(--live);
+  font-size: var(--step--1);
+}
+.relogio__ponto {
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--live);
+  align-self: center;
+  flex: none;
+  box-shadow: 0 0 0 3px var(--live-wash);
+}
+/* Acima de 24h o "primeira mão" não é mais o argumento — some o destaque. */
+.relogio--frio .relogio__valor { color: var(--ink-muted); font-weight: var(--weight-regular); }
+.relogio--frio .relogio__ponto { background: var(--rule-strong); box-shadow: none; }
+
+/* -------------------------------------------------------------------------
+   SELOS
+   ------------------------------------------------------------------------- */
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: 0.15rem var(--space-2xs);
+  border-radius: var(--radius-s);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.selo--radar     { background: var(--paper-sunken); color: var(--ink-muted); }
+.selo--nucleo    { background: var(--accent-wash); color: var(--accent-ink); }
+.selo--traducao  { background: var(--accent-wash); color: var(--accent-ink); }
+/* Honestidade em primeiro lugar: quando a IA traduziu e ninguém revisou
+   ainda, o leitor precisa saber — e o selo some quando alguém revisa. */
+.selo--pendente  { background: var(--alerta-wash); color: var(--alerta); }
+.selo--original  { border: var(--border-hair); color: var(--ink-muted); }
+
+/* -------------------------------------------------------------------------
+   ASSINATURA — o que separa obra de fluxo
+   ------------------------------------------------------------------------- */
+.assinatura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-s);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  padding-block: var(--space-s);
+  border-block: var(--border-hair);
+}
+.assinatura__autor {
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+}
+.assinatura__nucleo { color: var(--accent-ink); }
+
+/* -------------------------------------------------------------------------
+   ITEM DE RADAR
+   Sem caixa, sem sombra: fio embaixo e espaço. Lista longa com card
+   fechado vira parede — e o radar tem que ser varrido, não lido.
+   ------------------------------------------------------------------------- */
+.item {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-block: var(--space-m);
+  border-bottom: var(--border-hair);
+  position: relative;
+}
+.item__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-s);
+}
+.item__titulo {
+  font-family: var(--face-obra);
+  font-size: var(--step-2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+.item__titulo a { text-decoration: none; }
+/* alvo de clique no card inteiro, sem perder o link real para o teclado */
+.item__titulo a::after { content: ""; position: absolute; inset: 0; }
+.item:hover .item__titulo { color: var(--accent-ink); }
+
+.item__resumo {
+  color: var(--ink-muted);
+  max-width: var(--measure);
+  font-size: var(--step-0);
+}
+
+/* O "o que isso muda aqui" — a camada que separa autoridade de tradução
+   automática. Merece marcação própria, não um parágrafo a mais. */
+.item__contexto {
+  border-inline-start: var(--border-mark);
+  padding-inline-start: var(--space-xs);
+  max-width: var(--measure);
+  font-size: var(--step--1);
+  color: var(--ink);
+}
+.item__contexto::before {
+  content: "O que isso muda aqui";
+  display: block;
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  margin-block-end: var(--space-3xs);
+}
+
+.item__pe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-s);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+}
+.item__fonte {
+  font-family: var(--face-dado);
+  font-size: var(--step--2);
+  color: var(--ink-muted);
+  position: relative;
+  z-index: 1;   /* fica clicável por cima do alvo do card */
+}
+
+/* -------------------------------------------------------------------------
+   EVENTO — o ativo durável do projeto
+   A data vira bloco: quem varre agenda procura data, não nome.
+   ------------------------------------------------------------------------- */
+.evento {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-s) var(--space-m);
+  padding-block: var(--space-m);
+  border-bottom: var(--border-hair);
+  position: relative;
+}
+.evento__data {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  inline-size: 4.5rem;
+  padding: var(--space-2xs);
+  border: var(--border-firm);
+  border-radius: var(--radius-s);
+  background: var(--paper-raised);
+  font-family: var(--face-dado);
+  line-height: 1.1;
+  text-align: center;
+}
+.evento__dia {
+  font-size: var(--step-2);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+.evento__mes {
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--accent-ink);
+}
+.evento__ano { font-size: var(--step--2); color: var(--ink-faint); }
+.evento__corpo { display: grid; gap: var(--space-3xs); align-content: start; }
+.evento__nome {
+  font-family: var(--face-obra);
+  font-size: var(--step-1);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+}
+.evento__nome a { text-decoration: none; }
+.evento__nome a::after { content: ""; position: absolute; inset: 0; }
+.evento__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-s);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+/* -------------------------------------------------------------------------
+   FILTRO SEM JAVASCRIPT
+   <form method="get"> com radio escondido: cada combinação vira URL
+   própria — indexável, linkável, e mandável no WhatsApp para o organizador
+   da feira. O botão "aplicar" só aparece para quem está sem JS.
+   ------------------------------------------------------------------------- */
+.filtro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding-block: var(--space-s);
+  border-bottom: var(--border-hair);
+}
+.filtro__rotulo {
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-inline-end: var(--space-2xs);
+}
+.pilula {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: var(--space-3xs) var(--space-xs);
+  border: var(--border-hair);
+  border-radius: var(--radius-pill);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--duration) var(--ease),
+              color var(--duration) var(--ease),
+              background-color var(--duration) var(--ease);
+}
+.pilula:hover { border-color: var(--rule-strong); color: var(--ink); }
+.pilula[aria-current="true"],
+.pilula:has(:checked) {
+  background: var(--accent-wash);
+  border-color: var(--accent-mark);
+  color: var(--accent-ink);
+  font-weight: var(--weight-medium);
+}
+.pilula input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* -------------------------------------------------------------------------
+   GLOSSÁRIO — é infraestrutura de tradução, mas também é página pública
+   ------------------------------------------------------------------------- */
+.termo {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-block: var(--space-s);
+  border-bottom: var(--border-hair);
+}
+.termo__par {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2xs);
+}
+.termo__origem {
+  font-family: var(--face-dado);
+  font-size: var(--step-0);
+  color: var(--ink-muted);
+}
+.termo__seta { color: var(--ink-faint); }
+.termo__pt {
+  font-family: var(--face-obra);
+  font-size: var(--step-1);
+  font-weight: var(--weight-semibold);
+}
+.termo__nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); }
+.termo__travado {
+  font-size: var(--step--2);
+  color: var(--accent-ink);
+  font-family: var(--face-dado);
+}
+
+/* -------------------------------------------------------------------------
+   CABEÇALHO DE SEÇÃO
+   ------------------------------------------------------------------------- */
+.secao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-s);
+  padding-block-end: var(--space-2xs);
+  border-bottom: var(--border-mark);
+  margin-block-end: var(--space-s);
+}
+.secao__titulo {
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.secao__acao { font-size: var(--step--1); color: var(--ink-muted); }
+
+/* -------------------------------------------------------------------------
+   AVISO INSTITUCIONAL — política editorial, correção, transparência
+   ------------------------------------------------------------------------- */
+.aviso {
+  border: var(--border-hair);
+  border-inline-start: var(--border-mark);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--paper-raised);
+  padding: var(--space-s) var(--space-m);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  max-width: var(--measure);
+}
+.aviso strong { color: var(--ink); }
+
+/* -------------------------------------------------------------------------
+   Transição de página sem SPA (Chrome/Edge; degrada em silêncio)
+   ------------------------------------------------------------------------- */
+@view-transition { navigation: auto; }

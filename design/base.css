@@ -1,0 +1,197 @@
+/* =========================================================================
+   Instituto Automação — base
+   Reset curto + comportamento padrão dos elementos. Sem classes: aqui é só
+   o que um HTML bem escrito já deve fazer sozinho.
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* âncora não fica embaixo do cabeçalho fixo */
+  scroll-padding-top: var(--space-2xl);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--face-fluxo);
+  font-size: var(--step-0);
+  line-height: var(--leading-normal);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+
+/* --- títulos ------------------------------------------------------------
+   Título é obra: serifada. Interface e rótulo são fluxo: sem-serifa.
+   Por isso o padrão dos títulos é a serifada, e quem for interface
+   sobrescreve com .u-fluxo.
+   ---------------------------------------------------------------------- */
+h1, h2, h3, h4 {
+  font-family: var(--face-obra);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); line-height: var(--leading-snug); }
+h4 { font-size: var(--step-1); line-height: var(--leading-snug); }
+
+h5, h6 {
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--leading-normal);
+}
+
+/* --- links --------------------------------------------------------------
+   Sublinhado fino que não corta as descidas das letras. Em texto corrido o
+   link é discreto; a cor só aparece no hover — leitura vem antes de
+   navegação.
+   ---------------------------------------------------------------------- */
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: var(--rule-strong);
+  transition: color var(--duration) var(--ease),
+              text-decoration-color var(--duration) var(--ease);
+}
+a:hover {
+  color: var(--accent-ink);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+hr {
+  border: 0;
+  border-top: var(--border-hair);
+  margin-block: var(--space-l);
+}
+
+::selection {
+  background: var(--accent-wash);
+  color: var(--accent-ink);
+}
+
+small { font-size: var(--step--1); }
+
+code, kbd, samp, pre {
+  font-family: var(--face-dado);
+  font-size: 0.92em;
+  font-variant-ligatures: none;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--step--1);
+}
+th, td {
+  text-align: left;
+  padding: var(--space-2xs) var(--space-s) var(--space-2xs) 0;
+  border-bottom: var(--border-hair);
+  vertical-align: baseline;
+}
+th {
+  font-weight: var(--weight-semibold);
+  color: var(--ink-muted);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   OBRA — o bloco de leitura longa
+   Só o que é assinado usa isto: análise, caso, panorama. O radar nunca.
+   ========================================================================= */
+.obra {
+  font-family: var(--face-obra);
+  font-size: var(--step-1);
+  line-height: var(--leading-relaxed);
+  letter-spacing: var(--tracking-normal);
+  max-width: var(--measure);
+}
+.obra > * + * { margin-block-start: var(--space-m); }
+.obra > h2 { margin-block-start: var(--space-xl); font-size: var(--step-2); }
+.obra > h3 { margin-block-start: var(--space-l); font-size: var(--step-1); }
+
+/* Abertura: o primeiro parágrafo puxa o leitor para dentro. */
+.obra > .lead {
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  color: var(--ink-muted);
+  max-width: var(--measure-lead);
+}
+
+.obra blockquote {
+  border-inline-start: var(--border-mark);
+  padding-inline-start: var(--space-m);
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.obra ul, .obra ol { padding-inline-start: var(--space-m); }
+.obra li + li { margin-block-start: var(--space-2xs); }
+
+/* =========================================================================
+   FLUXO — listas do radar e da agenda
+   Densidade maior, sem-serifa, feito para varrer com o olho, não para ler.
+   ========================================================================= */
+.fluxo {
+  font-family: var(--face-fluxo);
+  font-size: var(--step-0);
+  line-height: var(--leading-normal);
+}
+
+/* --- utilitários mínimos ------------------------------------------------- */
+.u-fluxo  { font-family: var(--face-fluxo); letter-spacing: var(--tracking-normal); }
+.u-obra   { font-family: var(--face-obra); }
+.u-dado   { font-family: var(--face-dado); font-variant-numeric: tabular-nums; }
+.u-muted  { color: var(--ink-muted); }
+.u-faint  { color: var(--ink-faint); }
+.u-measure { max-width: var(--measure); }
+
+.u-visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Wrapper de página. Conteúdo largo (tabela, diagrama) rola dentro de si;
+   o body nunca rola na horizontal. */
+.wrap {
+  width: min(100% - var(--gutter) * 2, var(--width-page));
+  margin-inline: auto;
+}
+.wrap--prose { width: min(100% - var(--gutter) * 2, var(--width-prose)); }
+.scroll-x { overflow-x: auto; overscroll-behavior-inline: contain; }

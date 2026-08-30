@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de design — Instituto Automação</title>
+
+<!-- DEV ONLY. Em produção as três famílias são self-hosted, variáveis e com
+     subset latin, servidas do próprio Worker com cache imutável. Nenhum
+     terceiro no caminho crítico da página. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+
+<style>
+  /* Estilos só desta página de amostra — não fazem parte do sistema. */
+  .spec-head {
+    border-bottom: var(--border-firm);
+    padding-block: var(--space-l) var(--space-m);
+    margin-block-end: var(--space-xl);
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: var(--space-m);
+  }
+  .spec-bloco { margin-block-end: var(--space-3xl); }
+  .spec-bloco > h2 {
+    font-family: var(--face-fluxo);
+    font-size: var(--step--1);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-kicker);
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-block-end: var(--space-2xs);
+    border-bottom: var(--border-hair);
+    margin-block-end: var(--space-l);
+  }
+  .spec-nota {
+    font-size: var(--step--1);
+    color: var(--ink-muted);
+    max-width: var(--measure);
+    margin-block-end: var(--space-m);
+  }
+  .spec-grade { display: grid; gap: var(--space-m); }
+  .spec-grade--4 { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+  .spec-grade--2 { grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); }
+  .spec-linha { display: flex; flex-wrap: wrap; gap: var(--space-s); align-items: center; }
+
+  .swatch { display: grid; gap: var(--space-3xs); }
+  .swatch__chip {
+    block-size: 3.5rem; border-radius: var(--radius-s);
+    border: var(--border-hair);
+  }
+  .swatch__nome { font-size: var(--step--2); font-weight: var(--weight-semibold); }
+  .swatch__var { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); }
+
+  .escala { display: grid; gap: var(--space-s); }
+  .escala__linha { display: flex; align-items: baseline; gap: var(--space-m); }
+  .escala__tag {
+    font-family: var(--face-dado); font-size: var(--step--2);
+    color: var(--ink-faint); inline-size: 5.5rem; flex: none;
+  }
+  .espaco__barra { background: var(--accent-mark); block-size: 0.75rem; border-radius: var(--radius-xs); }
+
+  .toggle {
+    display: inline-flex; align-items: center; gap: var(--space-2xs);
+    padding: var(--space-3xs) var(--space-xs);
+    border: var(--border-firm); border-radius: var(--radius-pill);
+    background: var(--paper-raised); cursor: pointer;
+    font-size: var(--step--1);
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <header class="spec-head">
+    <div>
+      <p class="kicker kicker--dot" style="--accent-ink: var(--ink-muted); --accent-mark: var(--live)">Sistema de design · v1</p>
+      <h1 style="margin-block-start: var(--space-2xs)">Instituto Automação</h1>
+      <p class="spec-nota" style="margin-block-start: var(--space-s)">
+        Os tokens antes das telas. Tudo aqui sai de <code>tokens.css</code>,
+        <code>base.css</code> e <code>components.css</code> — nenhum valor bruto vive
+        fora deles.
+      </p>
+    </div>
+    <button class="toggle u-fluxo" id="tema" type="button" aria-live="polite">Alternar tema</button>
+  </header>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>1 · As três famílias</h2>
+    <p class="spec-nota">
+      O contraste tipográfico carrega a decisão editorial central do projeto —
+      <strong>impessoal no fluxo, assinado na obra</strong> — sem precisar explicá-la.
+      Quem lê uma análise sente que entrou noutro lugar antes de ler a primeira palavra.
+    </p>
+
+    <div class="spec-grade spec-grade--2">
+      <div>
+        <p class="kicker" style="--accent-ink: var(--ink); --accent-mark: var(--ink)">Obra · Newsreader</p>
+        <p class="u-obra" style="font-size: var(--step-3); line-height: var(--leading-tight); margin-block: var(--space-2xs)">
+          A distância entre a fronteira e o chão de fábrica
+        </p>
+        <p class="spec-nota">Análise, Caso, Panorama e títulos. Serifada desenhada para leitura de notícia em tela.</p>
+      </div>
+      <div>
+        <p class="kicker" style="--accent-ink: var(--ink); --accent-mark: var(--ink)">Fluxo · IBM Plex Sans</p>
+        <p class="u-fluxo" style="font-size: var(--step-3); line-height: var(--leading-tight); margin-block: var(--space-2xs)">
+          Radar, agenda, navegação
+        </p>
+        <p class="spec-nota">Interface e listas. Sem-serifa de origem técnica — combina com o assunto sem parecer startup.</p>
+      </div>
+      <div>
+        <p class="kicker" style="--accent-ink: var(--ink); --accent-mark: var(--ink)">Dado · IBM Plex Mono</p>
+        <p class="u-dado" style="font-size: var(--step-2); margin-block: var(--space-2xs)">14 min · 28/08/2026 · press.siemens.com</p>
+        <p class="spec-nota">Relógio, carimbos, fonte de origem, termos do glossário. Número tabular, alinhamento previsível.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>2 · Escala tipográfica</h2>
+    <p class="spec-nota">
+      Fluida com <code>clamp()</code>: acompanha a largura sem quebra de layout.
+      O passo 0 é o corpo do texto — 17px no celular, 18px no desktop. É tamanho de
+      <em>leitura</em>, não de interface.
+    </p>
+    <div class="escala">
+      <div class="escala__linha"><span class="escala__tag">step-5</span><span class="u-obra" style="font-size: var(--step-5); line-height: 1.05">Panorama</span></div>
+      <div class="escala__linha"><span class="escala__tag">step-4</span><span class="u-obra" style="font-size: var(--step-4); line-height: 1.1">Título de página</span></div>
+      <div class="escala__linha"><span class="escala__tag">step-3</span><span class="u-obra" style="font-size: var(--step-3)">Título de seção</span></div>
+      <div class="escala__linha"><span class="escala__tag">step-2</span><span class="u-obra" style="font-size: var(--step-2)">Título de item do radar</span></div>
+      <div class="escala__linha"><span class="escala__tag">step-1</span><span class="u-obra" style="font-size: var(--step-1)">Corpo da obra</span></div>
+      <div class="escala__linha"><span class="escala__tag">step-0</span><span style="font-size: var(--step-0)">Corpo da interface</span></div>
+      <div class="escala__linha"><span class="escala__tag">step--1</span><span style="font-size: var(--step--1)">Metadado, legenda, nota</span></div>
+      <div class="escala__linha"><span class="escala__tag">step--2</span><span style="font-size: var(--step--2)">KICKER, SELO, CARIMBO</span></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>3 · Cor — base neutra</h2>
+    <p class="spec-nota">
+      O papel não é branco puro e a tinta não é preta pura: em texto longo,
+      contraste máximo cansa. Os dois modos são definidos por token, nunca por
+      filtro ou inversão.
+    </p>
+    <div class="spec-grade spec-grade--4">
+      <div class="swatch"><div class="swatch__chip" style="background: var(--paper)"></div><span class="swatch__nome">Papel</span><span class="swatch__var">--paper</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--paper-raised)"></div><span class="swatch__nome">Papel elevado</span><span class="swatch__var">--paper-raised</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--paper-sunken)"></div><span class="swatch__nome">Papel rebaixado</span><span class="swatch__var">--paper-sunken</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--ink)"></div><span class="swatch__nome">Tinta</span><span class="swatch__var">--ink</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--ink-muted)"></div><span class="swatch__nome">Tinta suave</span><span class="swatch__var">--ink-muted</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--ink-faint)"></div><span class="swatch__nome">Tinta fraca</span><span class="swatch__var">--ink-faint</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--rule)"></div><span class="swatch__nome">Fio</span><span class="swatch__var">--rule</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background: var(--rule-strong)"></div><span class="swatch__nome">Fio firme</span><span class="swatch__var">--rule-strong</span></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>4 · Os quatro acentos</h2>
+    <p class="spec-nota">
+      Um acento por núcleo, aplicado só em <strong>fio, kicker, tarja e ponto</strong> —
+      nunca em fundo grande. Os quatro matizes ficam bem separados no círculo
+      (âmbar, teal, índigo, tijolo), então continuam distinguíveis para quem não
+      separa verde de vermelho. O site inteiro parece um só; você sempre sabe onde está.
+    </p>
+    <div class="spec-grade spec-grade--4">
+      <div class="n-industria swatch"><div class="swatch__chip" style="background: var(--accent-wash); border-color: var(--accent-mark)"></div><span class="kicker">Indústria</span><span class="swatch__var">--industria-*</span></div>
+      <div class="n-operacao swatch"><div class="swatch__chip" style="background: var(--accent-wash); border-color: var(--accent-mark)"></div><span class="kicker">Operação</span><span class="swatch__var">--operacao-*</span></div>
+      <div class="n-observatorio swatch"><div class="swatch__chip" style="background: var(--accent-wash); border-color: var(--accent-mark)"></div><span class="kicker">Observatório</span><span class="swatch__var">--observatorio-*</span></div>
+      <div class="n-edificacoes swatch"><div class="swatch__chip" style="background: var(--accent-wash); border-color: var(--accent-mark)"></div><span class="kicker">Edificações</span><span class="swatch__var">--edificacoes-*</span></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>5 · Espaço</h2>
+    <p class="spec-nota">Base 4px. Nomeado por tamanho, nunca por uso — <code>--space-m</code> não vira "espaço entre cards", senão o sistema apodrece.</p>
+    <div class="n-observatorio escala">
+      <div class="escala__linha"><span class="escala__tag">3xs · 4</span><div class="espaco__barra" style="inline-size: var(--space-3xs)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">2xs · 8</span><div class="espaco__barra" style="inline-size: var(--space-2xs)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">xs · 12</span><div class="espaco__barra" style="inline-size: var(--space-xs)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">s · 16</span><div class="espaco__barra" style="inline-size: var(--space-s)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">m · 24</span><div class="espaco__barra" style="inline-size: var(--space-m)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">l · 32</span><div class="espaco__barra" style="inline-size: var(--space-l)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">xl · 48</span><div class="espaco__barra" style="inline-size: var(--space-xl)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">2xl · 64</span><div class="espaco__barra" style="inline-size: var(--space-2xl)"></div></div>
+      <div class="escala__linha"><span class="escala__tag">3xl · 96</span><div class="espaco__barra" style="inline-size: var(--space-3xl)"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco n-industria">
+    <h2>6 · Primitivas</h2>
+
+    <p class="spec-nota"><strong>Kicker</strong> — o rótulo do núcleo. Caixa alta pequena precisa de entreletra, senão vira mancha.</p>
+    <div class="spec-linha" style="margin-block-end: var(--space-xl)">
+      <span class="kicker">Indústria</span>
+      <span class="kicker kicker--dot">Radar</span>
+      <span class="n-operacao kicker">Operação</span>
+      <span class="n-observatorio kicker kicker--dot">Observatório</span>
+    </div>
+
+    <p class="spec-nota">
+      <strong>Relógio</strong> — a assinatura visual do projeto. Explica o produto
+      inteiro sem uma linha de texto institucional, então não é metadado cinza: é
+      elemento gráfico. Passadas 24 horas o argumento "primeira mão" não vale mais e
+      o destaque some sozinho.
+    </p>
+    <div class="spec-linha" style="margin-block-end: var(--space-xl)">
+      <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">14 min</span> após a fonte</span>
+      <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">2 h</span> após a fonte</span>
+      <span class="relogio relogio--frio"><span class="relogio__ponto"></span><span class="relogio__valor">3 dias</span> após a fonte</span>
+    </div>
+
+    <p class="spec-nota"><strong>Selos</strong> — estado do item. O de revisão pendente existe por honestidade: some quando alguém revisa.</p>
+    <div class="spec-linha" style="margin-block-end: var(--space-xl)">
+      <span class="selo selo--nucleo">Indústria</span>
+      <span class="selo selo--radar">Radar</span>
+      <span class="selo selo--traducao">Tradução integral</span>
+      <span class="selo selo--pendente">Tradução automática · revisão pendente</span>
+      <span class="selo selo--original">EN</span>
+    </div>
+
+    <p class="spec-nota"><strong>Filtro sem JavaScript</strong> — cada combinação vira uma URL própria: indexável, linkável, e mandável no WhatsApp para o organizador da feira.</p>
+    <div class="filtro" style="margin-block-end: var(--space-xl)">
+      <span class="filtro__rotulo">Núcleo</span>
+      <a class="pilula" href="?" aria-current="true">Todos</a>
+      <a class="pilula n-industria" href="?n=industria">Indústria</a>
+      <a class="pilula n-operacao" href="?n=operacao">Operação</a>
+      <a class="pilula n-observatorio" href="?n=observatorio">Observatório</a>
+      <a class="pilula n-edificacoes" href="?n=edificacoes">Edificações</a>
+    </div>
+
+    <p class="spec-nota"><strong>Aviso institucional</strong> — política editorial, correção, transparência.</p>
+    <div class="aviso">
+      <strong>Como este item foi produzido.</strong> Tradução integral a partir de material
+      liberado para imprensa pela própria fonte, com crédito e link. O parágrafo
+      "o que isso muda aqui" é redação do Instituto.
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>7 · Blocos em contexto</h2>
+
+    <p class="spec-nota">
+      <strong>Item de radar.</strong> Sem caixa e sem sombra: fio embaixo e espaço.
+      Lista longa de cards fechados vira parede — e o radar é para varrer com o olho,
+      não para ler. Note que o mesmo componente troca de acento só por estar dentro de
+      outro container.
+    </p>
+
+    <div class="n-industria" style="margin-block-end: var(--space-xl)">
+      <div class="secao">
+        <span class="secao__titulo">Radar · Indústria</span>
+        <span class="secao__acao"><a href="#">ver tudo</a></span>
+      </div>
+
+      <article class="item">
+        <div class="item__topo">
+          <span class="kicker kicker--dot">Indústria</span>
+          <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">14 min</span> após a fonte</span>
+          <span class="selo selo--traducao">Tradução integral</span>
+        </div>
+        <h3 class="item__titulo"><a href="#">Nova geração de controladores promete integrar diagnóstico preditivo direto no CLP</a></h3>
+        <p class="item__resumo">
+          O fabricante anunciou uma linha em que o modelo de detecção de anomalia roda no
+          próprio controlador, sem passar por servidor externo — e afirma reduzir o tempo
+          de reação a falha de minutos para segundos.
+        </p>
+        <p class="item__contexto">
+          A linha ainda não tem representação declarada no Brasil, e integrador daqui só
+          deve ver preço no segundo semestre. Para quem opera parque antigo, o ponto
+          prático é outro: o protocolo é retrocompatível.
+        </p>
+        <p class="item__pe">
+          <span class="item__fonte"><a href="#">press.exemplo.com</a></span>
+          <span>·</span><span>28 ago 2026, 09:12</span>
+          <span>·</span><span class="selo selo--original">DE</span>
+        </p>
+      </article>
+
+      <article class="item">
+        <div class="item__topo">
+          <span class="kicker kicker--dot">Indústria</span>
+          <span class="relogio relogio--frio"><span class="relogio__ponto"></span><span class="relogio__valor">1 dia</span> após a fonte</span>
+          <span class="selo selo--pendente">Revisão pendente</span>
+        </div>
+        <h3 class="item__titulo"><a href="#">Consórcio publica revisão da norma de segurança para células robotizadas colaborativas</a></h3>
+        <p class="item__resumo">
+          A revisão muda o cálculo de distância de separação e passa a exigir registro
+          documental do ensaio de força e pressão.
+        </p>
+        <p class="item__pe">
+          <span class="item__fonte"><a href="#">exemplo.org</a></span>
+          <span>·</span><span>27 ago 2026, 16:40</span>
+          <span>·</span><span class="selo selo--original">EN</span>
+        </p>
+      </article>
+    </div>
+
+    <p class="spec-nota">
+      <strong>Evento.</strong> A data vira bloco: quem varre agenda procura data, não nome.
+      É o componente que mais paga o projeto — organizador quer estar listado, e o Google
+      lê <code>schema.org/Event</code>.
+    </p>
+    <div class="n-operacao" style="margin-block-end: var(--space-xl)">
+      <article class="evento">
+        <div class="evento__data">
+          <span class="evento__dia">12</span>
+          <span class="evento__mes">Nov</span>
+          <span class="evento__ano">2026</span>
+        </div>
+        <div class="evento__corpo">
+          <h3 class="evento__nome"><a href="#">Encontro de automação de processos e agentes de IA</a></h3>
+          <p class="evento__meta">
+            <span>São Paulo · SP</span><span>Presencial</span><span>Gratuito</span>
+            <span class="selo selo--nucleo">Operação</span>
+          </p>
+        </div>
+      </article>
+      <article class="evento n-industria">
+        <div class="evento__data">
+          <span class="evento__dia">03</span>
+          <span class="evento__mes">Mar</span>
+          <span class="evento__ano">2027</span>
+        </div>
+        <div class="evento__corpo">
+          <h3 class="evento__nome"><a href="#">Feira internacional de máquinas e automação industrial</a></h3>
+          <p class="evento__meta">
+            <span>Hannover · Alemanha</span><span>Presencial</span><span>Pago</span>
+            <span class="selo selo--nucleo">Indústria</span>
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <p class="spec-nota"><strong>Termo do glossário.</strong> É infraestrutura de tradução — entra no prompt como dicionário obrigatório — e página pública ao mesmo tempo.</p>
+    <div class="n-edificacoes" style="margin-block-end: var(--space-xl)">
+      <div class="termo">
+        <div class="termo__par">
+          <span class="termo__origem">closed-loop control</span>
+          <span class="termo__seta">→</span>
+          <span class="termo__pt">controle em malha fechada</span>
+          <span class="termo__travado">travado</span>
+        </div>
+        <p class="termo__nota">Nunca "controle de circuito fechado", que é tradução literal e denuncia máquina na primeira linha.</p>
+      </div>
+      <div class="termo">
+        <div class="termo__par">
+          <span class="termo__origem">drive</span>
+          <span class="termo__seta">→</span>
+          <span class="termo__pt">inversor de frequência</span>
+          <span class="termo__travado">travado</span>
+        </div>
+        <p class="termo__nota">Quando o contexto for acionamento em geral, usar "acionamento". Nunca deixar "drive" solto.</p>
+      </div>
+    </div>
+
+    <p class="spec-nota"><strong>Bloco de obra.</strong> Coluna única, serifada, entrelinha generosa e medida de 68 caracteres. É aqui que a assinatura aparece — e só aqui.</p>
+    <div class="n-observatorio">
+      <div class="secao">
+        <span class="secao__titulo">Análise · Observatório</span>
+      </div>
+      <h2 style="max-width: var(--measure); margin-block-end: var(--space-m)">
+        O atraso não está na tecnologia — está no orçamento de manutenção
+      </h2>
+      <div class="assinatura" style="margin-block-end: var(--space-m)">
+        <span class="assinatura__autor">Pedro Oliveira</span>
+        <span class="assinatura__nucleo">Núcleo Observatório</span>
+        <span class="u-dado">28 ago 2026</span>
+        <span>9 min de leitura</span>
+      </div>
+      <div class="obra">
+        <p class="lead">
+          Todo mês o radar registra lançamentos que só chegam ao Brasil um ano depois.
+          A explicação fácil é preço de importação. Os números da nossa própria base
+          apontam para outro lugar.
+        </p>
+        <p>
+          De março a agosto o Instituto catalogou lançamentos de controladores, sensores e
+          plataformas de supervisão publicados fora do país. A pergunta que interessa não é
+          quantos existem, e sim quantos foram citados por alguém que opera no Brasil — e
+          quanto tempo passou entre uma coisa e outra.
+        </p>
+        <blockquote>
+          Ninguém cita agregador. O que dá autoridade não é ter lido tudo: é ter medido
+          alguma coisa que ninguém mediu.
+        </blockquote>
+        <p>
+          O padrão que aparece é consistente e desconfortável. Onde há verba recorrente de
+          manutenção, o intervalo cai pela metade. Onde a compra é tratada como
+          investimento pontual, o parque envelhece até quebrar — e aí o critério de escolha
+          deixa de ser técnico.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section class="spec-bloco">
+    <h2>8 · Regras de uso</h2>
+    <div class="obra" style="font-size: var(--step-0)">
+      <ol>
+        <li><strong>Nenhum valor bruto fora de <code>tokens.css</code>.</strong> Cor, tamanho ou espaço escrito à mão num componente é dívida imediata.</li>
+        <li><strong>Componente não sabe em que núcleo está.</strong> Ele lê <code>--accent-*</code>; quem define é o container <code>.n-*</code>. É isso que faz o mesmo card servir aos quatro.</li>
+        <li><strong>Acento só em fio, kicker, tarja e ponto.</strong> Fundo grande colorido quebra a leitura e envelhece rápido.</li>
+        <li><strong>Serifada é obra, sem-serifa é fluxo.</strong> A regra tipográfica é a regra editorial. Não misturar por gosto.</li>
+        <li><strong>Zero JavaScript por padrão.</strong> Filtro é <code>&lt;form method="get"&gt;</code>, dobra é <code>&lt;details&gt;</code>. A única exceção do site é o botão de tema.</li>
+        <li><strong>Sombra quase não existe.</strong> A página se estrutura por fio e espaço — é como publicação impressa se organiza, e envelhece melhor.</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Única linha de JS do site em produção: o tema. Tudo o mais é HTML.
+  (function () {
+    var raiz = document.documentElement;
+    try {
+      var salvo = localStorage.getItem('tema');
+      if (salvo === 'dark' || salvo === 'light') raiz.dataset.theme = salvo;
+    } catch (e) { /* navegador com storage bloqueado: segue no tema do sistema */ }
+
+    document.getElementById('tema').addEventListener('click', function () {
+      var escuroAgora = raiz.dataset.theme
+        ? raiz.dataset.theme === 'dark'
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      var novo = escuroAgora ? 'light' : 'dark';
+      raiz.dataset.theme = novo;
+      try { localStorage.setItem('tema', novo); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

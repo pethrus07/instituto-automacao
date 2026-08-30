@@ -1,0 +1,261 @@
+/* =========================================================================
+   Instituto Automação — tokens
+   A fonte da verdade do design. Nenhum valor bruto (cor, tamanho, espaço)
+   deve aparecer fora deste arquivo.
+
+   Regra dos temas: o modo claro é definido em `:root` puro. O escuro é
+   redefinido DUAS vezes — no `prefers-color-scheme` (protegido contra o
+   toggle) e no `[data-theme="dark"]` — para que preferência do sistema e
+   escolha manual funcionem nos dois sentidos.
+   ========================================================================= */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------------------------------------------------------------------
+     TIPOGRAFIA — três famílias, cada uma com um trabalho
+
+     Newsreader   OBRA    — análise, caso, panorama. Leitura longa.
+     IBM Plex Sans FLUXO  — interface, radar, agenda, navegação.
+     IBM Plex Mono DADO   — relógio, carimbos, termos do glossário.
+
+     O contraste serifada × sem-serifa carrega a decisão editorial central
+     do projeto (impessoal no fluxo, assinado na obra) sem precisar
+     explicá-la. Em produção as três são self-hosted, variáveis e com
+     subset latin — ver design/SISTEMA.md.
+     --------------------------------------------------------------------- */
+  --face-obra:  "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  --face-fluxo: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --face-dado:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Escala fluida. O passo 0 é o corpo de texto: 17px no celular, 18px no
+     desktop — tamanho de leitura, não de interface. */
+  --step--2: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
+  --step--1: clamp(0.8125rem, 0.78rem + 0.16vw, 0.875rem);
+  --step-0:  clamp(1.0625rem, 1.03rem + 0.18vw, 1.125rem);
+  --step-1:  clamp(1.1875rem, 1.13rem + 0.28vw, 1.3125rem);
+  --step-2:  clamp(1.375rem, 1.28rem + 0.47vw, 1.625rem);
+  --step-3:  clamp(1.625rem, 1.46rem + 0.82vw, 2.125rem);
+  --step-4:  clamp(2rem, 1.7rem + 1.5vw, 2.875rem);
+  --step-5:  clamp(2.5rem, 1.98rem + 2.6vw, 4rem);
+
+  --leading-tight:   1.12;   /* títulos grandes */
+  --leading-snug:    1.28;   /* títulos pequenos, cards */
+  --leading-normal:  1.45;   /* interface */
+  --leading-relaxed: 1.68;   /* obra — leitura longa */
+
+  --tracking-tight:  -0.018em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.02em;
+  --tracking-kicker: 0.09em;  /* caixa alta pequena precisa de ar */
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* Medida de leitura. Acima de ~72ch o olho perde a linha na volta. */
+  --measure:       68ch;
+  --measure-lead:  56ch;
+  --measure-short: 44ch;
+
+  /* ---------------------------------------------------------------------
+     ESPAÇO — base 4px. Nomes por tamanho, não por uso.
+     --------------------------------------------------------------------- */
+  --space-3xs: 0.25rem;   /*  4 */
+  --space-2xs: 0.5rem;    /*  8 */
+  --space-xs:  0.75rem;   /* 12 */
+  --space-s:   1rem;      /* 16 */
+  --space-m:   1.5rem;    /* 24 */
+  --space-l:   2rem;      /* 32 */
+  --space-xl:  3rem;      /* 48 */
+  --space-2xl: 4rem;      /* 64 */
+  --space-3xl: 6rem;      /* 96 */
+
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --width-prose: 42rem;
+  --width-page:  76rem;
+  --width-wide:  90rem;
+
+  /* ---------------------------------------------------------------------
+     COR — base neutra (modo claro)
+     O papel não é branco puro: em texto longo, branco puro cansa.
+     --------------------------------------------------------------------- */
+  --paper:         #fbfaf8;
+  --paper-raised:  #ffffff;
+  --paper-sunken:  #f2f0ec;
+  --paper-invert:  #16161a;
+
+  --ink:           #16161a;
+  --ink-muted:     #55555f;
+  --ink-faint:     #83838e;
+  --ink-invert:    #fbfaf8;
+
+  --rule:          #e4e1db;
+  --rule-strong:   #c9c5bd;
+
+  /* Acentos dos quatro núcleos.
+     `-ink`  = seguro para texto sobre o papel (contraste >= 4.5:1)
+     `-mark` = fio, ponto, tarja — pode saturar mais
+     `-wash` = fundo de tarja discreta, nunca de bloco grande
+
+     Os quatro matizes ficam bem separados no círculo (âmbar, teal, índigo,
+     tijolo) para não dependerem de saturação para se distinguir — e
+     continuam legíveis para quem não distingue verde de vermelho. */
+  --industria-ink:      #8f4d07;
+  --industria-mark:     #b8650f;
+  --industria-wash:     #f7eddf;
+
+  --operacao-ink:       #0b6157;
+  --operacao-mark:      #0e7a6d;
+  --operacao-wash:      #e2f0ed;
+
+  --observatorio-ink:   #443fa4;
+  --observatorio-mark:  #5852c4;
+  --observatorio-wash:  #e9e8f7;
+
+  --edificacoes-ink:    #9c3040;
+  --edificacoes-mark:   #bb3c4e;
+  --edificacoes-wash:   #f8e8ea;
+
+  /* Sinais de estado */
+  --live:          #157f3b;   /* o relógio do "primeira mão" */
+  --live-wash:     #e4f2e8;
+  --alerta:        #9a5b00;   /* selo de revisão pendente */
+  --alerta-wash:   #f9efdc;
+  --focus:         #2563eb;
+
+  /* Acento ativo. Cada seção do site sobrescreve estes três no seu
+     container; todo componente lê daqui e nenhum precisa saber em que
+     núcleo está. É o que faz um card funcionar nos quatro contextos. */
+  --accent-ink:  var(--ink);
+  --accent-mark: var(--ink);
+  --accent-wash: var(--paper-sunken);
+
+  /* ---------------------------------------------------------------------
+     SUPERFÍCIE
+     Sombra quase não aparece: o site se estrutura por fio e espaço, que é
+     como publicação impressa se organiza — e envelhece melhor.
+     --------------------------------------------------------------------- */
+  --radius-xs: 2px;
+  --radius-s:  4px;
+  --radius-m:  8px;
+  --radius-pill: 999px;
+
+  --border-hair: 1px solid var(--rule);
+  --border-firm: 1px solid var(--rule-strong);
+  --border-mark: 2px solid var(--accent-mark);
+
+  --shadow-raised: 0 1px 2px rgb(22 22 26 / 0.04), 0 4px 12px rgb(22 22 26 / 0.04);
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration: 160ms;
+}
+
+/* --- ESCURO por preferência do sistema (não pisa em cima do toggle) ----- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:        #101013;
+    --paper-raised: #17171c;
+    --paper-sunken: #0b0b0e;
+    --paper-invert: #ededf0;
+
+    --ink:          #ededf0;
+    --ink-muted:    #a2a2ae;
+    --ink-faint:    #70707c;
+    --ink-invert:   #101013;
+
+    --rule:         #26262e;
+    --rule-strong:  #3b3b46;
+
+    --industria-ink:     #f0a94f;
+    --industria-mark:    #e0932f;
+    --industria-wash:    #2a1f10;
+
+    --operacao-ink:      #46c7b4;
+    --operacao-mark:     #2fae9b;
+    --operacao-wash:     #0d2420;
+
+    --observatorio-ink:  #a09bf8;
+    --observatorio-mark: #8781ee;
+    --observatorio-wash: #1a1930;
+
+    --edificacoes-ink:   #f0899b;
+    --edificacoes-mark:  #dd6b7f;
+    --edificacoes-wash:  #2c151a;
+
+    --live:        #4ade80;
+    --live-wash:   #0f2418;
+    --alerta:      #e0a94f;
+    --alerta-wash: #2a2010;
+    --focus:       #74a2ff;
+
+    --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
+  }
+}
+
+/* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
+:root[data-theme="dark"] {
+  --paper:        #101013;
+  --paper-raised: #17171c;
+  --paper-sunken: #0b0b0e;
+  --paper-invert: #ededf0;
+
+  --ink:          #ededf0;
+  --ink-muted:    #a2a2ae;
+  --ink-faint:    #70707c;
+  --ink-invert:   #101013;
+
+  --rule:         #26262e;
+  --rule-strong:  #3b3b46;
+
+  --industria-ink:     #f0a94f;
+  --industria-mark:    #e0932f;
+  --industria-wash:    #2a1f10;
+
+  --operacao-ink:      #46c7b4;
+  --operacao-mark:     #2fae9b;
+  --operacao-wash:     #0d2420;
+
+  --observatorio-ink:  #a09bf8;
+  --observatorio-mark: #8781ee;
+  --observatorio-wash: #1a1930;
+
+  --edificacoes-ink:   #f0899b;
+  --edificacoes-mark:  #dd6b7f;
+  --edificacoes-wash:  #2c151a;
+
+  --live:        #4ade80;
+  --live-wash:   #0f2418;
+  --alerta:      #e0a94f;
+  --alerta-wash: #2a2010;
+  --focus:       #74a2ff;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
+}
+
+/* -------------------------------------------------------------------------
+   NÚCLEOS
+   Aplicar a classe no container da seção. Tudo dentro passa a ler o acento
+   certo sem nenhum componente saber onde está.
+   ------------------------------------------------------------------------- */
+.n-industria {
+  --accent-ink: var(--industria-ink);
+  --accent-mark: var(--industria-mark);
+  --accent-wash: var(--industria-wash);
+}
+.n-operacao {
+  --accent-ink: var(--operacao-ink);
+  --accent-mark: var(--operacao-mark);
+  --accent-wash: var(--operacao-wash);
+}
+.n-observatorio {
+  --accent-ink: var(--observatorio-ink);
+  --accent-mark: var(--observatorio-mark);
+  --accent-wash: var(--observatorio-wash);
+}
+.n-edificacoes {
+  --accent-ink: var(--edificacoes-ink);
+  --accent-mark: var(--edificacoes-mark);
+  --accent-wash: var(--edificacoes-wash);
+}
