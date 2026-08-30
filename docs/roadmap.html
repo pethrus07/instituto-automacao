@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do projeto — Instituto Automação</title>
+
+<!-- DEV ONLY: em produção as fontes são self-hosted. Ver design/SISTEMA.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../design/tokens.css">
+<link rel="stylesheet" href="../design/base.css">
+<link rel="stylesheet" href="../design/components.css">
+
+<style>
+/* ---- só desta página ---- */
+.topo {
+  border-bottom: var(--border-firm);
+  padding-block: var(--space-l) var(--space-m);
+  display: flex; flex-wrap: wrap; gap: var(--space-m);
+  align-items: flex-end; justify-content: space-between;
+}
+.marco {
+  display: flex; gap: var(--space-l); flex-wrap: wrap; align-items: center;
+}
+.marco__num {
+  font-family: var(--face-dado); font-size: var(--step-4);
+  font-weight: var(--weight-bold); font-variant-numeric: tabular-nums;
+  line-height: 1; color: var(--accent-ink);
+}
+.marco__rot {
+  font-size: var(--step--2); text-transform: uppercase;
+  letter-spacing: var(--tracking-kicker); color: var(--ink-faint);
+}
+
+.barra { block-size: 6px; background: var(--paper-sunken); border-radius: var(--radius-pill); overflow: hidden; }
+.barra__preenche { block-size: 100%; background: var(--accent-mark); inline-size: 0; transition: inline-size var(--duration) var(--ease); }
+
+nav.abas {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: var(--space-2xs);
+  padding-block: var(--space-s);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: var(--border-hair);
+  margin-block-end: var(--space-2xl);
+}
+
+section.bloco { margin-block-end: var(--space-3xl); scroll-margin-top: 5rem; }
+section.bloco > h2 {
+  font-family: var(--face-fluxo); font-size: var(--step--1);
+  font-weight: var(--weight-semibold); letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase; color: var(--ink-faint);
+  padding-block-end: var(--space-2xs); border-bottom: var(--border-hair);
+  margin-block-end: var(--space-m);
+}
+.nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); margin-block-end: var(--space-l); }
+
+/* ---- a esteira ---- */
+.esteira { display: grid; gap: var(--space-2xs); }
+.passo {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr auto;
+  gap: var(--space-s);
+  align-items: start;
+  padding: var(--space-s);
+  border: var(--border-hair);
+  border-radius: var(--radius-s);
+  background: var(--paper-raised);
+}
+.passo--portao { border-style: dashed; border-color: var(--industria-mark); background: var(--industria-wash); }
+.passo--humano { border-color: var(--industria-mark); }
+.passo__n {
+  font-family: var(--face-dado); font-size: var(--step--1);
+  color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  padding-block-start: 2px;
+}
+.passo__t { font-weight: var(--weight-semibold); font-size: var(--step-0); }
+.passo__d { font-size: var(--step--1); color: var(--ink-muted); margin-block-start: 2px; max-width: 46ch; }
+.passo__quem { display: grid; gap: var(--space-3xs); justify-items: end; text-align: right; }
+.seta { justify-self: center; color: var(--ink-faint); font-size: var(--step--1); line-height: 1; }
+
+.ramo {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-2xs); margin-inline-start: 3.25rem;
+}
+.ramo .passo { grid-template-columns: 1fr; }
+
+/* ---- blocos de 3 dias ---- */
+.grade-blocos { display: grid; gap: var(--space-m); grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+.cartao {
+  border: var(--border-hair); border-radius: var(--radius-m);
+  background: var(--paper-raised); overflow: hidden;
+  display: grid; align-content: start;
+}
+.cartao__topo {
+  padding: var(--space-s) var(--space-m);
+  border-bottom: var(--border-hair);
+  border-top: 3px solid var(--accent-mark);
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-s);
+}
+.cartao__nome { font-family: var(--face-obra); font-size: var(--step-1); font-weight: var(--weight-semibold); }
+.cartao__dias { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); white-space: nowrap; }
+.cartao__lista { padding: var(--space-2xs) var(--space-m) var(--space-s); display: grid; }
+
+/* ---- item marcável ---- */
+.tarefa {
+  display: grid; grid-template-columns: 1.15rem 1fr; gap: var(--space-2xs);
+  align-items: start; padding-block: var(--space-2xs);
+  border-bottom: var(--border-hair); cursor: pointer;
+}
+.tarefa:last-child { border-bottom: 0; }
+.tarefa__caixa {
+  inline-size: 1.15rem; block-size: 1.15rem; margin-block-start: 2px;
+  border: var(--border-firm); border-radius: var(--radius-xs);
+  display: grid; place-items: center; flex: none;
+  transition: background-color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.tarefa__caixa::after { content: "✓"; font-size: 0.8rem; color: transparent; line-height: 1; }
+.tarefa[data-feito="1"] .tarefa__caixa { background: var(--accent-mark); border-color: var(--accent-mark); }
+.tarefa[data-feito="1"] .tarefa__caixa::after { color: var(--paper-raised); }
+.tarefa[data-feito="1"] .tarefa__t { text-decoration: line-through; color: var(--ink-faint); }
+.tarefa__t { font-size: var(--step--1); line-height: var(--leading-normal); }
+.tarefa__n { font-size: var(--step--2); color: var(--ink-muted); display: block; margin-block-start: 2px; }
+.tarefa__dep {
+  font-family: var(--face-dado); font-size: var(--step--2);
+  color: var(--ink-faint); display: block; margin-block-start: 2px;
+}
+
+/* ---- listas de fase ---- */
+.linhas { display: grid; }
+.linha {
+  display: grid; grid-template-columns: 1.15rem 1fr auto; gap: var(--space-s);
+  align-items: start; padding-block: var(--space-s);
+  border-bottom: var(--border-hair); cursor: pointer;
+}
+.linha__t { font-size: var(--step-0); font-weight: var(--weight-medium); }
+.linha__n { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); margin-block-start: 2px; }
+.linha[data-feito="1"] .linha__t { text-decoration: line-through; color: var(--ink-faint); }
+
+.travas { display: grid; gap: var(--space-2xs); }
+.trava {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  border: var(--border-hair); border-inline-start: 3px solid var(--industria-mark);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--paper-raised);
+}
+.trava__n { font-family: var(--face-dado); font-size: var(--step-2); font-weight: var(--weight-bold); color: var(--industria-ink); line-height: 1; }
+
+.toggle {
+  display: inline-flex; align-items: center; gap: var(--space-2xs);
+  padding: var(--space-3xs) var(--space-xs);
+  border: var(--border-firm); border-radius: var(--radius-pill);
+  background: var(--paper-raised); cursor: pointer; font-size: var(--step--1);
+}
+@media print { nav.abas, .toggle { display: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="topo n-observatorio">
+  <div>
+    <p class="kicker kicker--dot">Painel do projeto</p>
+    <h1 style="margin-block-start: var(--space-2xs)">Instituto Automação</h1>
+    <p class="nota" style="margin-block-start: var(--space-s); margin-block-end: 0">
+      Como a máquina funciona e o que falta construir. Marque o que for fazendo —
+      fica salvo neste navegador.
+    </p>
+  </div>
+  <div class="marco">
+    <div>
+      <div class="marco__num" id="faltam">—</div>
+      <div class="marco__rot">dias até 12/09</div>
+    </div>
+    <div>
+      <div class="marco__num" id="pct">0%</div>
+      <div class="marco__rot">do P0 feito</div>
+    </div>
+    <button class="toggle u-fluxo" id="tema" type="button">Tema</button>
+  </div>
+</header>
+
+<div class="n-observatorio" style="padding-block: var(--space-s)">
+  <div class="barra"><div class="barra__preenche" id="barra"></div></div>
+</div>
+
+<nav class="abas u-fluxo">
+  <a class="pilula" href="#funcionamento">Como funciona</a>
+  <a class="pilula n-observatorio" href="#p0">Os 15 dias</a>
+  <a class="pilula" href="#travas">O que trava</a>
+  <a class="pilula" href="#v0">Depois do P0</a>
+  <a class="pilula" href="#esforco">Esforço por semana</a>
+</nav>
+
+<!-- ==================================================================== -->
+<section class="bloco" id="funcionamento">
+  <h2>Como funciona · o caminho de uma notícia</h2>
+  <p class="nota">
+    Da sala de imprensa de um fabricante alemão até a página, em minutos. Os dois passos
+    de <strong>borda tracejada são portões</strong>: eles decidem o que pode ser feito e
+    quem precisa olhar. Tudo em azul é máquina; tudo em laranja envolve gente.
+  </p>
+
+  <div class="esteira">
+    <div class="passo n-observatorio">
+      <span class="passo__n">01</span>
+      <div><div class="passo__t">O cron dispara</div>
+        <div class="passo__d">15 min para fonte liberada de alta confiança, 60 min para o resto. Um Worker, <code>ctx.waitUntil</code>.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">02</span>
+      <div><div class="passo__t">Coleta e deduplica</div>
+        <div class="passo__d">Busca o feed, normaliza a URL (tira utm e afins) e descarta o que já existe.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">03</span>
+      <div><div class="passo__t">Triagem — isto é notícia ou ruído?</div>
+        <div class="passo__d">Roda antes de qualquer coisa cara. O que não passa nunca chega no modelo grande — é o que segura a conta.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span><span class="selo selo--radar">Haiku</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">04</span>
+      <div><div class="passo__t">Classifica</div>
+        <div class="passo__d">Núcleo, tema, fornecedores citados, UF, tipo. Guardado mesmo sem tela que mostre — retroativo é impossível.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span><span class="selo selo--radar">Haiku</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo passo--portao">
+      <span class="passo__n">05</span>
+      <div><div class="passo__t">🚦 PORTÃO 1 — a licença da fonte</div>
+        <div class="passo__d">Regra no código, não julgamento. Nega por padrão: fonte nova nasce como <code>resumo</code>.</div></div>
+      <div class="passo__quem"><span class="selo selo--traducao">portão</span></div>
+    </div>
+
+    <div class="ramo">
+      <div class="passo n-observatorio">
+        <div><div class="passo__t">liberada → tradução integral</div>
+          <div class="passo__d">Press release de fabricante existe para ser republicado. É aqui que mora o "primeira mão". Glossário travado entra no prompt.</div>
+          <div style="margin-block-start: var(--space-2xs)"><span class="selo selo--radar">Sonnet</span></div></div>
+      </div>
+      <div class="passo n-observatorio">
+        <div><div class="passo__t">resumo → 3 a 5 linhas próprias</div>
+          <div class="passo__d">Imprensa técnica. Redação própria + crédito + link. Nunca tradução.</div>
+          <div style="margin-block-start: var(--space-2xs)"><span class="selo selo--radar">Haiku</span></div></div>
+      </div>
+      <div class="passo" style="opacity: .6">
+        <div><div class="passo__t">bloqueada → nem entra</div>
+          <div class="passo__d">Paywall ou termos que proíbem.</div></div>
+      </div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">06</span>
+      <div><div class="passo__t">Escreve o "o que isso muda aqui"</div>
+        <div class="passo__d">Quem representa no Brasil, se afeta norma local, se o integrador daqui já tem acesso. É a camada que o leitor não obtém sozinho no Google Tradutor — e o que separa autoridade de tradução em massa.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span><span class="selo selo--radar">Sonnet</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">07</span>
+      <div><div class="passo__t">Agrupa em assunto e marca o relógio</div>
+        <div class="passo__d">Liga o mesmo assunto entre fontes e idiomas. Quando uma fonte brasileira menciona, calcula o <strong>atraso</strong>. É a pergunta-assinatura virando dado, todo dia, sozinha.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span></div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo passo--portao">
+      <span class="passo__n">08</span>
+      <div><div class="passo__t">🚦 PORTÃO 2 — a confiança da fonte</div>
+        <div class="passo__d">"Primeira mão" e "esperar aprovação humana" são incompatíveis. A saída é honesta, não esperta.</div></div>
+      <div class="passo__quem"><span class="selo selo--traducao">portão</span></div>
+    </div>
+
+    <div class="ramo">
+      <div class="passo n-observatorio">
+        <div><div class="passo__t">alta + liberada → publica sozinho</div>
+          <div class="passo__d">Com o selo dizendo que ninguém revisou ainda. O selo some quando alguém revisa.</div>
+          <div style="margin-block-start: var(--space-2xs)"><span class="selo selo--pendente">revisão pendente</span></div></div>
+      </div>
+      <div class="passo passo--humano">
+        <div><div class="passo__t">resto → fila no WhatsApp</div>
+          <div class="passo__d">Aprovar, descartar ou editar num toque, de onde estiver. Sem painel, sem login. ~10 min por dia — e esses 10 min são a sessão de estudo.</div>
+          <div style="margin-block-start: var(--space-2xs)"><span class="selo selo--nucleo" style="--accent-wash: var(--industria-wash); --accent-ink: var(--industria-ink)">humano</span></div></div>
+      </div>
+    </div>
+    <div class="seta">↓</div>
+
+    <div class="passo n-observatorio">
+      <span class="passo__n">09</span>
+      <div><div class="passo__t">Publica</div>
+        <div class="passo__d">Gera a OG image própria no R2 (nunca imagem de terceiro), purga o cache da borda e carimba o relógio: <em>publicado 14 min após a fonte</em>.</div></div>
+      <div class="passo__quem"><span class="selo selo--nucleo">máquina</span></div>
+    </div>
+  </div>
+
+  <div class="aviso" style="margin-block-start: var(--space-l)">
+    <strong>O que o desenho garante.</strong> A máquina faz nove décimos do trabalho e roda
+    em semana ruim, quando Parresia, faculdade e as outras frentes tomam o dia. O humano
+    entra em dois lugares só: no toque da fila e na obra assinada. É por isso que o projeto
+    sobrevive a uma agenda cheia.
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco n-observatorio" id="p0">
+  <h2>Os 15 dias · protótipo mínimo funcional até 12/09</h2>
+  <p class="nota">
+    Um núcleo (Indústria), coleta real, tradução real, página real — e o relógio do atraso
+    já rodando por baixo. <strong>Cinco blocos de 3 dias, independentes:</strong> se um
+    atrasar, o marco desliza mas nada quebra.
+  </p>
+
+  <div class="grade-blocos">
+    <article class="cartao">
+      <div class="cartao__topo"><span class="cartao__nome">1 · Esqueleto</span><span class="cartao__dias">dias 1–3</span></div>
+      <div class="cartao__lista">
+        <div class="tarefa" data-id="p0-1a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Worker + Hono + JSX no ar</span></div></div>
+        <div class="tarefa" data-id="p0-1b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Schema D1 <strong>completo</strong><span class="tarefa__n">Inclusive <code>assunto</code>. Entra inteiro no dia 1 mesmo sem tela — atraso e classificação não são reconstituíveis.</span></span></div></div>
+        <div class="tarefa" data-id="p0-1c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Rota /industria com dado semente<span class="tarefa__n">Vestida com o sistema de design que já está pronto.</span></span></div></div>
+      </div>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao__topo"><span class="cartao__nome">2 · Coletor</span><span class="cartao__dias">dias 4–6</span></div>
+      <div class="cartao__lista">
+        <div class="tarefa" data-id="p0-2a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Fetch + parse de RSS/Atom</span></div></div>
+        <div class="tarefa" data-id="p0-2b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Dedup por URL canônica</span></div></div>
+        <div class="tarefa" data-id="p0-2c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cron + <code>ctx.waitUntil</code><span class="tarefa__n">Sem isso a coleta morre em produção — e o miniflare local não acusa.</span></span></div></div>
+        <div class="tarefa" data-id="p0-2d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">8–10 fontes liberadas ligadas<span class="tarefa__dep">depende de: classificar fontes</span></span></div></div>
+      </div>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao__topo"><span class="cartao__nome">3 · Pipeline</span><span class="cartao__dias">dias 7–9</span></div>
+      <div class="cartao__lista">
+        <div class="tarefa" data-id="p0-3a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Triagem + classificação (Haiku)</span></div></div>
+        <div class="tarefa" data-id="p0-3b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Tradução integral (Sonnet)<span class="tarefa__n">Glossário semente direto no código; tabela fica para o v0.</span></span></div></div>
+        <div class="tarefa" data-id="p0-3c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Contexto BR</span></div></div>
+        <div class="tarefa" data-id="p0-3d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Teto de custo que pausa o coletor<span class="tarefa__n">Antes de ligar volume. Conta que estoura é conta que não é sua.</span></span></div></div>
+      </div>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao__topo"><span class="cartao__nome">4 · O atraso</span><span class="cartao__dias">dias 10–12</span></div>
+      <div class="cartao__lista">
+        <div class="tarefa" data-id="p0-4a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">3–4 fontes BR com <code>marca_relogio</code><span class="tarefa__n">Não vão ao ar. Existem para medir quando o assunto chegou aqui.</span></span></div></div>
+        <div class="tarefa" data-id="p0-4b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Agrupamento em <code>assunto</code><span class="tarefa__n">Título normalizado + fornecedores em comum + janela de 30 dias.</span></span></div></div>
+        <div class="tarefa" data-id="p0-4c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cálculo de <code>atraso_br_dias</code></span></div></div>
+      </div>
+    </article>
+
+    <article class="cartao">
+      <div class="cartao__topo"><span class="cartao__nome">5 · Página</span><span class="cartao__dias">dias 13–15</span></div>
+      <div class="cartao__lista">
+        <div class="tarefa" data-id="p0-5a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria com conteúdo real</span></div></div>
+        <div class="tarefa" data-id="p0-5b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria/&lt;slug&gt;</span></div></div>
+        <div class="tarefa" data-id="p0-5c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cache na borda + deploy</span></div></div>
+        <div class="tarefa" data-id="p0-5d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Ajustar o design com notícia de verdade<span class="tarefa__n">Tipografia só se julga com conteúdo real na tela.</span></span></div></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="aviso" style="margin-block-start: var(--space-l)">
+    <strong>Fora do P0 de propósito:</strong> WhatsApp, agenda, obra assinada, glossário como
+    tabela, OG image, RSS e os outros três núcleos. Tudo isso é v0 — o protótipo prova que a
+    esteira funciona, não que o site está pronto.
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco" id="travas">
+  <h2>O que trava o dia 1 — e nenhuma é código</h2>
+  <div class="travas">
+    <div class="trava"><span class="trava__n">1</span>
+      <div><strong>Acesso à conta Cloudflare do sócio.</strong>
+        <div class="nota" style="margin: 2px 0 0">A infra é dele: sem isso não há deploy. É a única dependência externa bloqueante do projeto inteiro.</div></div></div>
+    <div class="trava"><span class="trava__n">2</span>
+      <div><strong>Domínio exato e onde está o DNS.</strong>
+        <div class="nota" style="margin: 2px 0 0">Qual TLD, e se o DNS já está na Cloudflare.</div></div></div>
+    <div class="trava"><span class="trava__n">3</span>
+      <div><strong>Classificar 8–10 salas de imprensa como <code>liberada</code>.</strong>
+        <div class="nota" style="margin: 2px 0 0">Achar o feed, ler os termos, guardar o link que autoriza. Braçal, e destrava o bloco 2.</div></div></div>
+    <div class="trava"><span class="trava__n">4</span>
+      <div><strong>Fechar o ACORDO por escrito.</strong>
+        <div class="nota" style="margin: 2px 0 0">Escopo de "manter rodando", <strong>quem paga a API</strong>, de quem é o código, cópia do dataset. Não bloqueia o código — bloqueia dormir tranquilo em novembro.</div></div></div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco n-industria" id="v0">
+  <h2>Depois do P0 · o que transforma protótipo em veículo</h2>
+  <div class="linhas">
+    <div class="linha" data-id="v0-1"><div class="tarefa__caixa"></div><div><div class="linha__t">Agenda nos 4 núcleos + schema.org/Event</div><div class="linha__n">O ativo mais durável: notícia decai em 48 h, calendário não. Traz visita recorrente, inbound de organizador e resultado rico no Google.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-2"><div class="tarefa__caixa"></div><div><div class="linha__t">WhatsApp como backoffice</div><div class="linha__n">Sem isso o sócio não publica, e o núcleo Indústria não tem voz própria.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-3"><div class="tarefa__caixa"></div><div><div class="linha__t">Obra assinada — Análise, Leitura, Caso</div><div class="linha__n">É o que constrói autoridade. O radar sozinho não constrói: ninguém cita agregador.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-4"><div class="tarefa__caixa"></div><div><div class="linha__t">Glossário como tabela + página</div><div class="linha__n">A qualidade da tradução para de depender de sorte.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-5"><div class="tarefa__caixa"></div><div><div class="linha__t">OG image + RSS por núcleo + sitemap</div><div class="linha__n">Distribuição. O link precisa circular com cara de veículo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-6"><div class="tarefa__caixa"></div><div><div class="linha__t">Os outros três núcleos</div><div class="linha__n">Observatório quente; Operação e Edificações em modo Radar declarado, com selo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-7"><div class="tarefa__caixa"></div><div><div class="linha__t">Política editorial + registro de correções</div><div class="linha__n">O que separa veículo de blog — inclusive declarar o uso de IA.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-8"><div class="tarefa__caixa"></div><div><div class="linha__t">Captura de e-mail</div><div class="linha__n">Site é aluguel, lista é propriedade. Começar cedo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-9"><div class="tarefa__caixa"></div><div><div class="linha__t">Panorama nº 1 · dezembro</div><div class="linha__n">Sai da própria base, sem entrevista nem survey. Chega na renegociação de 31/12 com obra publicada, não com promessa.</div></div><span class="selo selo--radar">dez</span></div>
+    <div class="linha" data-id="v0-10"><div class="tarefa__caixa"></div><div><div class="linha__t">Dataset no Zenodo com DOI + CC-BY</div><div class="linha__n">Torna o Instituto citável em TCC, dissertação e artigo. É subir um CSV — e é o atalho acadêmico que quase ninguém usa.</div></div><span class="selo selo--radar">dez</span></div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco" id="esforco">
+  <h2>O contrato de esforço — por semana</h2>
+  <p class="nota">A conta que decide se o projeto sobrevive ao resto da agenda.</p>
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>Quem</th><th>O quê</th><th>Quanto</th></tr></thead>
+    <tbody>
+      <tr><td>Máquina</td><td>coleta, traduz, classifica, mede, publica o liberado</td><td class="u-dado">24 h/dia</td></tr>
+      <tr><td>Pedro</td><td>fila de aprovação — e é a sessão de estudo</td><td class="u-dado">~10 min/dia</td></tr>
+      <tr><td>Pedro</td><td>Análise quinzenal</td><td class="u-dado">~2 h /15 dias</td></tr>
+      <tr><td>Pedro</td><td>manutenção do fluxo</td><td class="u-dado">~1 h/semana</td></tr>
+      <tr><td>sócio</td><td>Leitura do Instituto</td><td class="u-dado">3–5 linhas/semana</td></tr>
+      <tr><td>Pedro</td><td>Panorama</td><td class="u-dado">~8 h/trimestre</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="aviso" style="margin-block-start: var(--space-m)">
+    <strong>A regra que não pode cair:</strong> uma peça original com dado próprio por
+    trimestre. É a única coisa que não dá para automatizar — e a única que constrói o que
+    o projeto quer. Sem ela, o radar bonito não vira nada.
+  </div>
+</section>
+
+<p class="nota" style="padding-block-end: var(--space-2xl)">
+  Fonte da verdade: <code>CONCEITO.md</code> · <code>docs/ARQUITETURA.md</code> ·
+  <code>docs/FLUXOS.md</code> · <code>docs/ORGANOGRAMA.md</code> ·
+  <code>docs/MODELO-DADOS.md</code> · <code>docs/ROADMAP.md</code>.
+  Esta página é só a vista.
+</p>
+
+</main>
+
+<script>
+(function () {
+  var raiz = document.documentElement;
+  var CHAVE = 'ia-progresso';
+
+  try {
+    var t = localStorage.getItem('tema');
+    if (t === 'dark' || t === 'light') raiz.dataset.theme = t;
+  } catch (e) {}
+
+  document.getElementById('tema').addEventListener('click', function () {
+    var escuro = raiz.dataset.theme
+      ? raiz.dataset.theme === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+    var novo = escuro ? 'light' : 'dark';
+    raiz.dataset.theme = novo;
+    try { localStorage.setItem('tema', novo); } catch (e) {}
+  });
+
+  // dias até o marco
+  var alvo = new Date('2026-09-12T00:00:00-03:00');
+  var dias = Math.ceil((alvo - new Date()) / 86400000);
+  document.getElementById('faltam').textContent = dias > 0 ? dias : 0;
+
+  // progresso, salvo neste navegador
+  var feitos = {};
+  try { feitos = JSON.parse(localStorage.getItem(CHAVE) || '{}'); } catch (e) { feitos = {}; }
+
+  var marcaveis = document.querySelectorAll('[data-id]');
+  function pintar() {
+    var totalP0 = 0, feitosP0 = 0;
+    marcaveis.forEach(function (el) {
+      var id = el.dataset.id;
+      el.dataset.feito = feitos[id] ? '1' : '0';
+      if (id.indexOf('p0-') === 0) { totalP0++; if (feitos[id]) feitosP0++; }
+    });
+    var pct = totalP0 ? Math.round(feitosP0 / totalP0 * 100) : 0;
+    document.getElementById('pct').textContent = pct + '%';
+    document.getElementById('barra').style.inlineSize = pct + '%';
+  }
+
+  marcaveis.forEach(function (el) {
+    el.setAttribute('role', 'checkbox');
+    el.setAttribute('tabindex', '0');
+    function alternar() {
+      var id = el.dataset.id;
+      feitos[id] = !feitos[id];
+      el.setAttribute('aria-checked', feitos[id] ? 'true' : 'false');
+      try { localStorage.setItem(CHAVE, JSON.stringify(feitos)); } catch (e) {}
+      pintar();
+    }
+    el.addEventListener('click', alternar);
+    el.addEventListener('keydown', function (ev) {
+      if (ev.key === ' ' || ev.key === 'Enter') { ev.preventDefault(); alternar(); }
+    });
+  });
+
+  pintar();
+})();
+</script>
+</body>
+</html>
