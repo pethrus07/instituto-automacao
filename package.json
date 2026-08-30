@@ -1,0 +1,28 @@
+{
+  "name": "instituto-automacao",
+  "private": true,
+  "type": "module",
+  "description": "Instituto Automação — radar, agenda e obra. Um Worker só.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tipos": "tsc --noEmit",
+    "db:criar": "wrangler d1 create instituto",
+    "db:local": "wrangler d1 execute instituto --local --file=./schema.sql",
+    "db:semente": "wrangler d1 execute instituto --local --file=./seed.sql",
+    "db:zerar": "wrangler d1 execute instituto --local --command=\"SELECT 'use db:local para recriar'\"",
+    "db:remoto": "wrangler d1 execute instituto --remote --file=./schema.sql"
+  },
+  "dependencies": {
+    "hono": "^4.9.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.127.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260828.1": true
+  }
+}

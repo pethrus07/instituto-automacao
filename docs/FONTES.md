@@ -1,6 +1,6 @@
 # Fontes — proposta inicial para classificação
 
-> 28/08/2026 · **proposta, não inventário verificado**
+> 30/08/2026 · **proposta, não inventário verificado**
 > Os veículos abaixo são candidatos conhecidos do setor. A **URL de feed** e a **licença de
 > cada um precisam ser confirmadas na fonte** antes de ligar o coletor — não presumir.
 > O sócio deve revisar principalmente Indústria e as fontes brasileiras: é o domínio dele.

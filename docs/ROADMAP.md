@@ -1,6 +1,6 @@
 # Instituto Automação — Roadmap
 
-> Marco atual: **P0 · protótipo mínimo funcional em 15 dias → 12/09/2026.**
+> Marco atual: **P0 · protótipo mínimo funcional em 15 dias → 14/09/2026.**
 > Compromisso contratado: máquina rodando até **31/12/2026** (acordo interno).
 
 ```mermaid
@@ -9,24 +9,24 @@ gantt
     axisFormat %d/%m
     title  Do protótipo à renegociação
     section P0 · protótipo
-    Esqueleto (Worker + D1 + rota)      :p1, 2026-08-29, 3d
+    Esqueleto (Worker + D1 + rota)      :p1, 2026-08-31, 3d
     Coletor (fetch, dedup, cron)        :p2, after p1, 3d
     Pipeline de IA + teto de custo      :p3, after p2, 3d
     Assunto + atraso + fontes BR        :p4, after p3, 3d
     Página real + deploy                :p5, after p4, 3d
     section v0 · público
-    Agenda nos 4 núcleos                :v1, 2026-09-15, 14d
+    Agenda nos 4 núcleos                :v1, 2026-09-17, 14d
     WhatsApp como backoffice            :v2, after v1, 10d
     Obra, glossário, OG, RSS            :v3, after v2, 10d
     section Operação
-    Coleta contínua (base do Panorama)  :o1, 2026-09-13, 109d
+    Coleta contínua (base do Panorama)  :o1, 2026-09-15, 107d
     Panorama nº 1                       :o2, 2026-12-01, 14d
     Renegociação                        :milestone, 2026-12-31, 0d
 ```
 
 ---
 
-## P0 · Protótipo mínimo funcional — **12/09/2026**
+## P0 · Protótipo mínimo funcional — **14/09/2026**
 
 **O que é "funcional":** o radar do núcleo Indústria coletando de verdade, traduzindo de
 verdade e publicando numa página de verdade — com o relógio do atraso já rodando por baixo.
@@ -131,20 +131,20 @@ Em ordem, e os três primeiros não são código:
 
 | # | Decisão | Data |
 |---|---|---|
-| 1 | Guarda-chuva de 4 núcleos + camada institucional | 28/08 |
-| 2 | Fonte internacional, público brasileiro, tradução em primeira mão | 28/08 |
-| 3 | Impessoal no fluxo, assinado na obra | 28/08 |
-| 4 | Transparência por gatilho | 28/08 |
-| 5 | Indústria (sócio) e Observatório (Pedro) quentes | 28/08 |
-| 6 | Operação recebe o formato Casos | 28/08 |
-| 7 | Licença da fonte como regra no código, negando por padrão | 28/08 |
-| 8 | Um Worker só · Hono + JSX · D1 · WhatsApp como backoffice | 28/08 |
-| 9 | Tema azul + laranja; paleta curta de duas cores | 28/08 |
-| 10 | **Só português, para sempre** — rota sem prefixo de idioma | 28/08 |
-| 11 | **Repositório privado agora**, público depois | 28/08 |
-| 12 | **Pergunta-assinatura: o atraso entre a fronteira e o chão de fábrica daqui** | 28/08 |
-| 13 | **P0 em 15 dias — 12/09/2026** | 28/08 |
-| 14 | Analytics sem cookie · nunca republicar imagem de terceiro | 28/08 |
+| 1 | Guarda-chuva de 4 núcleos + camada institucional | 30/08 |
+| 2 | Fonte internacional, público brasileiro, tradução em primeira mão | 30/08 |
+| 3 | Impessoal no fluxo, assinado na obra | 30/08 |
+| 4 | Transparência por gatilho | 30/08 |
+| 5 | Indústria (sócio) e Observatório (Pedro) quentes | 30/08 |
+| 6 | Operação recebe o formato Casos | 30/08 |
+| 7 | Licença da fonte como regra no código, negando por padrão | 30/08 |
+| 8 | Um Worker só · Hono + JSX · D1 · WhatsApp como backoffice | 30/08 |
+| 9 | Tema azul + laranja; paleta curta de duas cores | 30/08 |
+| 10 | **Só português, para sempre** — rota sem prefixo de idioma | 30/08 |
+| 11 | **Repositório privado agora**, público depois | 30/08 |
+| 12 | **Pergunta-assinatura: o atraso entre a fronteira e o chão de fábrica daqui** | 30/08 |
+| 13 | **P0 em 15 dias — 14/09/2026** | 30/08 |
+| 14 | Analytics sem cookie · nunca republicar imagem de terceiro | 30/08 |
 
 ## Ainda em aberto
 

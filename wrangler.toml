@@ -1,0 +1,41 @@
+name = "instituto-automacao"
+main = "src/index.tsx"
+compatibility_date = "2026-08-30"
+
+# ---------------------------------------------------------------------------
+# D1 — a base do radar, da agenda e do atraso.
+#
+# database_id ainda é placeholder: a infra é da conta do sócio e o acesso é a
+# dependência bloqueante do deploy (docs/ROADMAP.md). Tudo roda local sem ele:
+#   npm run db:local && npm run db:semente && npm run dev
+# Quando o acesso chegar:
+#   npm run db:criar   → copie o id devolvido para cá
+#   npm run db:remoto  → aplica o schema em produção
+# ---------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "instituto"
+database_id = "PREENCHER-APOS-CRIAR"
+
+# R2 entra no v0, junto com a OG image gerada.
+# [[r2_buckets]]
+# binding = "MIDIA"
+# bucket_name = "instituto-midia"
+
+# O coletor. A cada 15 min para fonte liberada de alta confiança; o próprio
+# coletor decide o que está vencido pelo intervalo_min de cada fonte.
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Deixa importar os CSS do sistema de design como texto, sem etapa de build.
+[[rules]]
+type = "Text"
+globs = ["**/*.css"]
+fallthrough = true
+
+[vars]
+SITE_NOME = "Instituto Automação"
+SITE_URL = "http://localhost:8787"
+
+[observability]
+enabled = true

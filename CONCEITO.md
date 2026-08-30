@@ -1,6 +1,6 @@
 # Instituto Automação — documento de conceito
 
-> Versão 1 · 28/08/2026 · Pedro Oliveira
+> Versão 1 · 30/08/2026 · Pedro Oliveira
 > Documento de trabalho. O que está em **Decidido** já foi acordado; o que está em
 > **Em aberto** precisa de resposta antes de virar código.
 
@@ -297,7 +297,7 @@ uma Análise publicadas. Promete pouco, entrega inteiro, e começa a acumular a 
 - [x] **Só português, para sempre** — rota sem prefixo de idioma
 - [x] **Repositório privado agora**, público quando estiver apresentável e o código combinado
 - [x] **Pergunta-assinatura: o atraso entre a fronteira lá fora e o chão de fábrica daqui**
-- [x] **P0 · protótipo mínimo funcional em 15 dias — 12/09/2026**
+- [x] **P0 · protótipo mínimo funcional em 15 dias — 14/09/2026**
 - [x] Stack: um Worker só · Hono + JSX · D1 + R2 + Cron · WhatsApp como backoffice
 - [x] Tema azul + laranja, paleta curta de duas cores
 
