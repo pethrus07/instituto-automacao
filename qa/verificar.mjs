@@ -500,7 +500,10 @@ for (const v of VEREDITOS) {
     `SELECT COUNT(*) n FROM item WHERE status='publicado' AND nucleo='industria' AND contexto_veredito='${v}'`,
   )[0].n;
   const r = await pegar(`/industria?v=${v}`);
-  const listados = (r.corpo.match(/class="item__titulo"/g) ?? []).length;
+  // Conta por data-item, que existe nos TRÊS níveis (manchete, secundária,
+  // linha). Contar por classe de um nível quebra a cada mudança de layout —
+  // foi o que aconteceu quando o radar ganhou hierarquia.
+  const listados = (r.corpo.match(/ data-item/g) ?? []).length;
   checar('B', `filtro ?v=${v} lista exatamente ${esperado}`, listados === esperado, `listou ${listados}`);
   checar('B', `filtro ?v=${v} tem canonical próprio`, r.corpo.includes(`/industria?v=${v}"`));
   // Obra não tem veredito: sob o filtro, ela não pode aparecer.

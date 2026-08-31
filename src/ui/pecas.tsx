@@ -75,7 +75,7 @@ export const ItemDoRadar = (p: { item: ItemRadar; comContexto?: boolean }) => {
   const pendente = traduzido && i.revisado_humano === 0;
 
   return (
-    <article class="item">
+    <article class="item" data-item>
       <div class="item__topo">
         <Kicker ponto>{nucleo.nome}</Kicker>
         <Relogio minutos={i.minutos_apos_fonte} />
@@ -465,21 +465,43 @@ export const Veredito = (p: { valor: string | null }) =>
 export const Destaque = (p: { item: ItemRadar }) => {
   const i = p.item;
   const n = NUCLEOS[i.nucleo];
+  const traduzido = i.modo === 'traducao';
+  const pendente = traduzido && i.revisado_humano === 0;
+
   return (
-    <article class={`destaque ${n.classe}`}>
+    <article class={`destaque ${n.classe}`} data-item>
       <div class="moldura-capa">{raw(gerarCapa(i.slug ?? i.id, true).svg)}</div>
       <div style="display:grid; gap:var(--space-s); align-content:start">
         <div class="item__topo">
           <Kicker ponto>{n.nome}</Kicker>
           <Relogio minutos={i.minutos_apos_fonte} />
+          {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
         </div>
         <h2 class="destaque__titulo">
           <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
         </h2>
         {i.resumo && <p class="destaque__lead">{i.resumo}</p>}
+
+        {/* O "o que isso muda aqui" na manchete. Ele é a camada que justifica
+            o site existir — sumir dela na peça de maior exposição foi
+            regressão, e o QA pegou. */}
+        {i.contexto_br && (
+          <div class="item__contexto" style="max-width: var(--measure)">
+            {i.contexto_veredito && (
+              <p style="margin-block-end: var(--space-3xs)">
+                <Veredito valor={i.contexto_veredito} />
+              </p>
+            )}
+            {i.contexto_br}
+          </div>
+        )}
+
         <p class="destaque__pe">
-          <Veredito valor={i.contexto_veredito} />
-          <span>{i.fonte_nome}</span>
+          <span class="item__fonte">
+            <a href={i.url} rel="nofollow noopener" target="_blank">
+              {i.fonte_nome}
+            </a>
+          </span>
           <span>·</span>
           <span>{dataBR(i.publicado_fonte, false)}</span>
           <span>·</span>
@@ -502,3 +524,93 @@ export const Numero = (p: { valor: number | string; rotulo: string; href?: strin
     <div class="numero__rotulo">{p.href ? <a href={p.href}>{p.rotulo}</a> : p.rotulo}</div>
   </div>
 );
+
+
+/* ========================================================================= */
+/* Os três níveis do radar                                                    */
+/* ========================================================================= */
+
+/**
+ * Nível 2 · a secundária.
+ *
+ * Capa menor, título médio, sem resumo. O peso editorial vira tamanho — é o
+ * recurso do Rest of World, e é o que permite densidade sem poluição.
+ */
+export const ItemSecundario = (p: { item: ItemRadar }) => {
+  const i = p.item;
+  const pendente = i.modo === 'traducao' && i.revisado_humano === 0;
+  return (
+    <article class="sec" data-item>
+      <div class="moldura-capa">{raw(gerarCapa(i.slug ?? i.id).svg)}</div>
+      <div class="sec__pe">
+        <Kicker ponto>{NUCLEOS[i.nucleo].nome}</Kicker>
+        <Veredito valor={i.contexto_veredito} />
+        {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
+      </div>
+      <h3 class="sec__titulo">
+        <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
+      </h3>
+      <p class="sec__pe">
+        <Relogio minutos={i.minutos_apos_fonte} />
+        {/* Crédito com link em TODA peça, não só na página do item: é
+            obrigação com a fonte, não decoração de rodapé. */}
+        <span class="item__fonte">
+          <a href={i.url} rel="nofollow noopener" target="_blank">
+            {i.fonte_nome}
+          </a>
+        </span>
+      </p>
+    </article>
+  );
+};
+
+/**
+ * Nível 3 · a linha.
+ *
+ * Hora, título, fonte. Quem varre radar procura título e hora, não card —
+ * Techmeme e Hacker News são feios de propósito e usados todo dia por quem
+ * trabalha com aquilo.
+ */
+export const ItemLinha = (p: { item: ItemRadar }) => {
+  const i = p.item;
+  const frio = (i.minutos_apos_fonte ?? 0) >= 60 * 24;
+  return (
+    <article class="linha-item" data-item>
+      <span class={frio ? 'linha-item__hora linha-item__hora--frio' : 'linha-item__hora'}>
+        {i.minutos_apos_fonte != null ? humanizarMinutos(i.minutos_apos_fonte) : '—'}
+      </span>
+      <h3 class="linha-item__titulo">
+        <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
+      </h3>
+      <span class="linha-item__fonte item__fonte">
+        {i.idioma_origem.toUpperCase()} ·{' '}
+        <a href={i.url} rel="nofollow noopener" target="_blank">
+          {i.fonte_nome}
+        </a>
+      </span>
+    </article>
+  );
+};
+
+/** O card de núcleo da capa. Quente pesa mais que Radar — e parece. */
+export const CardNucleo = (p: { chave: ChaveNucleo; total: number; ultimo: string | null }) => {
+  const n = NUCLEOS[p.chave];
+  return (
+    <article class={`nucleo-card ${n.quente ? 'nucleo-card--quente' : 'nucleo-card--frio'}`}>
+      <div class="moldura-capa" style={n.quente ? 'aspect-ratio: 16/9' : 'aspect-ratio: 21/9'}>
+        {raw(gerarCapa(`nucleo-${p.chave}`).svg)}
+      </div>
+      <div class="sec__pe" style="margin-block-start: var(--space-2xs)">
+        <Kicker ponto>{n.nome}</Kicker>
+        {!n.quente && <Selo tipo="radar">Radar</Selo>}
+      </div>
+      <h3 class="nucleo-card__nome">
+        <a href={`/${p.chave}`}>{n.resumo}</a>
+      </h3>
+      <p class="nucleo-card__pe">
+        {p.total} publicado{p.total === 1 ? '' : 's'}
+        {p.ultimo ? ` · último em ${dataBR(p.ultimo, false)}` : ''}
+      </p>
+    </article>
+  );
+};

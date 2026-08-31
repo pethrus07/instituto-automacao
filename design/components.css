@@ -877,3 +877,95 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .licenca--liberada  { background: var(--v-chega-wash);     color: var(--v-chega-ink); }
 .licenca--resumo    { background: var(--v-caminho-wash);   color: var(--v-caminho-ink); }
 .licenca--bloqueada { background: var(--v-nao-chega-wash); color: var(--v-nao-chega-ink); }
+
+
+/* =========================================================================
+   OS TRÊS NÍVEIS DO RADAR
+
+   O diagnóstico que fizemos do Portal Solar vale para qualquer lista chapada:
+   DENSIDADE SEM HIERARQUIA. Se todo item tem o mesmo peso, nenhum lidera, e
+   o leitor recebe o trabalho de decidir por onde começar.
+
+   As referências resolvem do mesmo jeito, em três níveis:
+     1 · manchete    uma, grande, com capa           (Manufacturing Dive)
+     2 · secundárias três ou quatro, em grade        (IEEE Spectrum)
+     3 · fluxo       o resto, uma linha por item     (Techmeme)
+
+   Rest of World chama isso de peso editorial virando tamanho — e é o que faz
+   uma página densa não parecer poluída.
+   ========================================================================= */
+
+/* --- nível 2 · secundárias em grade --- */
+.grade-sec {
+  display: grid;
+  gap: var(--space-l) var(--space-m);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.sec { display: grid; gap: var(--space-2xs); align-content: start; position: relative; }
+.sec .moldura-capa { aspect-ratio: 16/9; }
+.sec__titulo {
+  font-family: var(--face-obra);
+  font-size: var(--step-1);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+.sec__titulo a { text-decoration: none; }
+.sec__titulo a::after { content: ""; position: absolute; inset: 0; }
+.sec:hover .sec__titulo { color: var(--marca); }
+.sec__pe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-s);
+           font-size: var(--step--2); color: var(--ink-faint); }
+
+/* --- nível 3 · fluxo denso, uma linha por item ---
+   Quem varre radar procura título e hora, não card. Techmeme e Hacker News
+   são feios de propósito e usados todo dia por quem trabalha com aquilo. */
+.fluxo-lista { display: grid; }
+.linha-item {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  gap: var(--space-s);
+  align-items: baseline;
+  padding-block: var(--space-xs);
+  border-bottom: var(--border-hair);
+  position: relative;
+  transition: background-color var(--duration) var(--ease);
+}
+.linha-item:hover { background: var(--paper-sunken); }
+@media (max-width: 40rem) {
+  .linha-item { grid-template-columns: 1fr; gap: var(--space-3xs); }
+  .linha-item__fonte { text-align: start; }
+}
+.linha-item__hora {
+  font-family: var(--face-dado); font-size: var(--step--2);
+  font-variant-numeric: tabular-nums; color: var(--live); white-space: nowrap;
+}
+.linha-item__hora--frio { color: var(--ink-faint); }
+.linha-item__titulo {
+  font-family: var(--face-obra); font-size: var(--step-0);
+  font-weight: var(--weight-semibold); line-height: var(--leading-snug);
+}
+.linha-item__titulo a { text-decoration: none; }
+.linha-item__titulo a::after { content: ""; position: absolute; inset: 0; }
+.linha-item:hover .linha-item__titulo { color: var(--marca); }
+.linha-item__fonte {
+  font-family: var(--face-dado); font-size: var(--step--2);
+  color: var(--ink-faint); white-space: nowrap; text-align: end;
+}
+
+/* --- card de núcleo com peso: quente é maior que radar --- */
+.nucleos { display: grid; gap: var(--space-l); }
+@media (min-width: 48rem) {
+  .nucleos { grid-template-columns: repeat(2, 1fr); }
+  .nucleos--frios { grid-template-columns: repeat(2, 1fr); }
+}
+.nucleo-card { display: grid; gap: var(--space-2xs); align-content: start; position: relative; }
+.nucleo-card__nome { font-family: var(--face-obra); font-weight: var(--weight-semibold); }
+.nucleo-card__nome a { text-decoration: none; }
+.nucleo-card__nome a::after { content: ""; position: absolute; inset: 0; }
+.nucleo-card:hover .nucleo-card__nome { color: var(--marca); }
+.nucleo-card--quente .nucleo-card__nome { font-size: var(--step-2); }
+.nucleo-card--frio  .nucleo-card__nome { font-size: var(--step-1); }
+.nucleo-card--frio  { opacity: .82; }
+.nucleo-card--frio:hover { opacity: 1; }
+.nucleo-card__pe { font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); }

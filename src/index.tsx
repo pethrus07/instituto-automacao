@@ -13,6 +13,7 @@ import {
   EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
   AssinaturaObra, ObraNaLista, LeituraNoItem, ROTULO_OBRA,
   Veredito, Destaque, Numero, ROTULO_VEREDITO,
+  ItemSecundario, ItemLinha, CardNucleo,
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { renderizarObra, minutosDeLeitura } from './ui/markdown';
@@ -481,29 +482,26 @@ app.get('/', async (c) => {
         {/* 2 · O que fazemos: os núcleos como estrutura, não como feed */}
         <section style="padding-block: var(--space-2xl)">
           <Secao titulo="Os núcleos" />
-          <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))">
-            {ORDEM_NUCLEOS.map((chave) => {
-              const n = NUCLEOS[chave];
-              const c2 = porNucleo.get(chave);
-              return (
-                <article style="display:grid; gap:var(--space-2xs); align-content:start">
-                  <div class="moldura-capa" style="aspect-ratio: 21/9; margin-block-end: var(--space-2xs)">
-                    {raw(gerarCapa(`nucleo-${chave}`).svg)}
-                  </div>
-                  <h3 style="font-size: var(--step-1)">
-                    <a href={`/${chave}`} style="text-decoration:none">
-                      {n.nome}
-                    </a>
-                  </h3>
-                  <p class="u-muted" style="font-size: var(--step--1)">
-                    {n.resumo}
-                  </p>
-                  <p class="u-faint u-fluxo" style="font-size: var(--step--2); margin-block-start: var(--space-2xs)">
-                    {c2?.total ?? 0} publicados{n.quente ? '' : ' · em modo Radar'}
-                  </p>
-                </article>
-              );
-            })}
+          {/* Os dois núcleos quentes maiores que os dois em Radar. Peso
+              editorial virando tamanho — e a página passa a dizer, sem
+              texto, onde há gente escrevendo. */}
+          <div class="nucleos">
+            {ORDEM_NUCLEOS.filter((k) => NUCLEOS[k].quente).map((k) => (
+              <CardNucleo
+                chave={k}
+                total={porNucleo.get(k)?.total ?? 0}
+                ultimo={porNucleo.get(k)?.ultimo ?? null}
+              />
+            ))}
+          </div>
+          <div class="nucleos nucleos--frios" style="margin-block-start: var(--space-l)">
+            {ORDEM_NUCLEOS.filter((k) => !NUCLEOS[k].quente).map((k) => (
+              <CardNucleo
+                chave={k}
+                total={porNucleo.get(k)?.total ?? 0}
+                ultimo={porNucleo.get(k)?.ultimo ?? null}
+              />
+            ))}
           </div>
         </section>
 
@@ -985,9 +983,14 @@ app.get('/:nucleo', async (c) => {
 
   // O filtro por veredito é o que dá rosto à pergunta-assinatura: a lista do
   // que o setor lançou lá fora e não chegou aqui.
-  const itens = filtrandoVeredito
+  // A manchete sai da lista para não aparecer duas vezes; as três seguintes
+  // viram o nível 2, e o resto vira fluxo. Sob filtro não há níveis: o
+  // recorte é resposta a uma pergunta, e ali toda linha vale o mesmo.
+  const restantes = filtrandoVeredito
     ? todos.filter((i) => i.contexto_veredito === filtrandoVeredito)
     : todos.filter((i) => i.id !== manchete?.id);
+  const secundarias = filtrandoVeredito ? [] : restantes.slice(0, 3);
+  const fluxo = filtrandoVeredito ? restantes : restantes.slice(3);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
@@ -1038,15 +1041,38 @@ app.get('/:nucleo', async (c) => {
           </div>
         )}
 
-        <div style="margin-block-start: var(--space-xl)">
+        {/*
+          OS TRÊS NÍVEIS.
+
+          Lista chapada é densidade sem hierarquia — o mesmo defeito que
+          diagnosticamos no Portal Solar. Aqui o peso editorial vira tamanho:
+            1 · a manchete, com capa      (acima)
+            2 · três secundárias em grade
+            3 · o resto, uma linha por item
+
+          Sob filtro de veredito o nível 2 some: o recorte é uma resposta a
+          uma pergunta, e ali toda linha vale o mesmo.
+        */}
+        {secundarias.length > 0 && !filtrandoVeredito && (
+          <div style="margin-block-start: var(--space-2xl)">
+            <div class="grade-sec">
+              {secundarias.map((i) => (
+                <ItemSecundario item={i} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style="margin-block-start: var(--space-2xl)">
           <Secao
             titulo={
               filtrandoVeredito
                 ? `Radar · ${ROTULO_VEREDITO[filtrandoVeredito]}`
-                : `Radar · ${n.nome}`
+                : 'Tudo do radar'
             }
+            acao={filtrandoVeredito ? { texto: 'ver tudo', href: `/${chave}` } : undefined}
           />
-          {itens.length === 0 ? (
+          {fluxo.length === 0 ? (
             <Aviso>
               {filtrandoVeredito ? (
                 <>
@@ -1061,7 +1087,11 @@ app.get('/:nucleo', async (c) => {
               )}
             </Aviso>
           ) : (
-            itens.map((i) => <ItemDoRadar item={i} comContexto />)
+            <div class="fluxo-lista">
+              {fluxo.map((i) => (
+                <ItemLinha item={i} />
+              ))}
+            </div>
           )}
         </div>
       </Documento>,
