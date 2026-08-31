@@ -39,7 +39,7 @@ VALUES
 INSERT INTO item (id, fonte_id, assunto_id, nucleo, slug, titulo, titulo_original,
                   url, url_canonica, idioma_origem, modo, corpo, resumo, contexto_br,
                   tipo_de_item, tema, fornecedores, publicado_fonte, publicado_em,
-                  minutos_apos_fonte, status, revisado_humano)
+                  minutos_apos_fonte, status, revisado_humano, contexto_veredito)
 VALUES
   ('i-001', 'f-press-exemplo', 'a-clp-preditivo', 'industria',
    'controladores-diagnostico-preditivo-no-clp',
@@ -52,7 +52,7 @@ VALUES
    NULL,
    'A linha ainda não tem representação declarada no Brasil, e integrador daqui só deve ver preço no segundo semestre. Para quem opera parque antigo, o ponto prático é outro: o protocolo é retrocompatível.',
    'lancamento', '["clp","manutencao-preditiva"]', '["Fabricante Exemplo"]',
-   '2026-08-30T09:12:00Z', '2026-08-30T09:26:00Z', 14, 'publicado', 0),
+   '2026-08-30T09:12:00Z', '2026-08-30T09:26:00Z', 14, 'publicado', 0, 'nao_chega'),
 
   ('i-002', 'f-imprensa-exemplo', 'a-clp-preditivo', 'industria',
    'revisao-da-norma-de-celulas-colaborativas',
@@ -65,7 +65,7 @@ VALUES
    'A revisão muda o cálculo de distância de separação e passa a exigir registro documental do ensaio de força e pressão. O texto entra em vigor após período de transição de 18 meses.',
    'Integrador brasileiro que já entrega célula colaborativa vai precisar rever o dossiê de segurança — o ensaio documental deixa de ser opcional.',
    'regulacao', '["seguranca","robotica"]', '[]',
-   '2026-08-29T16:40:00Z', '2026-08-30T14:05:00Z', 1285, 'publicado', 1),
+   '2026-08-29T16:40:00Z', '2026-08-30T14:05:00Z', 1285, 'publicado', 1, 'a_caminho'),
 
   ('i-003', 'f-press-exemplo', NULL, 'industria',
    'inversores-com-medicao-de-consumo-embarcada',
@@ -78,7 +78,7 @@ VALUES
    NULL,
    'Interessa a quem faz rateio de energia por linha de produção: hoje isso exige medidor por painel, e o custo do medidor costuma ser maior que o do próprio ganho.',
    'lancamento', '["inversor","energia"]', '["Fabricante Exemplo"]',
-   '2026-08-28T11:00:00Z', '2026-08-28T11:31:00Z', 31, 'publicado', 0);
+   '2026-08-28T11:00:00Z', '2026-08-28T11:31:00Z', 31, 'publicado', 0, 'sem_efeito');
 
 -- Glossário semente — os termos que o LLM erra primeiro ---------------------
 -- Coluna 1: os que TÊM tradução consagrada e ela é obrigatória.

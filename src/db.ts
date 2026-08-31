@@ -19,6 +19,7 @@ export type ItemRadar = {
   corpo: string | null;
   resumo: string | null;
   contexto_br: string | null;
+  contexto_veredito: 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito' | null;
   publicado_fonte: string;
   publicado_em: string | null;
   minutos_apos_fonte: number | null;
@@ -32,7 +33,7 @@ export type ItemRadar = {
 
 const CAMPOS = `
   i.id, i.slug, i.nucleo, i.titulo, i.titulo_original, i.url, i.idioma_origem,
-  i.modo, i.corpo, i.resumo, i.contexto_br, i.publicado_fonte, i.publicado_em,
+  i.modo, i.corpo, i.resumo, i.contexto_br, i.contexto_veredito, i.publicado_fonte, i.publicado_em,
   i.minutos_apos_fonte, i.revisado_humano,
   f.nome AS fonte_nome, f.url_site AS fonte_site, f.licenca AS fonte_licenca,
   a.atraso_br_dias AS atraso_br_dias
@@ -297,4 +298,45 @@ export async function leituraDoItem(db: D1Database, itemId: string): Promise<Obr
     )
     .bind(itemId)
     .first<Obra>();
+}
+
+/**
+ * A capa em números.
+ *
+ * `nao_chega` é o veredito que dá rosto à pergunta-assinatura: é a contagem
+ * pública do que o setor lançou lá fora e não chegou aqui.
+ */
+export type Placar = {
+  nao_chega: number;
+  chega: number;
+  traduzidos_24h: number;
+};
+
+export async function placar(db: D1Database): Promise<Placar> {
+  const l = await db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN contexto_veredito='nao_chega' THEN 1 ELSE 0 END) nao_chega,
+         SUM(CASE WHEN contexto_veredito='chega'     THEN 1 ELSE 0 END) chega,
+         SUM(CASE WHEN publicado_em >= datetime('now','-1 day') THEN 1 ELSE 0 END) traduzidos_24h
+       FROM item WHERE status='publicado'`,
+    )
+    .first<Placar>();
+  return { nao_chega: l?.nao_chega ?? 0, chega: l?.chega ?? 0, traduzidos_24h: l?.traduzidos_24h ?? 0 };
+}
+
+/** O item que abre a página: o mais recente com contexto escrito. */
+export async function destaque(db: D1Database, nucleo?: ChaveNucleo): Promise<ItemRadar | null> {
+  const cond = nucleo ? 'AND i.nucleo = ?1' : '';
+  return await db
+    .prepare(
+      `SELECT ${CAMPOS}
+         FROM item i
+         JOIN fonte f   ON f.id = i.fonte_id
+         LEFT JOIN assunto a ON a.id = i.assunto_id
+        WHERE i.status='publicado' AND i.contexto_br IS NOT NULL ${cond}
+        ORDER BY i.publicado_em DESC LIMIT 1`,
+    )
+    .bind(...(nucleo ? [nucleo] : []))
+    .first<ItemRadar>();
 }

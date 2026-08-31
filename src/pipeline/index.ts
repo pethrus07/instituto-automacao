@@ -184,11 +184,12 @@ async function guardarClassificado(
   nucleo: ChaveNucleo,
   t: Classificado,
   corpo: string | null,
-  contexto: string,
+  contexto: { texto: string; veredito: string },
 ): Promise<void> {
   await env.DB.prepare(
     `UPDATE item SET status='classificado', nucleo=?2, titulo=?3, resumo=?4, corpo=?5,
-            contexto_br=?6, tipo_de_item=?7, tema=?8, fornecedores=?9, uf=?10
+            contexto_br=?6, contexto_veredito=?11,
+            tipo_de_item=?7, tema=?8, fornecedores=?9, uf=?10
       WHERE id=?1`,
   )
     .bind(
@@ -197,11 +198,12 @@ async function guardarClassificado(
       t.titulo_pt,
       t.resumo_pt,
       corpo,
-      contexto,
+      contexto.texto,
       t.tipo_de_item,
       JSON.stringify(t.tema),
       JSON.stringify(t.fornecedores),
       t.uf,
+      contexto.veredito,
     )
     .run();
 }
@@ -216,7 +218,7 @@ async function publicar(
   nucleo: ChaveNucleo,
   t: Classificado,
   corpo: string | null,
-  contexto: string,
+  contexto: { texto: string; veredito: string },
 ): Promise<void> {
   const agora = new Date();
   const minutos = Math.max(
@@ -227,6 +229,7 @@ async function publicar(
   await env.DB.prepare(
     `UPDATE item
         SET status='publicado', nucleo=?2, titulo=?3, resumo=?4, corpo=?5, contexto_br=?6,
+            contexto_veredito=?14,
             tipo_de_item=?7, tema=?8, fornecedores=?9, uf=?10,
             slug=COALESCE(slug, ?11), publicado_em=?12, minutos_apos_fonte=?13,
             traduzido_em=CASE WHEN ?5 IS NOT NULL THEN ?12 ELSE NULL END
@@ -238,7 +241,7 @@ async function publicar(
       t.titulo_pt,
       t.resumo_pt,
       corpo,
-      contexto,
+      contexto.texto,
       t.tipo_de_item,
       JSON.stringify(t.tema),
       JSON.stringify(t.fornecedores),
@@ -246,6 +249,7 @@ async function publicar(
       await slugUnico(env, t.titulo_pt, p.id),
       agora.toISOString(),
       minutos,
+      contexto.veredito,
     )
     .run();
 }

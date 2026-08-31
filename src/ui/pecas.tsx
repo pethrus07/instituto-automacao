@@ -425,3 +425,82 @@ export const LeituraNoItem = (p: { obra: Obra; html: string }) => (
     </div>
   </aside>
 );
+
+/* ========================================================================= */
+/* O veredito, o destaque e os números — o mapa das referências aplicado      */
+/* ========================================================================= */
+
+/**
+ * O veredito do "o que isso muda aqui".
+ *
+ * Categoria fechada, pública e auditável — a lição do Aos Fatos, que resolveu
+ * melhor que o Semafor: o rótulo não é literário, é um conjunto finito com
+ * critério publicado.
+ *
+ * `nao_chega` é exatamente o que o atraso mede. `sem_efeito` é a opção
+ * honesta, e ela é obrigatória: sem ela o parágrafo vira enchimento, porque
+ * o modelo sempre encontra alguma consequência quando é obrigado a encontrar.
+ */
+export const ROTULO_VEREDITO: Record<string, string> = {
+  chega: 'Chega aqui',
+  a_caminho: 'A caminho',
+  nao_chega: 'Não chega',
+  sem_efeito: 'Sem efeito aqui',
+};
+
+export const Veredito = (p: { valor: string | null }) =>
+  p.valor && ROTULO_VEREDITO[p.valor] ? (
+    <span class={`veredito v-${p.valor}`}>{ROTULO_VEREDITO[p.valor]}</span>
+  ) : null;
+
+/**
+ * A manchete que manda (Manufacturing Dive) com o peso virando tamanho
+ * (Rest of World).
+ *
+ * Sem imagem licenciada, a capa é o próprio bloco tipográfico. Não é
+ * remendo: é o MESMO desenho que vira a OG image gerada, então uma decisão
+ * serve aos dois lugares e o layout nunca fica com buraco.
+ */
+export const Destaque = (p: { item: ItemRadar }) => {
+  const i = p.item;
+  const n = NUCLEOS[i.nucleo];
+  return (
+    <article class={`destaque ${n.classe}`}>
+      <div class="destaque__capa">
+        <span class="destaque__marca">{n.nome}</span>
+        <span class="destaque__credito">Instituto Automação · {i.fonte_nome}</span>
+      </div>
+      <div style="display:grid; gap:var(--space-s); align-content:start">
+        <div class="item__topo">
+          <Kicker ponto>{n.nome}</Kicker>
+          <Relogio minutos={i.minutos_apos_fonte} />
+        </div>
+        <h2 class="destaque__titulo">
+          <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
+        </h2>
+        {i.resumo && <p class="destaque__lead">{i.resumo}</p>}
+        <p class="destaque__pe">
+          <Veredito valor={i.contexto_veredito} />
+          <span>{i.fonte_nome}</span>
+          <span>·</span>
+          <span>{dataBR(i.publicado_fonte, false)}</span>
+          <span>·</span>
+          <Selo tipo="original">{i.idioma_origem.toUpperCase()}</Selo>
+        </p>
+      </div>
+    </article>
+  );
+};
+
+/**
+ * Um número da capa.
+ *
+ * Our World in Data: o rótulo é uma frase, não uma etiqueta. Número sem
+ * pergunta não informa ninguém — é o erro clássico de painel.
+ */
+export const Numero = (p: { valor: number | string; rotulo: string; href?: string }) => (
+  <div>
+    <div class="numero__valor">{p.valor}</div>
+    <div class="numero__rotulo">{p.href ? <a href={p.href}>{p.rotulo}</a> : p.rotulo}</div>
+  </div>
+);

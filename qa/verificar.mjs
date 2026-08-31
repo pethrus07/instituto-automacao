@@ -466,6 +466,92 @@ checar(
     !agenda.corpo.includes('</script></script>'),
 );
 
+/* ------------------------------------------------- B. VEREDITO E MANCHETE */
+titulo('B · Conformidade — o veredito e a manchete');
+
+const VEREDITOS = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
+
+const foraDaCategoria = sql(
+  `SELECT COUNT(*) n FROM item
+    WHERE contexto_veredito IS NOT NULL
+      AND contexto_veredito NOT IN ('chega','a_caminho','nao_chega','sem_efeito')`,
+)[0];
+checar(
+  'B',
+  'o veredito é categoria FECHADA',
+  foraDaCategoria.n === 0,
+  'rótulo aberto vira rótulo literário — é o que o Aos Fatos resolve e o Semafor não',
+);
+
+const publicadoSemVeredito = sql(
+  `SELECT COUNT(*) n FROM item WHERE status='publicado' AND contexto_br IS NOT NULL AND contexto_veredito IS NULL`,
+)[0];
+checar(
+  'B',
+  'todo contexto publicado tem veredito',
+  publicadoSemVeredito.n === 0,
+  'contexto sem veredito é juízo sem critério declarado',
+);
+
+// O recorte do filtro é conferido contra o banco, item a item.
+const paginaNucleo = radar;
+for (const v of VEREDITOS) {
+  const esperado = sql(
+    `SELECT COUNT(*) n FROM item WHERE status='publicado' AND nucleo='industria' AND contexto_veredito='${v}'`,
+  )[0].n;
+  const r = await pegar(`/industria?v=${v}`);
+  const listados = (r.corpo.match(/class="item__titulo"/g) ?? []).length;
+  checar('B', `filtro ?v=${v} lista exatamente ${esperado}`, listados === esperado, `listou ${listados}`);
+  checar('B', `filtro ?v=${v} tem canonical próprio`, r.corpo.includes(`/industria?v=${v}"`));
+  // Obra não tem veredito: sob o filtro, ela não pode aparecer.
+  checar(
+    'B',
+    `filtro ?v=${v} não mistura obra no recorte`,
+    !r.corpo.includes('>Obra<'),
+    'o filtro promete um recorte; obra ali entregaria lista misturada',
+  );
+}
+
+// A manchete não pode repetir na lista abaixo dela.
+const idDestaque = sql(
+  `SELECT slug FROM item WHERE status='publicado' AND contexto_br IS NOT NULL AND nucleo='industria'
+    ORDER BY publicado_em DESC LIMIT 1`,
+)[0];
+if (idDestaque) {
+  const ocorrencias = (paginaNucleo.match(new RegExp(`/industria/${idDestaque.slug}"`, 'g')) ?? []).length;
+  checar(
+    'B',
+    'a manchete aparece uma vez só, sem repetir na lista',
+    ocorrencias === 1,
+    `apareceu ${ocorrencias}x`,
+  );
+  checar('C', 'a manchete usa o bloco de destaque', paginaNucleo.includes('destaque__titulo'));
+}
+
+// O rótulo de camada: a maior ambiguidade do produto.
+if (rotaItem) {
+  checar(
+    'B',
+    'a página do item separa o que a fonte diz do que nós lemos',
+    paginaItem.includes('O que a fonte diz'),
+  );
+  const temVeredito = VEREDITOS.some((v) => paginaItem.includes(`veredito v-${v}`));
+  checar('B', 'e mostra o veredito com critério declarado', temVeredito);
+  checar('B', 'e diz que o veredito é redação do Instituto', paginaItem.includes('redação do Instituto'));
+}
+
+// Capa: número sem base é pior que capa sem número.
+const capa = respostas['/'];
+const temNumeros = capa.corpo.includes('numero__valor');
+const temAvisoSemBase = capa.corpo.includes('quando houver base para eles');
+checar(
+  'B',
+  'a capa mostra números OU explica por que ainda não há',
+  temNumeros !== temAvisoSemBase,
+  'capa abrindo com zeros seria pior que capa sem faixa',
+);
+medidas.capaComNumeros = temNumeros ? 'sim' : 'ainda não';
+
 /* --------------------------------------------------------- B. OBRA E FEED */
 titulo('B · Conformidade — a obra assinada e a distribuição');
 

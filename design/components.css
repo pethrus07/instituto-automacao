@@ -394,3 +394,116 @@
 .campo:hover { border-color: var(--accent-mark); }
 .campo::placeholder { color: var(--ink-faint); }
 textarea.campo { resize: vertical; min-block-size: 4.5rem; }
+
+/* -------------------------------------------------------------------------
+   VEREDITO — o rótulo do "o que isso muda aqui"
+
+   Categoria fechada, pública e auditável (a lição do Aos Fatos, que resolveu
+   melhor que o Semafor). Não usa --accent-*: o veredito é do item, não do
+   núcleo, e teria que mudar de sentido a cada seção se herdasse o acento.
+   ------------------------------------------------------------------------- */
+.veredito {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 0.2rem var(--space-2xs) 0.2rem var(--space-3xs);
+  border-radius: var(--radius-s);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  background: var(--v-wash);
+  color: var(--v-ink);
+  white-space: nowrap;
+}
+.veredito::before {
+  content: "";
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 2px;
+  background: var(--v-ink);
+  flex: none;
+}
+.v-chega      { --v-ink: var(--operacao-ink);    --v-wash: var(--operacao-wash); }
+.v-a_caminho  { --v-ink: var(--industria-ink);   --v-wash: var(--industria-wash); }
+.v-nao_chega  { --v-ink: var(--edificacoes-ink); --v-wash: var(--edificacoes-wash); }
+.v-sem_efeito { --v-ink: var(--ink-muted);       --v-wash: var(--paper-sunken); }
+
+/* -------------------------------------------------------------------------
+   RÓTULO DE CAMADA — separa o que a fonte diz do que nós lemos
+   A maior ambiguidade do produto, resolvida com uma palavra.
+   ------------------------------------------------------------------------- */
+.camada {
+  display: block;
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-block-end: var(--space-2xs);
+}
+
+/* -------------------------------------------------------------------------
+   DESTAQUE — a manchete que manda
+
+   Quando não há imagem licenciada da fonte, o próprio bloco tipográfico é a
+   capa. Não é remendo: é o MESMO desenho que vira a OG image gerada, então
+   uma decisão serve aos dois lugares e o layout nunca fica com buraco.
+   ------------------------------------------------------------------------- */
+.destaque { display: grid; gap: var(--space-m); padding-block-end: var(--space-l); border-bottom: var(--border-mark); }
+@media (min-width: 52rem) {
+  .destaque { grid-template-columns: 1.15fr 1fr; align-items: start; gap: var(--space-xl); }
+}
+.destaque__capa {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-s);
+  border: var(--border-hair);
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--accent-wash), var(--paper-sunken));
+  display: grid;
+  align-content: end;
+  padding: var(--space-m);
+}
+.destaque__capa img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.destaque__marca {
+  font-family: var(--face-obra);
+  font-size: var(--step-2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--accent-ink);
+  max-width: 22ch;
+}
+.destaque__credito { font-size: var(--step--2); color: var(--ink-faint); margin-block-start: var(--space-2xs); }
+.destaque__titulo {
+  font-family: var(--face-obra);
+  font-size: var(--step-4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+.destaque__titulo a { text-decoration: none; }
+.destaque__lead { font-size: var(--step-1); color: var(--ink-muted); max-width: var(--measure); }
+.destaque__pe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-s); font-size: var(--step--2); color: var(--ink-faint); }
+
+/* -------------------------------------------------------------------------
+   NÚMEROS — a faixa de dados da capa
+   Our World in Data: texto ANTES do número. Número sem pergunta não informa.
+   ------------------------------------------------------------------------- */
+.numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-l); padding-block: var(--space-l); }
+.numero__valor {
+  font-family: var(--face-dado);
+  font-size: var(--step-5);
+  font-weight: var(--weight-bold);
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-ink);
+}
+.numero__rotulo {
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-kicker);
+  color: var(--ink-faint);
+  margin-block-start: var(--space-2xs);
+  max-width: 24ch;
+}

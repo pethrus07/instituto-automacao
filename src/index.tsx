@@ -12,6 +12,7 @@ import {
   ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR, Kicker,
   EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
   AssinaturaObra, ObraNaLista, LeituraNoItem, ROTULO_OBRA,
+  Veredito, Destaque, Numero, ROTULO_VEREDITO,
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { renderizarObra, minutosDeLeitura } from './ui/markdown';
@@ -23,6 +24,7 @@ import {
   listarRadar, obterItem, contarPorNucleo, medirAtraso,
   listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
   listarObras, obterObra, leituraDoItem, type FormatoObra,
+  placar, destaque as itemDestaque,
 } from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
@@ -386,52 +388,68 @@ app.get('/agenda/:slug', async (c) => {
   );
 });
 
-/* -------------------------------------------------------------------- capa */
+/* -------------------------------------------------------------------- capa
+ * O mapa das referências aplicado:
+ *   Our World in Data → frase de propósito e o número com pergunta, antes
+ *   Manufacturing Dive → UMA manchete manda, e ela vem logo abaixo
+ *   Rest of World      → o peso editorial vira tamanho
+ *
+ * A faixa de números só aparece quando existe dado. Capa abrindo com zeros
+ * seria pior que capa sem faixa — e ela volta sozinha quando a base encher.
+ */
 app.get('/', async (c) => {
-  const contagens = await contarPorNucleo(c.env.DB);
-  const atraso = await medirAtraso(c.env.DB);
+  const [contagens, atraso, p, destaque] = await Promise.all([
+    contarPorNucleo(c.env.DB),
+    medirAtraso(c.env.DB),
+    placar(c.env.DB),
+    itemDestaque(c.env.DB),
+  ]);
   const porNucleo = new Map(contagens.map((x) => [x.nucleo, x]));
+  const temDado = p.nao_chega + p.chega > 0 || atraso.medidos > 0;
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
       <Documento
         titulo="O que o setor publicou lá fora hoje"
-        descricao="Notícia internacional de automação, em português, no mesmo dia. Indústria, IA, processos e edificações."
+        descricao="Notícia internacional de automação, em português, no mesmo dia — com o que muda no Brasil."
         url={c.env.SITE_URL + '/'}
       >
-        <h1 style="max-width: var(--measure)">
-          O que o setor publicou lá fora hoje, em português, hoje
+        {/* O h1 da capa É a promessa do site. Toda página tem exatamente um. */}
+        <h1 class="u-obra" style="font-size: var(--step-3); line-height: var(--leading-snug); max-width: var(--measure); font-weight: 400; color: var(--ink-muted)">
+          Quase toda notícia de automação nasce em inglês e alemão e chega ao Brasil com dias ou
+          semanas de atraso — quando chega. <strong style="color: var(--ink); font-weight: 600">Aqui ela
+          chega no mesmo dia, e nós dizemos o que muda por aqui.</strong>
         </h1>
-        <p class="obra" style="margin-block-start: var(--space-m)">
-          <span class="lead">
-            Quase toda notícia de automação nasce em inglês e alemão e chega ao Brasil com
-            dias ou semanas de atraso — quando chega. Aqui ela chega no mesmo dia, com uma
-            linha sobre o que muda por aqui.
-          </span>
-        </p>
 
-        {atraso.medidos > 0 && (
-          <div style="margin-block-start: var(--space-xl)">
-            <Secao titulo="O atraso, medido" />
-            <div style="display:flex; flex-wrap:wrap; gap:var(--space-xl); margin-block-start:var(--space-m)">
-              <div>
-                <div class="u-dado" style="font-size:var(--step-4); font-weight:700; line-height:1">
-                  {atraso.media_dias ?? '—'}
-                </div>
-                <div style="font-size:var(--step--2); text-transform:uppercase; letter-spacing:var(--tracking-kicker); color:var(--ink-faint)">
-                  dias em média até chegar ao Brasil
-                </div>
-              </div>
-              <div>
-                <div class="u-dado" style="font-size:var(--step-4); font-weight:700; line-height:1">
-                  {atraso.sem_mencao}
-                </div>
-                <div style="font-size:var(--step--2); text-transform:uppercase; letter-spacing:var(--tracking-kicker); color:var(--ink-faint)">
-                  assuntos que nunca chegaram
-                </div>
-              </div>
+        {temDado ? (
+          <div class="n-observatorio" style="margin-block-start: var(--space-l); border-block: var(--border-mark)">
+            <div class="numeros">
+              <Numero
+                valor={atraso.media_dias ?? '—'}
+                rotulo="dias, em média, até um assunto chegar ao Brasil"
+              />
+              <Numero
+                valor={p.nao_chega}
+                rotulo="itens que não chegaram aqui"
+                href="/industria?v=nao_chega"
+              />
+              <Numero valor={p.traduzidos_24h} rotulo="traduzidos nas últimas 24 horas" />
             </div>
+          </div>
+        ) : (
+          <div style="margin-block-start: var(--space-l)">
+            <Aviso>
+              <strong>Os números da capa aparecem quando houver base para eles.</strong> O atraso
+              até o Brasil não se estima: mede-se, coletando todo dia. Enquanto isso, o radar já
+              está rodando.
+            </Aviso>
+          </div>
+        )}
+
+        {destaque && (
+          <div style="margin-block-start: var(--space-2xl)">
+            <Destaque item={destaque} />
           </div>
         )}
 
@@ -469,58 +487,60 @@ app.get('/', async (c) => {
 
 /* --------------------------------------------------------------- a obra
  * Análise, Caso e Panorama têm página própria e URL sem núcleo: obra é para
- * durar, e o núcleo pode mudar de nome antes do texto envelhecer.
- * A Leitura NÃO tem página: ela vive dentro do item que comenta.
+ * durar, e núcleo pode mudar de nome antes do texto envelhecer.
+ * A Leitura NÃO tem página: vive dentro do item que comenta.
  *
- * ⚠️ Antes de /:nucleo/:slug — senão o curinga casa primeiro.
+ * ⚠️ Três caminhos EXPLÍCITOS, e antes de /:nucleo/:slug. A versão anterior
+ * usava um parâmetro com alternância na própria rota; explícito não depende
+ * de como o roteador interpreta a expressão.
  */
-app.get('/:formato{analise|caso|panorama}/:slug', async (c) => {
-  const formato = c.req.param('formato') as FormatoObra;
-  const o = await obterObra(c.env.DB, formato, c.req.param('slug'));
-  if (!o) return c.notFound();
+for (const formato of ['analise', 'caso', 'panorama'] as const) {
+  app.get(`/${formato}/:slug`, async (c) => {
+    const o = await obterObra(c.env.DB, formato as FormatoObra, c.req.param('slug'));
+    if (!o) return c.notFound();
 
-  const html = renderizarObra(o.corpo);
-  const minutos = minutosDeLeitura(o.corpo);
+    const html = renderizarObra(o.corpo);
+    const minutos = minutosDeLeitura(o.corpo);
 
-  c.header('Cache-Control', CACHE.item);
-  return c.html(
-    pagina(
-      <Documento
-        titulo={o.titulo}
-        nucleo={o.nucleo}
-        descricao={o.lead ?? undefined}
-        url={`${c.env.SITE_URL}/${o.formato}/${o.slug}`}
-      >
-        <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
-        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{o.titulo}</h1>
+    c.header('Cache-Control', CACHE.item);
+    return c.html(
+      pagina(
+        <Documento
+          titulo={o.titulo}
+          nucleo={o.nucleo}
+          descricao={o.lead ?? undefined}
+          url={`${c.env.SITE_URL}/${o.formato}/${o.slug}`}
+        >
+          <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
+          <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{o.titulo}</h1>
 
-        <div style="margin-block-start: var(--space-m)">
-          <AssinaturaObra obra={o} minutos={minutos} />
-        </div>
+          <div style="margin-block-start: var(--space-m)">
+            <AssinaturaObra obra={o} minutos={minutos} />
+          </div>
 
-        <div class="obra" style="margin-block-start: var(--space-l)">
-          {o.lead && <p class="lead">{o.lead}</p>}
-          {raw(html)}
-        </div>
+          <div class="obra" style="margin-block-start: var(--space-l)">
+            {o.lead && <p class="lead">{o.lead}</p>}
+            {raw(html)}
+          </div>
 
-        {o.item_slug && o.item_nucleo && (
-          <p class="u-muted" style="margin-block-start: var(--space-xl); font-size: var(--step--1)">
-            Comenta:{' '}
-            <a href={`/${o.item_nucleo}/${o.item_slug}`}>{o.item_titulo}</a>
-          </p>
-        )}
+          {o.item_slug && o.item_nucleo && (
+            <p class="u-muted" style="margin-block-start: var(--space-xl); font-size: var(--step--1)">
+              Comenta: <a href={`/${o.item_nucleo}/${o.item_slug}`}>{o.item_titulo}</a>
+            </p>
+          )}
 
-        <div style="margin-block-start: var(--space-xl)">
-          <Aviso>
-            <strong>Texto assinado.</strong> O radar e a agenda deste site não têm autor — são
-            agregação. Análise, Caso e Panorama têm, e a responsabilidade pelo que está escrito
-            aqui é de quem assina.
-          </Aviso>
-        </div>
-      </Documento>,
-    ),
-  );
-});
+          <div style="margin-block-start: var(--space-xl)">
+            <Aviso>
+              <strong>Texto assinado.</strong> O radar e a agenda deste site não têm autor — são
+              agregação. Análise, Caso e Panorama têm, e a responsabilidade pelo que está escrito
+              aqui é de quem assina.
+            </Aviso>
+          </div>
+        </Documento>,
+      ),
+    );
+  });
+}
 
 /* ------------------------------------------------------------------ núcleo */
 app.get('/:nucleo', async (c) => {
@@ -528,13 +548,25 @@ app.get('/:nucleo', async (c) => {
   if (!ehNucleo(chave)) return c.notFound();
 
   const n = NUCLEOS[chave];
-  const itens = await listarRadar(c.env.DB, chave, 30);
-  const obras = await listarObras(c.env.DB, { nucleo: chave }, 5);
+  const v = c.req.query('v');
+  const filtrandoVeredito = v && ROTULO_VEREDITO[v] ? v : undefined;
+
+  const [todos, obras, manchete] = await Promise.all([
+    listarRadar(c.env.DB, chave, 40),
+    listarObras(c.env.DB, { nucleo: chave }, 5),
+    itemDestaque(c.env.DB, chave),
+  ]);
+
+  // O filtro por veredito é o que dá rosto à pergunta-assinatura: a lista do
+  // que o setor lançou lá fora e não chegou aqui.
+  const itens = filtrandoVeredito
+    ? todos.filter((i) => i.contexto_veredito === filtrandoVeredito)
+    : todos.filter((i) => i.id !== manchete?.id);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
-      <Documento titulo="Radar" nucleo={chave} descricao={n.resumo} url={`${c.env.SITE_URL}/${chave}`}>
+      <Documento titulo="Radar" nucleo={chave} descricao={n.resumo} url={`${c.env.SITE_URL}/${chave}${filtrandoVeredito ? `?v=${filtrandoVeredito}` : ''}`}>
         <h1>{n.nome}</h1>
         <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
           {n.resumo}
@@ -546,7 +578,32 @@ app.get('/:nucleo', async (c) => {
           </div>
         )}
 
-        {obras.length > 0 && (
+        {/* Filtro por veredito — cada recorte com URL própria, sem JS. */}
+        <div class="filtro" style="margin-block-start: var(--space-m)">
+          <span class="filtro__rotulo">O que muda aqui</span>
+          <a class="pilula" href={`/${chave}`} aria-current={!filtrandoVeredito ? 'true' : undefined}>
+            Tudo
+          </a>
+          {Object.keys(ROTULO_VEREDITO).map((k) => (
+            <a
+              class="pilula"
+              href={`/${chave}?v=${k}`}
+              aria-current={filtrandoVeredito === k ? 'true' : undefined}
+            >
+              {ROTULO_VEREDITO[k]}
+            </a>
+          ))}
+        </div>
+
+        {manchete && !filtrandoVeredito && (
+          <div style="margin-block-start: var(--space-xl)">
+            <Destaque item={manchete} />
+          </div>
+        )}
+
+        {/* Sob filtro de veredito a obra sai: ela não tem veredito, e mostrá-la
+            ali entregaria lista misturada onde a página prometeu um recorte. */}
+        {obras.length > 0 && !filtrandoVeredito && (
           <div style="margin-block-start: var(--space-xl)">
             <Secao titulo="Obra" />
             {obras.map((o) => (
@@ -556,11 +613,26 @@ app.get('/:nucleo', async (c) => {
         )}
 
         <div style="margin-block-start: var(--space-xl)">
-          <Secao titulo={`Radar · ${n.nome}`} />
+          <Secao
+            titulo={
+              filtrandoVeredito
+                ? `Radar · ${ROTULO_VEREDITO[filtrandoVeredito]}`
+                : `Radar · ${n.nome}`
+            }
+          />
           {itens.length === 0 ? (
             <Aviso>
-              <strong>Ainda não há itens aqui.</strong> O coletor entra no bloco 2 do P0 — até
-              lá, esta página existe para provar que a esteira chega até a tela.
+              {filtrandoVeredito ? (
+                <>
+                  <strong>Nenhum item com este veredito ainda.</strong>{' '}
+                  <a href={`/${chave}`}>Ver o radar inteiro</a>.
+                </>
+              ) : (
+                <>
+                  <strong>Ainda não há itens aqui.</strong> O radar publica assim que a coleta
+                  encontrar algo que passe na triagem.
+                </>
+              )}
             </Aviso>
           ) : (
             itens.map((i) => <ItemDoRadar item={i} comContexto />)
@@ -614,20 +686,43 @@ app.get('/:nucleo/:slug', async (c) => {
           {i.atraso_br_dias != null && <span>chegou ao Brasil {i.atraso_br_dias} dias depois</span>}
         </div>
 
-        {i.contexto_br && (
-          <p class="item__contexto" style="margin-block-start: var(--space-l)">
-            {i.contexto_br}
-          </p>
-        )}
-
-        <div class="obra" style="margin-block-start: var(--space-l)">
-          {(i.corpo ?? i.resumo ?? '')
-            .split(/\n{2,}/)
-            .filter(Boolean)
-            .map((par) => (
-              <p>{par}</p>
-            ))}
+        {/* A maior ambiguidade do produto, resolvida com uma palavra: o que
+            está acima é apuração de terceiro; o que vem abaixo é juízo do
+            Instituto. Semafor deu a ideia, Aos Fatos deu a forma. */}
+        <div style="margin-block-start: var(--space-l)">
+          <span class="camada">O que a fonte diz</span>
+          <div class="obra" style="margin-block-start: var(--space-2xs)">
+            {(i.corpo ?? i.resumo ?? '')
+              .split(/\n{2,}/)
+              .filter(Boolean)
+              .map((par) => (
+                <p>{par}</p>
+              ))}
+          </div>
         </div>
+
+        {i.contexto_br && (
+          <>
+            <div
+              class="item__contexto"
+              style="margin-block-start: var(--space-xl); max-width: var(--measure)"
+            >
+              {i.contexto_veredito && (
+                <p style="margin-block-end: var(--space-2xs)">
+                  <Veredito valor={i.contexto_veredito} />
+                </p>
+              )}
+              {i.contexto_br}
+            </div>
+            <p
+              class="u-faint"
+              style="margin-block-start: var(--space-s); font-size: var(--step--2); max-width: var(--measure)"
+            >
+              O veredito e o parágrafo acima são <strong>redação do Instituto</strong> e seguem
+              critério público. O texto anterior é da fonte.
+            </p>
+          </>
+        )}
 
         {leitura && <LeituraNoItem obra={leitura} html={renderizarObra(leitura.corpo)} />}
 

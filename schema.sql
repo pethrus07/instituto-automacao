@@ -97,6 +97,12 @@ CREATE TABLE item (
   resumo             TEXT,
   -- a camada que separa autoridade de tradução automática em massa
   contexto_br        TEXT,
+  -- O veredito do contexto: categoria fechada, pública e auditável (a lição
+  -- do Aos Fatos). 'nao_chega' é exatamente o que o atraso mede; 'sem_efeito'
+  -- é a opção honesta — sem ela o parágrafo vira enchimento, porque o modelo
+  -- SEMPRE acha alguma consequência quando é obrigado a achar.
+  contexto_veredito  TEXT CHECK (contexto_veredito IN
+                     ('chega','a_caminho','nao_chega','sem_efeito')),
 
   tipo_de_item       TEXT,
   tema               TEXT,
@@ -125,6 +131,7 @@ CREATE TABLE item (
 CREATE UNIQUE INDEX idx_item_canonica  ON item(url_canonica);
 CREATE INDEX        idx_item_publicado ON item(nucleo, status, publicado_em DESC);
 CREATE INDEX        idx_item_assunto   ON item(assunto_id);
+CREATE INDEX        idx_item_veredito  ON item(status, contexto_veredito);
 
 -- -------------------------------------------------------------------------
 -- evento — o ativo mais durável. Sempre passa por aprovação humana.

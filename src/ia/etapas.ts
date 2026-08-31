@@ -179,26 +179,57 @@ export async function traduzir(
 
 const SISTEMA_CONTEXTO = `Você escreve o parágrafo "o que isso muda aqui" do Instituto Automação — duas ou três frases, no máximo, sobre o que aquela notícia internacional significa para quem trabalha com automação no Brasil.
 
-Foque no que é prático e verificável: se há representação ou distribuidor no país, se afeta norma brasileira, se muda custo ou prazo para o integrador daqui, se depende de importação, se o parque instalado no Brasil é compatível.
+Junto com o texto, você classifica o item num VEREDITO, que é categoria fechada e critério público:
 
-Regras duras:
-- NUNCA invente presença comercial, preço, prazo ou parceria. Se você não sabe, diga o que a ausência de informação implica na prática.
-- Nada de encher linguiça: se não houver consequência local relevante, escreva exatamente por que o efeito aqui é pequeno.
+- "chega": já existe no Brasil. Há representação, distribuidor ou disponibilidade declarada; o integrador daqui consegue comprar ou especificar hoje.
+- "a_caminho": anunciado, com prazo ou representação declarada. Ainda não dá para comprar, mas existe compromisso público de quando.
+- "nao_chega": sem representação e sem prazo. Não é pessimismo — é a ausência de informação, dita com todas as letras.
+- "sem_efeito": acontece lá fora e não muda a prática de quem opera no Brasil. Você explica por quê.
+
+REGRA DURA SOBRE O VEREDITO: só use "chega" ou "a_caminho" se a presença brasileira estiver DITA no material. Presumir representação porque a empresa é grande é inventar. Na ausência de informação, o veredito é "nao_chega" — e é exatamente isso que o Instituto mede.
+
+E use "sem_efeito" sempre que for o caso, sem constrangimento. Ele existe para você NÃO precisar encontrar consequência onde não há: enchimento é pior que dizer que o efeito aqui é pequeno.
+
+Demais regras:
+- NUNCA invente presença comercial, preço, prazo ou parceria.
 - Sem adjetivo publicitário e sem futurologia.
 
 Este parágrafo é a razão de o site existir: é o que o leitor não obtém sozinho jogando a matéria no tradutor.`;
 
+const ESQUEMA_CONTEXTO = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['texto', 'veredito'],
+  properties: {
+    texto: { type: 'string', description: 'duas ou três frases, em pt-BR' },
+    veredito: { type: 'string', enum: ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'] },
+  },
+} as const;
+
+export type Contexto = { texto: string; veredito: 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito' };
+
 export async function contextualizar(
   env: Env,
   item: { titulo_pt: string; resumo_pt: string; fornecedores: string[] },
-): Promise<{ dado: string; uso: Uso }> {
-  const r = await pedirTexto(env, {
+): Promise<{ dado: Contexto; uso: Uso }> {
+  const r = await pedirEstruturado<Contexto>(env, {
     modelo: MODELO_OBRA,
     sistema: SISTEMA_CONTEXTO,
-    entrada: `${item.titulo_pt}\n\n${item.resumo_pt}\n\nEmpresas citadas: ${item.fornecedores.join(', ') || 'nenhuma'}`,
-    maxTokens: 500,
-    simulacao:
-      '[simulado] Contexto brasileiro de desenvolvimento, gerado sem chamar a API.',
+    entrada: `${item.titulo_pt}
+
+${item.resumo_pt}
+
+Empresas citadas: ${item.fornecedores.join(', ') || 'nenhuma'}`,
+    ferramenta: {
+      nome: 'registrar_contexto',
+      descricao: 'Registra o parágrafo de contexto brasileiro e o veredito.',
+      esquema: ESQUEMA_CONTEXTO as unknown as Record<string, unknown>,
+    },
+    maxTokens: 700,
+    simulacao: {
+      texto: '[simulado] Contexto brasileiro de desenvolvimento, gerado sem chamar a API.',
+      veredito: 'nao_chega',
+    },
   });
   return { dado: r.dado, uso: r.uso };
 }
