@@ -8,10 +8,17 @@
  */
 import { Hono } from 'hono';
 import { Documento } from './ui/Documento';
-import { ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR } from './ui/pecas';
+import {
+  ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR,
+  EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
+} from './ui/pecas';
+import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
 import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
-import { listarRadar, obterItem, contarPorNucleo, medirAtraso } from './db';
+import {
+  listarRadar, obterItem, contarPorNucleo, medirAtraso,
+  listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
+} from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
 import { estadoIA } from './ia/cliente';
@@ -57,27 +64,258 @@ app.get('/saude', async (c) => {
 });
 
 /* ------------------------------------------------------------------ agenda
- * Entra no v0. Existe agora para o link do menu não morrer — e a página diz
- * o que vai ser, em vez de dar 404 no ativo mais importante do projeto.
+ * O ativo mais durável do projeto: notícia decai em 48 h, calendário não.
+ * Cada combinação de filtro vira URL própria — indexável, linkável, e
+ * mandável no WhatsApp para o organizador da feira.
  */
-app.get('/agenda', (c) => {
+app.get('/agenda', async (c) => {
+  const q = c.req.query();
+  const filtro: TipoFiltroAgenda = {};
+  if (q.n && ehNucleo(q.n)) filtro.nucleo = q.n;
+  if (q.f === 'presencial' || q.f === 'online' || q.f === 'hibrido') filtro.formato = q.f;
+  if (q.o === 'br' || q.o === 'fora') filtro.onde = q.o;
+
+  const eventos = await listarAgenda(c.env.DB, filtro);
+  const contagem = await contarAgenda(c.env.DB);
+
+  // Base dos links de filtro: preserva os outros parâmetros ao trocar um.
+  const base = new URLSearchParams();
+  if (filtro.nucleo) base.set('n', filtro.nucleo);
+  if (filtro.formato) base.set('f', filtro.formato);
+  if (filtro.onde) base.set('o', filtro.onde);
+  const filtrando = base.toString().length > 0;
+
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
       <Documento
         titulo="Agenda"
-        descricao="Calendário de feiras, congressos e eventos de automação no Brasil e no exterior."
-        url={c.env.SITE_URL + '/agenda'}
+        descricao="Feiras, congressos e encontros de automação no Brasil e no exterior, em um calendário só."
+        url={`${c.env.SITE_URL}/agenda${filtrando ? `?${base}` : ''}`}
+        ld={eventos.length ? ldJson(agendaLd(eventos, c.env.SITE_URL)) : undefined}
       >
         <h1>Agenda</h1>
         <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
-          Feiras, congressos e encontros de automação — no Brasil e lá fora.
+          Feiras, congressos e encontros de automação — no Brasil e lá fora. {contagem.total} evento
+          {contagem.total === 1 ? '' : 's'} à frente, {contagem.brasil} no Brasil.
         </p>
+
+        {q.enviado === '1' && (
+          <div style="margin-block-start: var(--space-m)">
+            <Aviso>
+              <strong>Recebido.</strong> O evento entra na agenda depois da conferência de data e
+              local.
+            </Aviso>
+          </div>
+        )}
+
         <div style="margin-block-start: var(--space-l)">
+          <FiltroAgenda
+            rotulo="Núcleo"
+            parametro="n"
+            atual={filtro.nucleo}
+            base={base}
+            opcoes={ORDEM_NUCLEOS.map((k) => ({
+              valor: k,
+              texto: NUCLEOS[k].nome,
+              classe: NUCLEOS[k].classe,
+            }))}
+          />
+          <FiltroAgenda
+            rotulo="Formato"
+            parametro="f"
+            atual={filtro.formato}
+            base={base}
+            opcoes={[
+              { valor: 'presencial', texto: 'Presencial' },
+              { valor: 'online', texto: 'Online' },
+              { valor: 'hibrido', texto: 'Híbrido' },
+            ]}
+          />
+          <FiltroAgenda
+            rotulo="Onde"
+            parametro="o"
+            atual={filtro.onde}
+            base={base}
+            opcoes={[
+              { valor: 'br', texto: 'Brasil' },
+              { valor: 'fora', texto: 'Exterior' },
+            ]}
+          />
+        </div>
+
+        <div style="margin-block-start: var(--space-xl)">
+          {eventos.length === 0 ? (
+            <Aviso>
+              {filtrando ? (
+                <>
+                  <strong>Nenhum evento com esses filtros.</strong>{' '}
+                  <a href="/agenda">Ver a agenda inteira</a>.
+                </>
+              ) : (
+                <>
+                  <strong>A agenda ainda está vazia.</strong> Organiza um evento de automação?{' '}
+                  <a href="#enviar">Mande para cá</a> — listar é de graça.
+                </>
+              )}
+            </Aviso>
+          ) : (
+            eventos.map((e) => <EventoNaAgenda evento={e} />)
+          )}
+        </div>
+
+        <div id="enviar" style="margin-block-start: var(--space-3xl); scroll-margin-top: var(--space-l)">
+          <Secao titulo="Enviar um evento" />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            Listar é gratuito. Todo envio passa por conferência antes de aparecer — data errada em
+            agenda destrói a confiança na agenda inteira.
+          </p>
+          <FormularioEvento />
+        </div>
+      </Documento>,
+    ),
+  );
+});
+
+/* -------------------------------------------------------- envio de evento */
+app.post('/agenda/enviar', async (c) => {
+  const f = await c.req.formData();
+  const texto = (k: string) => String(f.get(k) ?? '').trim().slice(0, 500);
+
+  // Armadilha para robô: campo escondido que humano nunca preenche. Não é
+  // proteção séria — é o filtro barato. Ver qa/SPRINT-3.md §5.
+  if (texto('sitio')) return c.redirect('/agenda?enviado=1', 303);
+
+  const nome = texto('nome');
+  const inicio = texto('inicio');
+  const erro = !nome
+    ? 'Falta o nome do evento.'
+    : !/^\d{4}-\d{2}-\d{2}$/.test(inicio)
+      ? 'A data de início precisa estar no formato AAAA-MM-DD.'
+      : inicio < new Date().toISOString().slice(0, 10)
+        ? 'A data de início já passou.'
+        : null;
+
+  if (erro) {
+    c.status(400);
+    return c.html(
+      pagina(
+        <Documento titulo="Envio não aceito">
+          <h1>Envio não aceito</h1>
+          <div style="margin-block-start: var(--space-m)">
+            <Aviso>
+              <strong>{erro}</strong> <a href="/agenda#enviar">Voltar ao formulário</a>.
+            </Aviso>
+          </div>
+        </Documento>,
+      ),
+    );
+  }
+
+  const nucleoEnviado = texto('nucleo');
+  const formatoEnviado = texto('formato');
+
+  // Entra como 'coletado': nada aparece na agenda sem conferência humana.
+  await c.env.DB.prepare(
+    `INSERT INTO evento (id, nucleo, nome, descricao, inicio, fim, cidade, uf, pais,
+                         formato, organizador, url, preco, origem, status)
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,'formulario','coletado')`,
+  )
+    .bind(
+      `e-${crypto.randomUUID().slice(0, 12)}`,
+      ehNucleo(nucleoEnviado) ? nucleoEnviado : 'industria',
+      nome,
+      texto('descricao') || null,
+      inicio,
+      texto('fim') || null,
+      texto('cidade') || null,
+      texto('uf').toUpperCase().slice(0, 2) || null,
+      texto('pais').toUpperCase().slice(0, 2) || 'BR',
+      ['presencial', 'online', 'hibrido'].includes(formatoEnviado) ? formatoEnviado : 'presencial',
+      texto('organizador') || null,
+      texto('url') || null,
+      texto('preco') || null,
+    )
+    .run();
+
+  return c.redirect('/agenda?enviado=1', 303);
+});
+
+/* ------------------------------------------------------------ evento único
+ * ⚠️ Precisa vir ANTES de /:nucleo/:slug — senão o curinga casa primeiro.
+ */
+app.get('/agenda/:slug', async (c) => {
+  const e = await obterEvento(c.env.DB, c.req.param('slug'));
+  if (!e) return c.notFound();
+
+  const local =
+    e.formato === 'online'
+      ? 'Online'
+      : [e.cidade, e.pais === 'BR' ? e.uf : e.pais].filter(Boolean).join(' · ');
+
+  /**
+   * Evento que já passou continua tendo página — permalink é contrato com
+   * quem linkou, e derrubar para 404 quebra o link de todo mundo. Mas a
+   * página TEM de dizer que já aconteceu: quem chega pela busca meses
+   * depois não pode achar que ainda vai acontecer.
+   */
+  const passou = (e.fim ?? e.inicio).slice(0, 10) < new Date().toISOString().slice(0, 10);
+
+  c.header('Cache-Control', CACHE.item);
+  return c.html(
+    pagina(
+      <Documento
+        titulo={e.nome}
+        nucleo={e.nucleo}
+        descricao={e.descricao ?? `${e.nome} — ${periodoEvento(e.inicio, e.fim)}, ${local}.`}
+        url={`${c.env.SITE_URL}/agenda/${e.slug}`}
+        ld={ldJson(eventoLd(e, c.env.SITE_URL))}
+      >
+        <p>
+          <a href="/agenda" class="kicker kicker--dot">
+            Agenda
+          </a>
+        </p>
+        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{e.nome}</h1>
+
+        {passou && (
+          <div style="margin-block-start: var(--space-m)">
+            <Aviso>
+              <strong>Este evento já aconteceu.</strong> A página fica no ar para quem chegou por
+              um link antigo. Para o que vem pela frente, veja a <a href="/agenda">agenda</a>.
+            </Aviso>
+          </div>
+        )}
+
+        <div class="assinatura" style="margin-block-start: var(--space-m)">
+          <span class="assinatura__autor u-dado">{periodoEvento(e.inicio, e.fim)}</span>
+          <span>{local || '—'}</span>
+          <span>
+            {e.formato === 'hibrido' ? 'Híbrido' : e.formato === 'online' ? 'Online' : 'Presencial'}
+          </span>
+          {e.preco && <span>{e.preco === 'gratuito' ? 'Gratuito' : e.preco}</span>}
+          <span class="assinatura__nucleo">{NUCLEOS[e.nucleo].nome}</span>
+        </div>
+
+        {e.descricao && (
+          <div class="obra" style="margin-block-start: var(--space-l)">
+            <p>{e.descricao}</p>
+          </div>
+        )}
+
+        <p style="margin-block-start: var(--space-l)">
+          {e.url && (
+            <a href={e.url} rel="nofollow noopener" target="_blank">
+              Página oficial do evento
+            </a>
+          )}
+          {e.organizador && <span class="u-muted"> · organização: {e.organizador}</span>}
+        </p>
+
+        <div style="margin-block-start: var(--space-xl)">
           <Aviso>
-            <strong>A agenda entra no v0.</strong> É o ativo mais durável do projeto: notícia
-            decai em 48 horas, calendário não. Vai nascer completa nos quatro núcleos, com
-            filtro por URL própria e <code>schema.org/Event</code>.
+            <strong>Data e local conferidos na fonte oficial.</strong> Se algo mudou,{' '}
+            <a href="/agenda#enviar">avise</a> — agenda com data errada não serve para nada.
           </Aviso>
         </div>
       </Documento>,

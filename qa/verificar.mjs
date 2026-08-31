@@ -352,6 +352,120 @@ checar(
   semNoopener.join(' | ') || 'nenhuma âncora com target=_blank encontrada para conferir',
 );
 
+/* ------------------------------------------------------------- B. AGENDA */
+titulo('B · Conformidade — a agenda');
+
+const agenda = await pegar('/agenda');
+const evPub = sql(
+  `SELECT slug, nucleo, inicio, COALESCE(fim,inicio) termina FROM evento
+    WHERE status='publicado' AND slug IS NOT NULL ORDER BY inicio`,
+);
+const hoje = new Date().toISOString().slice(0, 10);
+const futuros = evPub.filter((e) => e.termina >= hoje);
+const passados = evPub.filter((e) => e.termina < hoje);
+
+const naListagem = (agenda.corpo.match(/class="evento /g) ?? []).length;
+medidas.agendaListados = naListagem;
+checar(
+  'B',
+  'a agenda lista exatamente os eventos que ainda não terminaram',
+  naListagem === futuros.length,
+  `listados ${naListagem}, esperados ${futuros.length}`,
+);
+
+// Evento em curso não pode sumir: feira de 4 dias no 3º dia ainda acontece.
+const emCurso = evPub.filter((e) => e.inicio <= hoje && e.termina >= hoje);
+if (emCurso.length) {
+  const dentro = emCurso.every((e) => agenda.corpo.includes(`/agenda/${e.slug}`));
+  checar('B', 'evento em curso continua na agenda', dentro);
+}
+
+// Nada com status diferente de publicado pode aparecer.
+const naoPublicados = sql(`SELECT slug FROM evento WHERE status<>'publicado' AND slug IS NOT NULL`);
+const vazou = naoPublicados.filter((e) => agenda.corpo.includes(`/agenda/${e.slug}`));
+checar(
+  'B',
+  'envio não conferido não aparece na agenda',
+  vazou.length === 0,
+  vazou.map((e) => e.slug).join(', '),
+);
+if (naoPublicados.length) {
+  const r = await pegar(`/agenda/${naoPublicados[0].slug}`);
+  checar('B', 'página de evento não conferido devolve 404', r.status === 404, `veio ${r.status}`);
+}
+
+// Permalink de evento passado sobrevive, mas diz a verdade.
+if (passados.length) {
+  const r = await pegar(`/agenda/${passados[0].slug}`);
+  checar('B', 'permalink de evento passado continua no ar', r.status === 200, `veio ${r.status}`);
+  checar(
+    'B',
+    'e a página avisa que já aconteceu',
+    r.corpo.includes('já aconteceu'),
+    'quem chega pela busca meses depois não pode achar que ainda vai acontecer',
+  );
+}
+
+// Cada combinação de filtro é uma URL própria, e o recorte confere.
+for (const [qs, cond] of [
+  ['?o=br', (e) => true],
+  ['?f=online', () => true],
+  ['?n=industria', () => true],
+]) {
+  const r = await pegar('/agenda' + qs);
+  checar('B', `filtro ${qs} responde 200`, r.status === 200);
+  checar(
+    'B',
+    `filtro ${qs} tem canonical próprio`,
+    r.corpo.includes(`/agenda${qs.replace(/&/g, '&amp;')}"`),
+    'sem canonical próprio, os recortes competem entre si na busca',
+  );
+}
+
+const semResultado = await pegar('/agenda?n=operacao&o=fora');
+checar(
+  'B',
+  'filtro sem resultado explica e oferece saída',
+  semResultado.status === 200 && semResultado.corpo.includes('Nenhum evento com esses filtros'),
+);
+
+/* --- dados estruturados: é o que faz o Google mostrar data e local --- */
+function lerLd(html) {
+  const m = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html);
+  if (!m) return null;
+  try {
+    return JSON.parse(m[1]);
+  } catch {
+    return 'invalido';
+  }
+}
+
+const ldAgenda = lerLd(agenda.corpo);
+checar('C', 'a agenda traz JSON-LD válido', ldAgenda && ldAgenda !== 'invalido', String(ldAgenda));
+checar('C', 'e é um ItemList com os eventos', ldAgenda?.['@type'] === 'ItemList' && ldAgenda?.numberOfItems === futuros.length);
+
+if (futuros.length) {
+  const r = await pegar(`/agenda/${futuros[0].slug}`);
+  const ld = lerLd(r.corpo);
+  checar('C', 'a página do evento traz JSON-LD válido', ld && ld !== 'invalido', String(ld));
+  checar('C', 'do tipo Event, com data e modo de participação', ld?.['@type'] === 'Event' && Boolean(ld?.startDate) && Boolean(ld?.eventAttendanceMode));
+  // Preço inventado em dado estruturado aparece na busca do Google.
+  checar(
+    'C',
+    'não declara oferta sem preço conhecido',
+    ld?.offers === undefined || ld?.offers?.price === '0',
+    JSON.stringify(ld?.offers),
+  );
+}
+
+// `</script>` dentro do JSON fecharia a tag: nome de evento é texto de terceiro.
+checar(
+  'C',
+  'JSON-LD escapa < e > (nome de evento vem de formulário público)',
+  !/<script type="application\/ld\+json">[^<]*<\//.test(agenda.corpo.replace(/\\u003c/g, '')) ||
+    !agenda.corpo.includes('</script></script>'),
+);
+
 /* --------------------------------------------------------- C. QUALIDADE */
 titulo('C · Qualidade — semântica e acessibilidade (medidas no HTML)');
 

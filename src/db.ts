@@ -116,3 +116,97 @@ export async function medirAtraso(db: D1Database, nucleo?: ChaveNucleo): Promise
     sem_mencao: linha?.sem_mencao ?? 0,
   };
 }
+
+/* ========================================================================= */
+/* Agenda                                                                     */
+/* ========================================================================= */
+
+export type Evento = {
+  id: string;
+  slug: string | null;
+  nucleo: ChaveNucleo;
+  nome: string;
+  descricao: string | null;
+  inicio: string;
+  fim: string | null;
+  cidade: string | null;
+  uf: string | null;
+  pais: string;
+  formato: 'presencial' | 'online' | 'hibrido';
+  organizador: string | null;
+  url: string | null;
+  preco: string | null;
+  destaque: number;
+};
+
+export type FiltroAgenda = {
+  nucleo?: ChaveNucleo;
+  formato?: 'presencial' | 'online' | 'hibrido';
+  onde?: 'br' | 'fora';
+};
+
+/**
+ * Eventos que ainda não terminaram.
+ *
+ * Compara com `fim` quando existe: feira de quatro dias no terceiro dia
+ * ainda é evento que acontece, e sumir dela no meio é o tipo de erro que
+ * faz o leitor deixar de confiar na agenda inteira.
+ *
+ * Os filtros entram por lista branca — o valor vem da querystring, e
+ * concatenar isso em SQL seria injeção com convite.
+ */
+export async function listarAgenda(
+  db: D1Database,
+  f: FiltroAgenda = {},
+  limite = 60,
+): Promise<Evento[]> {
+  const cond = [`COALESCE(fim, inicio) >= date('now')`, `status = 'publicado'`];
+  const args: unknown[] = [];
+
+  if (f.nucleo) {
+    args.push(f.nucleo);
+    cond.push(`nucleo = ?${args.length}`);
+  }
+  if (f.formato) {
+    args.push(f.formato);
+    cond.push(`formato = ?${args.length}`);
+  }
+  if (f.onde === 'br') cond.push(`pais = 'BR'`);
+  if (f.onde === 'fora') cond.push(`pais <> 'BR'`);
+
+  args.push(limite);
+  const { results } = await db
+    .prepare(
+      `SELECT id, slug, nucleo, nome, descricao, inicio, fim, cidade, uf, pais,
+              formato, organizador, url, preco, destaque
+         FROM evento
+        WHERE ${cond.join(' AND ')}
+        ORDER BY inicio ASC
+        LIMIT ?${args.length}`,
+    )
+    .bind(...args)
+    .all<Evento>();
+  return results ?? [];
+}
+
+export async function obterEvento(db: D1Database, slug: string): Promise<Evento | null> {
+  return await db
+    .prepare(
+      `SELECT id, slug, nucleo, nome, descricao, inicio, fim, cidade, uf, pais,
+              formato, organizador, url, preco, destaque
+         FROM evento WHERE slug = ?1 AND status = 'publicado'`,
+    )
+    .bind(slug)
+    .first<Evento>();
+}
+
+/** Para a página dizer quantos há em cada recorte sem consultar de novo. */
+export async function contarAgenda(db: D1Database): Promise<{ total: number; brasil: number }> {
+  const l = await db
+    .prepare(
+      `SELECT COUNT(*) total, SUM(CASE WHEN pais='BR' THEN 1 ELSE 0 END) brasil
+         FROM evento WHERE status='publicado' AND COALESCE(fim, inicio) >= date('now')`,
+    )
+    .first<{ total: number; brasil: number }>();
+  return { total: l?.total ?? 0, brasil: l?.brasil ?? 0 };
+}

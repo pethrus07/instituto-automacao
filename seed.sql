@@ -109,3 +109,48 @@ INSERT OR REPLACE INTO glossario (termo_origem, idioma, termo_pt, nota, travado,
   ('setup', 'en', 'setup', 'troca e preparação de ferramenta entre lotes', 1, 1, 'industria'),
   ('edge', 'en', 'edge', 'processamento no próprio equipamento, sem passar por servidor', 1, 1, 'industria'),
   ('retrofit', 'en', 'retrofit', 'modernização de máquina existente', 1, 1, 'industria');
+
+-- Eventos de exemplo -------------------------------------------------------
+-- FICTÍCIOS, como o resto do seed. Os reais entram na sprint 1, com data
+-- conferida na fonte oficial: agenda com data errada não serve para nada.
+INSERT OR REPLACE INTO evento (id, slug, nucleo, nome, descricao, inicio, fim, cidade, uf, pais,
+                               formato, organizador, url, preco, origem, status) VALUES
+  ('ev-001','encontro-de-automacao-de-processos-exemplo','operacao',
+   'Encontro de automação de processos e agentes de IA (exemplo)',
+   'Evento fictício de desenvolvimento. Serve para exercitar a agenda, os filtros e os dados estruturados.',
+   '2026-11-12','2026-11-12','São Paulo','SP','BR','presencial','Organização Exemplo',
+   'https://exemplo.com.br/encontro','gratuito','manual','publicado'),
+
+  ('ev-002','feira-internacional-de-maquinas-exemplo','industria',
+   'Feira internacional de máquinas e automação industrial (exemplo)',
+   'Evento fictício de desenvolvimento, com vários dias, para exercitar a exibição de período.',
+   '2027-03-03','2027-03-06','Hannover',NULL,'DE','presencial','Feira Exemplo',
+   'https://exemplo.de/feira','pago','manual','publicado'),
+
+  ('ev-003','seminario-online-de-manutencao-preditiva-exemplo','industria',
+   'Seminário online de manutenção preditiva (exemplo)',
+   'Evento fictício de desenvolvimento, no formato online.',
+   '2026-09-24',NULL,NULL,NULL,'BR','online','Associação Exemplo',
+   'https://exemplo.org/seminario','gratuito','manual','publicado'),
+
+  ('ev-004','congresso-brasileiro-de-automacao-exemplo','observatorio',
+   'Congresso brasileiro de automação e trabalho (exemplo)',
+   'Evento fictício de desenvolvimento, formato híbrido.',
+   '2026-10-08','2026-10-10','Campinas','SP','BR','hibrido','Universidade Exemplo',
+   'https://exemplo.edu.br/congresso','pago','manual','publicado'),
+
+  ('ev-005','encontro-de-automacao-predial-exemplo','edificacoes',
+   'Encontro de automação predial e eficiência energética (exemplo)',
+   'Evento fictício de desenvolvimento.',
+   '2027-02-10',NULL,'Lisboa',NULL,'PT','presencial','Exemplo Iberia',
+   'https://exemplo.pt/encontro',NULL,'manual','publicado'),
+
+  -- passado de propósito: NÃO pode aparecer na agenda
+  ('ev-006','evento-que-ja-passou-exemplo','industria',
+   'Evento que já passou (exemplo)','Existe para provar que a agenda não mostra o que já aconteceu.',
+   '2026-07-01','2026-07-02','Recife','PE','BR','presencial','Exemplo',NULL,NULL,'manual','publicado'),
+
+  -- aguardando conferência: NÃO pode aparecer na agenda
+  ('ev-007','evento-nao-conferido-exemplo','industria',
+   'Evento enviado e não conferido (exemplo)','Existe para provar que envio não conferido não vai ao ar.',
+   '2026-12-01',NULL,'Curitiba','PR','BR','presencial','Exemplo',NULL,NULL,'formulario','coletado');

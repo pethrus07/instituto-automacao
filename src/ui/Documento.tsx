@@ -13,6 +13,8 @@ type Props = {
   /** define --accent-* para a página inteira */
   nucleo?: ChaveNucleo;
   url?: string;
+  /** JSON-LD já serializado e escapado (ver ui/jsonld.ts). */
+  ld?: string;
   children?: unknown;
 };
 
@@ -40,6 +42,10 @@ export const Documento = (p: Props) => {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link rel="stylesheet" href={FONTES_DEV} />
         <link rel="stylesheet" href={CSS_ROTA} />
+
+        {p.ld && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: p.ld }} />
+        )}
 
         {ORDEM_NUCLEOS.map((n) => (
           <link

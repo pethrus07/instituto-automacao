@@ -373,3 +373,24 @@
    Transição de página sem SPA (Chrome/Edge; degrada em silêncio)
    ------------------------------------------------------------------------- */
 @view-transition { navigation: auto; }
+
+/* -------------------------------------------------------------------------
+   CAMPO — entrada de formulário
+   Só o envio de evento usa isto hoje. O foco herda o mesmo anel de todo o
+   resto, então teclado se comporta igual em toda parte.
+   ------------------------------------------------------------------------- */
+.campo {
+  inline-size: 100%;
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--border-firm);
+  border-radius: var(--radius-s);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-family: var(--face-fluxo);
+  font-size: var(--step-0);
+  line-height: var(--leading-normal);
+  transition: border-color var(--duration) var(--ease);
+}
+.campo:hover { border-color: var(--accent-mark); }
+.campo::placeholder { color: var(--ink-faint); }
+textarea.campo { resize: vertical; min-block-size: 4.5rem; }
