@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direções visuais — Instituto Automação</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+
+<style>
+  .dir-head { border-bottom: var(--border-firm); padding-block: var(--space-l) var(--space-m); margin-block-end: var(--space-xl); }
+  .dir-nav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: var(--space-2xs);
+             padding-block: var(--space-s); background: color-mix(in srgb, var(--paper) 92%, transparent);
+             backdrop-filter: blur(8px); border-bottom: var(--border-hair); margin-block-end: var(--space-2xl); }
+
+  .dir { margin-block-end: var(--space-3xl); scroll-margin-top: 4.5rem; }
+  .dir__cabeca { display: grid; gap: var(--space-2xs); margin-block-end: var(--space-m); }
+  .dir__nome { font-family: var(--face-obra); font-size: var(--step-3); font-weight: 600; }
+  .dir__fonte { font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--ink-faint); }
+  .dir__nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); }
+
+  /* a moldura que simula a tela */
+  .tela { border: var(--border-firm); border-radius: var(--radius-m); overflow: hidden; background: var(--paper); }
+  .tela__barra { display: flex; align-items: center; gap: var(--space-2xs); padding: var(--space-2xs) var(--space-s);
+                 border-bottom: var(--border-hair); background: var(--paper-sunken); font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); }
+  .tela__ponto { inline-size: .5rem; block-size: .5rem; border-radius: 999px; background: var(--rule-strong); }
+  .tela__corpo { padding: var(--space-l) var(--space-m); }
+
+  .veredito { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem,1fr)); gap: var(--space-m); margin-block-start: var(--space-m); }
+  .veredito div { border-inline-start: 3px solid var(--accent-mark); padding-inline-start: var(--space-s); font-size: var(--step--1); }
+  .veredito strong { display: block; font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--accent-ink); margin-block-end: 2px; }
+
+  /* ---- B · portal ---- */
+  .portal-capa { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--space-l); align-items: start; }
+  @media (max-width: 46rem) { .portal-capa { grid-template-columns: 1fr; } }
+  .portal-imagem { aspect-ratio: 16/9; border-radius: var(--radius-s); border: var(--border-hair);
+                   background: linear-gradient(135deg, var(--accent-wash), var(--paper-sunken));
+                   display: grid; place-items: center; text-align: center; padding: var(--space-m); }
+  .portal-imagem span { font-family: var(--face-dado); font-size: var(--step--2); color: var(--accent-ink); max-width: 26ch; }
+  .portal-manchete { font-family: var(--face-obra); font-size: var(--step-3); font-weight: 600; line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); margin-block-start: var(--space-s); }
+  .portal-lista { display: grid; }
+  .portal-lista li { list-style: none; padding-block: var(--space-2xs); border-bottom: var(--border-hair); font-size: var(--step-0); line-height: var(--leading-snug); }
+  .portal-lista li:last-child { border-bottom: 0; }
+  .portal-lista .num { font-family: var(--face-dado); color: var(--ink-faint); font-size: var(--step--2); margin-inline-end: var(--space-2xs); }
+  .faixa-news { border: var(--border-hair); border-inline-start: 3px solid var(--accent-mark); background: var(--paper-raised);
+                padding: var(--space-m); border-radius: 0 var(--radius-s) var(--radius-s) 0; margin-block: var(--space-l); }
+
+  /* ---- C · painel ---- */
+  .painel-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem,1fr)); gap: var(--space-l);
+                    padding-block: var(--space-l); border-block: var(--border-mark); }
+  .painel-num { font-family: var(--face-dado); font-size: var(--step-5); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; color: var(--accent-ink); }
+  .painel-rot { font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--ink-faint); margin-block-start: var(--space-2xs); max-width: 22ch; }
+  .tabela-radar { width: 100%; font-size: var(--step--1); }
+  .tabela-radar td { padding-block: var(--space-2xs); border-bottom: var(--border-hair); vertical-align: baseline; }
+  .tabela-radar .t-hora { font-family: var(--face-dado); color: var(--live); white-space: nowrap; inline-size: 5rem; }
+  .tabela-radar .t-fonte { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); white-space: nowrap; text-align: right; }
+  .tabela-radar .t-titulo { font-family: var(--face-obra); font-size: var(--step-0); font-weight: 600; }
+  .barra-atraso { block-size: 4px; background: var(--paper-sunken); border-radius: 999px; overflow: hidden; margin-block-start: 4px; }
+  .barra-atraso i { display: block; block-size: 100%; background: var(--accent-mark); }
+
+  .toggle { display: inline-flex; align-items: center; gap: var(--space-2xs); padding: var(--space-3xs) var(--space-xs);
+            border: var(--border-firm); border-radius: 999px; background: var(--paper-raised); cursor: pointer; font-size: var(--step--1); }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="dir-head n-observatorio">
+  <p class="kicker kicker--dot">Direções visuais · v1</p>
+  <h1 style="margin-block-start: var(--space-2xs)">Três caminhos para a mesma notícia</h1>
+  <p class="dir__nota" style="margin-block-start: var(--space-s)">
+    O mesmo conteúdo, tratado de três formas. Todas usam os mesmos tokens — o que muda é a
+    <strong>hierarquia</strong>, não a paleta nem a tipografia. Escolha pelo que a capa
+    <em>promete</em> ao leitor no primeiro segundo.
+  </p>
+  <p style="margin-block-start: var(--space-m)">
+    <button class="toggle u-fluxo" id="tema" type="button">Tema</button>
+  </p>
+</header>
+
+<nav class="dir-nav u-fluxo">
+  <a class="pilula" href="#diagnostico">O diagnóstico</a>
+  <a class="pilula n-observatorio" href="#a">A · Editorial</a>
+  <a class="pilula n-industria" href="#b">B · Portal</a>
+  <a class="pilula" href="#c">C · Painel</a>
+  <a class="pilula" href="#recomendacao">Recomendação</a>
+</nav>
+
+<!-- ==================================================================== -->
+<section class="dir" id="diagnostico">
+  <div class="dir__cabeca">
+    <span class="dir__fonte">Por que o Portal Solar parece feio</span>
+    <span class="dir__nome">Densidade sem hierarquia</span>
+  </div>
+  <p class="dir__nota">
+    Não é a cor nem a fonte. É que <strong>tudo tem o mesmo peso ao mesmo tempo</strong>: seis
+    blocos competindo, nenhum liderando. O olho não recebe instrução sobre onde começar, e a
+    sensação de "poluído" é exatamente essa — trabalho de decidir transferido para o leitor.
+  </p>
+  <p class="dir__nota" style="margin-block-start: var(--space-s)">
+    A prova é que o <strong>Manufacturing Dive</strong> tem quase a mesma quantidade de
+    conteúdo e não parece poluído: ele resolve com <em>uma</em> manchete grande, depois cinco
+    em lista, depois o fluxo. A densidade é a mesma; a hierarquia é que existe.
+  </p>
+  <div class="n-industria veredito">
+    <div><strong>Roubar do Portal Solar</strong> Ser o endereço do setor: notícia + referência + diretório + ferramenta num lugar só.</div>
+    <div><strong>Roubar do Manufacturing Dive</strong> Uma manchete manda. Newsletter em três pontos. Tag temática em todo item.</div>
+    <div><strong>Não copiar de nenhum dos dois</strong> Lead vendido a integrador. Mata a isenção — e com ela o Panorama e a ponte acadêmica.</div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="dir n-observatorio" id="a">
+  <div class="dir__cabeca">
+    <span class="dir__fonte">Direção A · o que está no ar hoje</span>
+    <span class="dir__nome">Editorial — fio, espaço e tipografia</span>
+    <p class="dir__nota">Sem caixa, sem sombra, sem imagem. A hierarquia vem do tamanho do tipo e do ar entre os blocos. Parentesco: Financial Times, The Markup, Stratechery.</p>
+  </div>
+
+  <div class="tela">
+    <div class="tela__barra"><span class="tela__ponto"></span> institutoautomacao.com.br</div>
+    <div class="tela__corpo">
+      <h2 class="u-obra" style="font-size: var(--step-4); line-height: var(--leading-tight); max-width: var(--measure)">
+        O que o setor publicou lá fora hoje, em português, hoje
+      </h2>
+      <p class="obra" style="margin-block-start: var(--space-m)"><span class="lead">Quase toda notícia de automação nasce em inglês e alemão e chega ao Brasil com dias ou semanas de atraso — quando chega.</span></p>
+
+      <div class="secao" style="margin-block-start: var(--space-xl)"><span class="secao__titulo">Radar · Indústria</span><span class="secao__acao">ver tudo</span></div>
+
+      <article class="item n-industria">
+        <div class="item__topo">
+          <span class="kicker kicker--dot">Indústria</span>
+          <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">14 min</span> após a fonte</span>
+          <span class="selo selo--traducao">Tradução integral</span>
+        </div>
+        <h3 class="item__titulo"><a href="#a">Nova geração de controladores integra diagnóstico preditivo direto no CLP</a></h3>
+        <p class="item__resumo">O modelo de detecção de anomalia passa a rodar no próprio equipamento, sem servidor externo, e o protocolo segue retrocompatível com a geração anterior.</p>
+        <p class="item__contexto">A linha ainda não tem representação declarada no Brasil, e integrador daqui só deve ver preço no segundo semestre. Para quem opera parque antigo, o ponto prático é outro: o protocolo é retrocompatível.</p>
+        <p class="item__pe"><span class="item__fonte">press.exemplo.com</span><span>·</span><span>30 ago 2026</span><span>·</span><span class="selo selo--original">DE</span></p>
+      </article>
+
+      <article class="item n-industria">
+        <div class="item__topo">
+          <span class="kicker kicker--dot">Indústria</span>
+          <span class="relogio relogio--frio"><span class="relogio__ponto"></span><span class="relogio__valor">1 dia</span> após a fonte</span>
+          <span class="selo selo--pendente">Revisão pendente</span>
+        </div>
+        <h3 class="item__titulo"><a href="#a">Consórcio publica revisão da norma de segurança para células colaborativas</a></h3>
+        <p class="item__resumo">A revisão muda o cálculo de distância de separação e passa a exigir registro documental do ensaio de força e pressão.</p>
+      </article>
+    </div>
+  </div>
+
+  <div class="veredito">
+    <div><strong>A favor</strong> Envelhece bem. Leitura longa confortável. Não depende de imagem — e nós não republicamos imagem de terceiro.</div>
+    <div><strong>Contra</strong> Para quem espera "portal do setor", pode parecer seco e pouco ativo. Não anuncia o diferencial: o leitor tem que ler para descobrir o que é.</div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="dir n-industria" id="b">
+  <div class="dir__cabeca">
+    <span class="dir__fonte">Direção B · o Portal Solar bem feito</span>
+    <span class="dir__nome">Portal — uma manchete manda</span>
+    <p class="dir__nota">Manchete única grande, depois a lista ordenada, depois o fluxo. Newsletter em ponto fixo. Parentesco: Manufacturing Dive, The Robot Report.</p>
+  </div>
+
+  <div class="tela">
+    <div class="tela__barra"><span class="tela__ponto"></span> institutoautomacao.com.br</div>
+    <div class="tela__corpo">
+      <div class="portal-capa">
+        <div>
+          <span class="kicker kicker--dot">Indústria · destaque</span>
+          <div class="portal-imagem" style="margin-block-start: var(--space-s)">
+            <span>OG image gerada pelo Instituto — nunca foto de terceiro</span>
+          </div>
+          <h2 class="portal-manchete">Nova geração de controladores integra diagnóstico preditivo direto no CLP</h2>
+          <p class="item__resumo" style="margin-block-start: var(--space-2xs)">O modelo de detecção de anomalia passa a rodar no próprio equipamento, sem servidor externo.</p>
+          <p class="item__pe" style="margin-block-start: var(--space-2xs)">
+            <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">14 min</span> após a fonte</span>
+            <span>·</span><span class="item__fonte">press.exemplo.com</span><span>·</span><span class="selo selo--original">DE</span>
+          </p>
+        </div>
+
+        <div>
+          <div class="secao"><span class="secao__titulo">Mais lidas hoje</span></div>
+          <ul class="portal-lista">
+            <li><span class="num">01</span>Consórcio revisa a norma de células colaborativas</li>
+            <li><span class="num">02</span>Inversores passam a medir consumo sem medidor externo</li>
+            <li><span class="num">03</span>Fabricante anuncia fábrica de cobots no interior de SP</li>
+            <li><span class="num">04</span>Norma de segurança funcional entra em consulta pública</li>
+            <li><span class="num">05</span>Integradores relatam prazo de importação de 22 semanas</li>
+          </ul>
+          <div class="faixa-news">
+            <strong style="display:block; font-family:var(--face-obra); font-size:var(--step-1)">O radar na sua caixa, toda terça</strong>
+            <p style="font-size:var(--step--1); color:var(--ink-muted); margin-block:var(--space-2xs)">O que saiu lá fora, em português, com o que muda aqui.</p>
+            <span class="pilula" style="border-color:var(--accent-mark); color:var(--accent-ink)">Assinar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="secao" style="margin-block-start: var(--space-xl)"><span class="secao__titulo">Últimas</span><span class="secao__acao">ver tudo</span></div>
+      <article class="item">
+        <div class="item__topo"><span class="kicker kicker--dot">Operação</span><span class="selo selo--radar">Radar</span></div>
+        <h3 class="item__titulo"><a href="#b">Plataforma de automação de processos abre camada de agentes a terceiros</a></h3>
+      </article>
+      <article class="item n-observatorio">
+        <div class="item__topo"><span class="kicker kicker--dot">Observatório</span></div>
+        <h3 class="item__titulo"><a href="#b">Estudo mede efeito de célula robotizada sobre turno de trabalho</a></h3>
+      </article>
+    </div>
+  </div>
+
+  <div class="veredito">
+    <div><strong>A favor</strong> Familiar para quem lê portal de setor. Uma manchete lidera, então a página tem começo. A newsletter ganha lugar fixo — e a lista é o único ativo próprio.</div>
+    <div><strong>Contra</strong> Depende de imagem em toda manchete. Como não republicamos foto de terceiro, <strong>toda capa vira OG gerada</strong> — o gerador de imagem sai do backlog e entra no caminho crítico.</div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="dir" id="c">
+  <div class="dir__cabeca">
+    <span class="dir__fonte">Direção C · o diferencial na cara</span>
+    <span class="dir__nome">Painel — o número lidera, não a manchete</span>
+    <p class="dir__nota">A capa abre com o atraso medido. O radar vira tabela densa, escaneável, com o relógio na frente. Parentesco: Our World in Data, Techmeme, Hacker News.</p>
+  </div>
+
+  <div class="tela">
+    <div class="tela__barra"><span class="tela__ponto"></span> institutoautomacao.com.br</div>
+    <div class="tela__corpo">
+      <span class="kicker kicker--dot n-observatorio" style="--accent-ink:var(--observatorio-ink); --accent-mark:var(--observatorio-mark)">O atraso, medido</span>
+      <div class="painel-numeros n-observatorio" style="margin-block-start: var(--space-s)">
+        <div>
+          <div class="painel-num">77</div>
+          <div class="painel-rot">dias em média até um assunto chegar ao Brasil</div>
+        </div>
+        <div>
+          <div class="painel-num">143</div>
+          <div class="painel-rot">assuntos que nunca chegaram</div>
+        </div>
+        <div>
+          <div class="painel-num">31</div>
+          <div class="painel-rot">itens traduzidos nas últimas 24 h</div>
+        </div>
+      </div>
+
+      <div class="secao n-industria" style="margin-block-start: var(--space-xl)"><span class="secao__titulo">Radar · agora</span><span class="secao__acao">ver tudo</span></div>
+      <table class="tabela-radar n-industria">
+        <tr>
+          <td class="t-hora">14 min</td>
+          <td><span class="t-titulo">Nova geração de controladores integra diagnóstico preditivo direto no CLP</span>
+              <div class="barra-atraso"><i style="inline-size: 8%"></i></div></td>
+          <td class="t-fonte">DE · press.exemplo</td>
+        </tr>
+        <tr>
+          <td class="t-hora">31 min</td>
+          <td><span class="t-titulo">Inversores passam a medir consumo sem medidor externo</span>
+              <div class="barra-atraso"><i style="inline-size: 14%"></i></div></td>
+          <td class="t-fonte">DE · press.exemplo</td>
+        </tr>
+        <tr>
+          <td class="t-hora" style="color:var(--ink-muted)">1 dia</td>
+          <td><span class="t-titulo">Consórcio revisa a norma de células colaborativas</span>
+              <div class="barra-atraso"><i style="inline-size: 46%"></i></div></td>
+          <td class="t-fonte">EN · exemplo.org</td>
+        </tr>
+        <tr>
+          <td class="t-hora" style="color:var(--ink-muted)">3 dias</td>
+          <td><span class="t-titulo">Fabricante anuncia fábrica de cobots no interior de SP</span>
+              <div class="barra-atraso"><i style="inline-size: 72%"></i></div></td>
+          <td class="t-fonte">PT · exemplo.br</td>
+        </tr>
+      </table>
+      <p class="dir__nota" style="margin-block-start: var(--space-s)">
+        A barra fina embaixo de cada título é o atraso daquele assunto até a primeira menção
+        brasileira. Ninguém no setor mostra isso — porque ninguém mede.
+      </p>
+    </div>
+  </div>
+
+  <div class="veredito">
+    <div><strong>A favor</strong> Comunica em um segundo o que ninguém mais tem. Alinha a capa com a pergunta-assinatura. Denso sem parecer poluído, porque o número manda.</div>
+    <div><strong>Contra</strong> Parece mais ferramenta que veículo. E os números só existem depois de meses de coleta — <strong>hoje a capa abriria com zeros.</strong></div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="dir n-observatorio" id="recomendacao">
+  <div class="dir__cabeca">
+    <span class="dir__fonte">O que eu faria</span>
+    <span class="dir__nome">Não escolher uma — atribuir cada uma ao seu lugar</span>
+  </div>
+  <div class="obra" style="font-size: var(--step-0)">
+    <p>As três não competem: elas resolvem problemas diferentes, e o site tem três tipos de página.</p>
+    <ul>
+      <li><strong>Capa → C, com uma manchete de B.</strong> Abre com o número do atraso, porque é o que só nós temos, e logo abaixo uma manchete grande para a página ter começo. Enquanto não houver dado, a faixa de números dá lugar à manchete — e volta sozinha quando a base encher.</li>
+      <li><strong>Núcleo → B na densidade, A no tratamento.</strong> Uma manchete manda, o resto é lista de fio e espaço. Sem imagem por item.</li>
+      <li><strong>Item e obra → A, sem concessão.</strong> É onde se lê de verdade. Coluna única, medida de 68 caracteres, nada competindo.</li>
+      <li><strong>Agenda e glossário → C.</strong> São tabela por natureza; tratar como notícia seria fingir.</li>
+    </ul>
+    <p><strong>A consequência de projeto</strong>: se a capa levar manchete com imagem, o gerador de OG image sai do backlog e vira caminho crítico — porque não republicamos foto de terceiro, e manchete sem imagem em layout de portal fica com um buraco.</p>
+  </div>
+</section>
+
+<p class="dir__nota" style="padding-block-end: var(--space-2xl)">
+  Referências consultadas em 30/08/2026: <span class="u-dado">portalsolar.com.br</span> ·
+  <span class="u-dado">manufacturingdive.com</span>. Os textos das telas são de exemplo.
+</p>
+
+</main>
+
+<script>
+(function () {
+  var raiz = document.documentElement;
+  try { var t = localStorage.getItem('tema'); if (t === 'dark' || t === 'light') raiz.dataset.theme = t; } catch (e) {}
+  document.getElementById('tema').addEventListener('click', function () {
+    var escuro = raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    var novo = escuro ? 'light' : 'dark';
+    raiz.dataset.theme = novo;
+    try { localStorage.setItem('tema', novo); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
