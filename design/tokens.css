@@ -137,6 +137,11 @@
   --acao-clara:  #fff3ec;
   --acao-texto:  #ffffff;
 
+  /* A capa gerada. Azul profundo com traço claro: é a única superfície
+     escura do site, e é ela que dá peso visual à página branca. */
+  --capa-fundo:  #0a2540;
+  --capa-traco:  #3f6f9e;
+
   /* hex, não alias: o QA lê tokens do CSS e não resolve var(), então alias
      aqui deixaria o acento sem conferência de contraste nenhuma. */
   --acento-ink:  #0d47a1;
@@ -250,6 +255,9 @@
   --acao-forte:  #fb8b3c;
   --acao-clara:  #2a1509;
   --acao-texto:  #1a0f06;
+
+  --capa-fundo:  #071a2c;
+  --capa-traco:  #35608c;
   --acento-ink:  #8ab4f8;
   --acento-mark: #8ab4f8;
   --acento-wash: var(--marca-clara);

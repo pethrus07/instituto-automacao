@@ -16,6 +16,7 @@ import {
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { renderizarObra, minutosDeLeitura } from './ui/markdown';
+import { gerarCapa } from './ui/capa';
 import { feedDoNucleo, sitemap, robots } from './feed';
 import { raw } from 'hono/html';
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
@@ -417,25 +418,29 @@ app.get('/', async (c) => {
         descricao="O Instituto Automação acompanha o que o setor publica no mundo e traduz para o português no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
         url={c.env.SITE_URL + '/'}
       >
-        {/* 1 · Quem somos. Uma instituição abre se apresentando. */}
-        <section style="padding-block: var(--space-xl) var(--space-2xl); border-bottom: var(--border-hair)">
-          <h1 style="max-width: 22ch; font-size: var(--step-5); line-height: 1.04">
-            O setor de automação, em português, no mesmo dia
-          </h1>
-          <div class="obra" style="margin-block-start: var(--space-l)">
-            <p class="lead">
-              O Instituto Automação acompanha o que fabricantes, associações e imprensa técnica
-              publicam no mundo, traduz para o português no dia em que sai e explica o que cada
-              coisa muda para quem trabalha com automação no Brasil.
-            </p>
-            <p>
-              E mede uma coisa que ninguém mede:{' '}
-              <strong>
-                quanto tempo a automação leva para sair da fronteira lá fora e chegar ao chão de
-                fábrica daqui.
-              </strong>
-            </p>
+        {/* 1 · A abertura. Texto à esquerda, desenho à direita — o hero que
+            toda referência institucional tem, e que o site não tinha. */}
+        <section class="abertura">
+          <div>
+            <h1 style="max-width: 18ch; font-size: var(--step-5); line-height: 1.02">
+              O setor de automação, em português, no mesmo dia
+            </h1>
+            <div class="obra" style="margin-block-start: var(--space-m)">
+              <p class="lead">
+                O Instituto Automação acompanha o que fabricantes, associações e imprensa técnica
+                publicam no mundo, traduz para o português no dia em que sai e explica o que cada
+                coisa muda para quem trabalha com automação no Brasil.
+              </p>
+              <p>
+                E mede uma coisa que ninguém mede:{' '}
+                <strong>
+                  quanto tempo a automação leva para sair da fronteira lá fora e chegar ao chão de
+                  fábrica daqui.
+                </strong>
+              </p>
+            </div>
           </div>
+          <div class="moldura-capa">{raw(gerarCapa('abertura-instituto', true).svg)}</div>
         </section>
 
         {/* 2 · O que fazemos: os núcleos como estrutura, não como feed */}
@@ -446,7 +451,10 @@ app.get('/', async (c) => {
               const n = NUCLEOS[chave];
               const c2 = porNucleo.get(chave);
               return (
-                <article style="display:grid; gap:var(--space-2xs); align-content:start; border-top:2px solid var(--marca); padding-block-start:var(--space-s)">
+                <article style="display:grid; gap:var(--space-2xs); align-content:start">
+                  <div class="moldura-capa" style="aspect-ratio: 21/9; margin-block-end: var(--space-2xs)">
+                    {raw(gerarCapa(`nucleo-${chave}`).svg)}
+                  </div>
                   <h3 style="font-size: var(--step-1)">
                     <a href={`/${chave}`} style="text-decoration:none">
                       {n.nome}
@@ -464,8 +472,10 @@ app.get('/', async (c) => {
           </div>
         </section>
 
-        {/* 3 · O que o Instituto mede */}
-        <section style="padding-block: var(--space-2xl); border-block: var(--border-hair)">
+        {/* 3 · O que o Instituto mede — em faixa, para quebrar a coluna
+            branca sem trazer o cinza de volta. Tinta da marca, diluída. */}
+        <section class="faixa" style="margin-inline: calc(50% - 50vw); padding-inline: var(--gutter)">
+          <div class="wrap" style="padding-inline: 0">
           <Secao titulo="O que medimos" />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
             Todo item que passa pelo radar entra numa base própria. É dela que sai o Panorama —
@@ -489,6 +499,7 @@ app.get('/', async (c) => {
               conforme a base se forma.
             </p>
           )}
+          </div>
         </section>
 
         {/* 4 · A notícia. Seção, não a home inteira. */}

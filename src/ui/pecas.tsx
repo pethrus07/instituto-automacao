@@ -6,6 +6,7 @@
  * Elas vestem design/components.css — não trazem estilo próprio.
  */
 import { raw } from 'hono/html';
+import { gerarCapa } from './capa';
 import type { ItemRadar, Evento, Obra } from '../db';
 import { NUCLEOS, ORDEM_NUCLEOS, type ChaveNucleo } from '../config';
 
@@ -466,10 +467,7 @@ export const Destaque = (p: { item: ItemRadar }) => {
   const n = NUCLEOS[i.nucleo];
   return (
     <article class={`destaque ${n.classe}`}>
-      <div class="destaque__capa">
-        <span class="destaque__marca">{n.nome}</span>
-        <span class="destaque__credito">Instituto Automação · {i.fonte_nome}</span>
-      </div>
+      <div class="moldura-capa">{raw(gerarCapa(i.slug ?? i.id, true).svg)}</div>
       <div style="display:grid; gap:var(--space-s); align-content:start">
         <div class="item__topo">
           <Kicker ponto>{n.nome}</Kicker>

@@ -600,3 +600,50 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
   border-bottom-color: var(--marca);
 }
 .cabecalho__sep { color: var(--rule-strong); user-select: none; }
+
+
+/* =========================================================================
+   CAPA GERADA — a linguagem visual própria
+
+   Medido nas referências: Fraunhofer 18 img + 32 figure + 93 background,
+   VDMA 22 e ~60% da página em visual, Serrapilheira 17. O Instituto tinha
+   ZERO — e era isso, não a cor, que fazia a página não prender o olho.
+
+   Como não usamos foto de terceiro sem licença e não temos fotógrafo, o
+   desenho técnico gerado vira linguagem em vez de remendo: fundo azul
+   profundo, traço fino azul-claro, e o laranja marcando o que importa.
+   ========================================================================= */
+.capa-gerada { display: block; inline-size: 100%; block-size: 100%; }
+.capa-gerada .f { fill: var(--capa-fundo); }
+.capa-gerada .t { stroke: var(--capa-traco); stroke-width: 1.25; fill: none; }
+.capa-gerada .t circle { fill: var(--capa-traco); stroke: none; }
+.capa-gerada .a { stroke: var(--acao); stroke-width: 2.25; fill: none; }
+.capa-gerada .q { fill: var(--acao); stroke: none; }
+
+.moldura-capa {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+  background: var(--capa-fundo);
+}
+
+/* A abertura da capa: texto à esquerda, desenho à direita. É o hero que
+   toda referência institucional tem, e o único bloco da página com massa
+   visual de verdade. */
+.abertura {
+  display: grid;
+  gap: var(--space-l);
+  align-items: center;
+  padding-block: var(--space-xl) var(--space-2xl);
+}
+@media (min-width: 56rem) {
+  .abertura { grid-template-columns: 1.1fr 0.9fr; gap: var(--space-2xl); }
+}
+
+/* Seção em faixa: quebra a monotonia da coluna branca sem trazer cinza de
+   volta. É tinta da marca, bem diluída — Fraunhofer alterna do mesmo jeito. */
+.faixa {
+  background: var(--marca-clara);
+  border-block: 1px solid color-mix(in srgb, var(--marca) 12%, transparent);
+}
+.faixa > .wrap { padding-block: var(--space-2xl); }
