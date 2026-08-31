@@ -207,14 +207,43 @@ indexável, linkável e mandável no WhatsApp para o organizador da feira.
 | Plausible / Umami | ⛔ bom, mas é mais um serviço e mais um custo para o mesmo resultado |
 | PostHog | ⛔ é ferramenta de produto, não de veículo de leitura |
 
-## 10. Imagens — **nunca republicar imagem de terceiro** ✅
+## 10. Imagens — **a licença governa, não o formato** ✅
 
-Risco autoral em imagem é **maior** que em texto: foto de agência tem licença própria, e
-"veio no feed" não é permissão. A capa de todo item é **OG image gerada** pelo Worker
-(título + núcleo + fonte), guardada no R2.
+*Revisto em 30/08/2026. A regra anterior era "nunca republicar imagem de terceiro" — certa no
+espírito, errada na formulação: tratava o formato como o critério, quando o critério é a
+licença.*
 
-Efeito colateral bom: o link circula no WhatsApp e no LinkedIn com cara de veículo, e o
-visual do site fica consistente — o que nenhum agregador consegue.
+Sala de imprensa de fabricante **licencia imagem junto com o texto**, para cobertura
+editorial: é material feito para ser republicado. Usar a foto do press kit na manchete não é
+exceção — é a mesma regra funcionando.
+
+Por isso **a licença de imagem é campo próprio**, separado da de texto: uma fonte pode liberar
+texto e não liberar foto, e o contrário também acontece.
+
+| `fonte.licenca_imagem` | O que o pipeline pode fazer |
+|---|---|
+| `liberada` | copiar a imagem para o R2 e exibir **com crédito visível** |
+| qualquer outro valor (padrão) | nada. Cai na OG gerada |
+
+Três condições, nenhuma opcional:
+
+1. **Só de fonte com `licenca_imagem = 'liberada'`.** Imprensa técnica (`resumo`) nunca —
+   ela não licencia nada.
+2. **Nunca hotlink: copia para o R2.** A banda deles não é nossa para gastar, a imagem some
+   quando eles reorganizam o site, e hotlink entrega o IP dos nossos leitores ao servidor
+   deles.
+3. **Crédito visível**, sempre.
+
+**Por que justamente na manchete.** Ela é o ponto de exposição máxima — a capa mais o card
+que circula no WhatsApp e no LinkedIn. Abrir exceção ali seria o inverso do que faz sentido;
+fazer a regra funcionar ali, não.
+
+**Quando não houver imagem licenciada**, a capa é a **OG image gerada** pelo Worker (título +
+núcleo + fonte), guardada no R2. Então o layout nunca fica com buraco, e o link circula com
+cara de veículo — o que nenhum agregador consegue.
+
+⚠️ Consequência de cronograma: com manchete ilustrada na capa, o gerador de OG image sai do
+backlog e entra no **caminho crítico**.
 
 ## 11. O que fica de fora, e quando volta
 

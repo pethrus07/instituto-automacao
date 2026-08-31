@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Referências — Instituto Automação</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+
+<style>
+  .ref-head { border-bottom: var(--border-firm); padding-block: var(--space-l) var(--space-m); margin-block-end: var(--space-xl); }
+  .ref-nav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: var(--space-2xs);
+             padding-block: var(--space-s); background: color-mix(in srgb, var(--paper) 92%, transparent);
+             backdrop-filter: blur(8px); border-bottom: var(--border-hair); margin-block-end: var(--space-2xl); }
+
+  .ref { border-block-start: var(--border-mark); padding-block-start: var(--space-m); margin-block-end: var(--space-2xl); scroll-margin-top: 4.5rem; }
+  .ref__topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-s); }
+  .ref__nome { font-family: var(--face-obra); font-size: var(--step-2); font-weight: 600; }
+  .ref__url { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); }
+  .ref__papel { font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--accent-ink); }
+  .ref__oque { font-size: var(--step-0); color: var(--ink-muted); max-width: var(--measure); margin-block: var(--space-s); }
+
+  .par { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: var(--space-m); margin-block-start: var(--space-m); }
+  .par > div { font-size: var(--step--1); }
+  .par h4 { font-family: var(--face-fluxo); font-size: var(--step--2); text-transform: uppercase;
+            letter-spacing: var(--tracking-kicker); margin-block-end: var(--space-2xs); }
+  .rouba h4 { color: var(--operacao-ink); }
+  .deixa h4 { color: var(--edificacoes-ink); }
+  .rouba { border-inline-start: 3px solid var(--accent-mark); padding-inline-start: var(--space-s); }
+  .deixa { border-inline-start: 3px dashed var(--rule-strong); padding-inline-start: var(--space-s); }
+  .par ul { padding-inline-start: var(--space-m); margin: 0; }
+  .par li + li { margin-block-start: var(--space-2xs); }
+
+  .mapa { width: 100%; font-size: var(--step--1); margin-block-start: var(--space-m); }
+  .mapa th { font-size: var(--step--2); }
+  .mapa td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .toggle { display: inline-flex; gap: var(--space-2xs); padding: var(--space-3xs) var(--space-xs);
+            border: var(--border-firm); border-radius: 999px; background: var(--paper-raised); cursor: pointer; font-size: var(--step--1); }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="ref-head n-observatorio">
+  <p class="kicker kicker--dot">Caça a modelos · 30/08/2026</p>
+  <h1 style="margin-block-start: var(--space-2xs)">Oito referências, e o que tirar de cada uma</h1>
+  <p class="ref__oque">
+    Consultadas de verdade, não de memória — as que responderam estão marcadas. Cada uma
+    resolve <em>um</em> problema que o Instituto tem. Nenhuma serve inteira, e copiar uma
+    inteira seria o erro.
+  </p>
+  <p style="margin-block-start: var(--space-m)"><button class="toggle u-fluxo" id="tema" type="button">Tema</button></p>
+</header>
+
+<nav class="ref-nav u-fluxo">
+  <a class="pilula" href="#funcao">Função</a>
+  <a class="pilula n-industria" href="#hierarquia">Hierarquia</a>
+  <a class="pilula n-observatorio" href="#autoridade">Autoridade</a>
+  <a class="pilula" href="#densidade">Densidade</a>
+  <a class="pilula" href="#mapa">O mapa</a>
+</nav>
+
+<!-- =================================================================== -->
+<h2 id="funcao" style="scroll-margin-top:4.5rem">Função — como um portal vertical se sustenta</h2>
+
+<section class="ref n-industria">
+  <div class="ref__topo">
+    <span class="ref__nome">Portal Solar</span>
+    <span class="ref__url">portalsolar.com.br</span>
+    <span class="ref__papel">o modelo que o Pedro tinha em mente</span>
+  </div>
+  <p class="ref__oque">
+    Notícia por editoria, guia educativo, calculadora, diretório de fornecedores, cursos e
+    newsletter. O motor comercial é a <strong>calculadora</strong>: o leitor pede simulação,
+    vira lead, o lead é vendido ao integrador. Notícia é isca; o produto é o lead.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li>Ser <strong>o endereço do setor</strong>: notícia, referência, diretório e ferramenta no mesmo lugar</li>
+      <li>Guia educativo permanente ao lado da notícia que decai</li>
+      <li>Diretório de fornecedores como camada própria</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li><strong>Lead vendido a integrador.</strong> Mata a isenção — e com ela o Panorama e a ponte acadêmica</li>
+      <li>Densidade sem hierarquia: seis blocos competindo, nenhum liderando</li>
+      <li>Ferramenta como isca, não como serviço</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="ref n-industria">
+  <div class="ref__topo">
+    <span class="ref__nome">Manufacturing Dive</span>
+    <span class="ref__url">manufacturingdive.com</span>
+    <span class="ref__papel">o Portal Solar bem feito</span>
+  </div>
+  <p class="ref__oque">
+    Uma manchete grande com imagem → <em>Top Stories</em>, cinco, ordenadas por decisão
+    editorial → <em>The Latest</em>, fluxo contínuo com tag temática. Newsletter no topo, no
+    meio e no rodapé. Monetiza por patrocínio declarado, não por lead.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Uma manchete manda.</strong> É o que resolve a densidade sem tirar conteúdo</li>
+      <li>Newsletter em três pontos fixos — a lista é o produto, o site é a vitrine</li>
+      <li>Tag temática em todo item, desde o primeiro</li>
+      <li><em>"What We're Reading"</em>: link honesto para o concorrente. Constrói mais confiança do que fingir que ele não existe</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>Webinar e whitepaper patrocinados travestidos de biblioteca</li>
+      <li>Press release pago publicado como matéria</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<h2 id="hierarquia" style="scroll-margin-top:4.5rem">Hierarquia — como caber muito sem parecer poluído</h2>
+
+<section class="ref n-observatorio">
+  <div class="ref__topo">
+    <span class="ref__nome">Rest of World</span>
+    <span class="ref__url">restofworld.org</span>
+    <span class="ref__papel">a melhor hierarquia da lista</span>
+  </div>
+  <p class="ref__oque">
+    Um destaque principal com imagem e <strong>tempo de leitura</strong>, depois cards em
+    tamanhos diferentes ordenados por peso editorial. Três eixos de navegação convivendo sem
+    brigar: <em>beats</em> (Tech Giants, EV Revolution), <em>regiões</em> e <em>temas</em>. Tem
+    seção de <strong>dados</strong> com gráficos próprios.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Card em tamanhos diferentes</strong> — o peso editorial vira tamanho, e o olho entende sozinho</li>
+      <li><strong>Séries nomeadas</strong> ("The AI Race"): é assim que a pergunta-assinatura vira lugar no site, não só tema de texto</li>
+      <li>Seção de dados própria, ao lado da notícia</li>
+      <li>Tempo de leitura no destaque</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>Três eixos de navegação exigem acervo grande. Com 40 itens, viraria menu vazio</li>
+      <li>Direção de arte por matéria — custa ilustrador</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="ref n-observatorio">
+  <div class="ref__topo">
+    <span class="ref__nome">Semafor</span>
+    <span class="ref__url">semafor.com</span>
+    <span class="ref__papel">formato editorial, não layout</span>
+  </div>
+  <p class="ref__oque">
+    O <em>Semaform</em> separa, <strong>dentro da mesma matéria</strong>, o que é fato apurado,
+    o que é leitura do repórter e o que é a visão contrária. A separação é declarada com
+    rótulo, não sugerida pelo tom.
+    <span class="u-faint">(A página não abriu para conferência; formato descrito de conhecimento prévio.)</span>
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Rótulo separando fato de leitura.</strong> É exatamente o que o Instituto já faz sem nome: o resumo é fato, o "o que isso muda aqui" é leitura. Dar nome a isso resolve a maior ambiguidade do produto</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>Cinco blocos por matéria. Para item de radar de 3 linhas, seria mais rótulo que texto</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<h2 id="autoridade" style="scroll-margin-top:4.5rem">Autoridade — como o dado vira citação</h2>
+
+<section class="ref n-operacao" style="--accent-ink: var(--observatorio-ink); --accent-mark: var(--observatorio-mark)">
+  <div class="ref__topo">
+    <span class="ref__nome">The Markup</span>
+    <span class="ref__url">themarkup.org</span>
+    <span class="ref__papel">⭐ o achado desta busca</span>
+  </div>
+  <p class="ref__oque">
+    Tem uma seção chamada <strong>Blueprints</strong>: publica <em>datasets, metodologias,
+    receitas de reportagem e processos</em> para que outros verifiquem e ampliem o trabalho.
+    E uma série <em>"Show Your Work"</em> detalhando como cada investigação foi feita.
+  </p>
+  <p class="ref__oque">
+    <strong>Isso é a ponte acadêmica que planejamos, já construída por alguém.</strong> A
+    página de "perguntas abertas que nossos dados respondem" + o dataset com DOI, que estão no
+    nosso backlog, são o mesmo movimento — e o The Markup prova que funciona como marca, não
+    só como gesto.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Blueprints.</strong> Dataset, metodologia e processo publicados como <em>seção</em>, não como anexo</li>
+      <li>"Show Your Work" por trabalho — no nosso caso, como o atraso é medido</li>
+      <li>Política de ética e de correções em lugar visível, com governança declarada</li>
+      <li>Foto e nome do autor no texto assinado</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>Conselho e lista de doadores: com dois sócios, seria encenação</li>
+      <li>Prêmios em destaque — não temos, e fingir estrutura é pior que não ter</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="ref n-observatorio">
+  <div class="ref__topo">
+    <span class="ref__nome">Our World in Data</span>
+    <span class="ref__url">ourworldindata.org</span>
+    <span class="ref__papel">o norte da direção C</span>
+  </div>
+  <p class="ref__oque">
+    Abre com a razão de existir em uma frase. Cada gráfico segue o mesmo padrão: <strong>título
+    descritivo → pergunta-chave → dois ou três parágrafos de contexto → o gráfico → "explore os
+    dados"</strong>. A fonte fica discreta sob cada visualização. Tem 29 <em>data explorers</em>
+    como ferramenta separada do artigo.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Texto ANTES do gráfico.</strong> Número sem pergunta não informa ninguém — é o erro clássico de painel</li>
+      <li>O título do gráfico é uma <strong>frase</strong>, não um rótulo</li>
+      <li>Fonte declarada sob cada número, sempre</li>
+      <li>Separar <em>artigo</em>, <em>dado</em> e <em>ferramenta</em> como coisas distintas</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>126 tópicos no rodapé: acervo de uma década. No nosso caso seria promessa vazia</li>
+      <li>Explorador interativo — é software próprio, não é sprint</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<h2 id="densidade" style="scroll-margin-top:4.5rem">Densidade — muito item, pouco espaço</h2>
+
+<section class="ref">
+  <div class="ref__topo">
+    <span class="ref__nome">Techmeme · Hacker News</span>
+    <span class="ref__url">techmeme.com · news.ycombinator.com</span>
+    <span class="ref__papel">o extremo da lista densa</span>
+  </div>
+  <p class="ref__oque">
+    Zero imagem, zero card, zero ar. Manchete + fonte + hora, e uma linha por item. Feios de
+    propósito e usados todo dia por quem trabalha com aquilo. O Techmeme ainda agrupa a mesma
+    notícia de várias fontes sob um item — que é o nosso <code>assunto</code>.
+  </p>
+  <div class="par">
+    <div class="rouba"><h4>Roubar</h4><ul>
+      <li><strong>Agrupar fontes sob um assunto</strong> em vez de repetir a mesma notícia</li>
+      <li>Uma linha por item na tela de trabalho — quem varre radar não quer card</li>
+      <li>Hora visível em tudo</li>
+    </ul></div>
+    <div class="deixa"><h4>Deixar</h4><ul>
+      <li>A ausência total de hierarquia. Funciona para quem já é do ramo; afasta quem chega</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<h2 id="mapa" style="scroll-margin-top:4.5rem">O mapa — o que vai para onde</h2>
+
+<div class="scroll-x">
+<table class="mapa">
+  <thead><tr><th>Onde</th><th>De quem</th><th>O quê</th></tr></thead>
+  <tbody>
+    <tr><td>Capa</td><td>Our World in Data + Manufacturing Dive</td><td>frase de propósito, faixa de números com pergunta, depois <strong>uma</strong> manchete que manda</td></tr>
+    <tr><td>Manchete</td><td>Rest of World</td><td>imagem licenciada, tempo de leitura, peso editorial virando tamanho</td></tr>
+    <tr><td>Radar</td><td>Techmeme</td><td>uma linha por item, hora na frente, fontes agrupadas por assunto</td></tr>
+    <tr><td>Item</td><td>Semafor</td><td>rótulo separando <em>o que a fonte diz</em> de <em>o que isso muda aqui</em></td></tr>
+    <tr><td>Obra</td><td>The Markup</td><td>autor visível, coluna única, links para o que se relaciona</td></tr>
+    <tr><td>Panorama</td><td>Our World in Data</td><td>texto antes do gráfico; título do gráfico é frase; fonte sob o número</td></tr>
+    <tr><td><strong>Blueprints</strong> (novo)</td><td>The Markup</td><td>dataset, metodologia e perguntas abertas como <strong>seção</strong> — a ponte acadêmica ganha endereço</td></tr>
+    <tr><td>Séries</td><td>Rest of World</td><td>a pergunta-assinatura vira lugar no site, não só assunto de texto</td></tr>
+    <tr><td>Agenda</td><td>Portal Solar</td><td>ferramenta permanente ao lado da notícia que decai</td></tr>
+    <tr><td>Newsletter</td><td>Manufacturing Dive</td><td>três pontos fixos; a lista é o produto</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso n-industria" style="margin-block-start: var(--space-xl)">
+  <strong>Duas ideias novas que saíram desta busca, e que não estavam no plano:</strong>
+  <br />1 · <strong>Blueprints</strong> — a ponte acadêmica deixa de ser um item de backlog e vira uma seção do site, com endereço próprio.
+  <br />2 · <strong>Rótulo à la Semafor</strong> — dar nome à separação que já fazemos entre o que a fonte diz e o que nós lemos. É a maior ambiguidade do produto, e custa uma palavra.
+</div>
+
+<p class="ref__oque" style="padding-block: var(--space-xl) var(--space-2xl)">
+  Consultadas em 30/08/2026: portalsolar.com.br · manufacturingdive.com · restofworld.org ·
+  themarkup.org · ourworldindata.org. Não responderam: therobotreport.com (403) e
+  semafor.com (truncado).
+</p>
+
+</main>
+
+<script>
+(function () {
+  var raiz = document.documentElement;
+  try { var t = localStorage.getItem('tema'); if (t === 'dark' || t === 'light') raiz.dataset.theme = t; } catch (e) {}
+  document.getElementById('tema').addEventListener('click', function () {
+    var escuro = raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    var novo = escuro ? 'light' : 'dark';
+    raiz.dataset.theme = novo;
+    try { localStorage.setItem('tema', novo); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
