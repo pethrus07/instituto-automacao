@@ -647,3 +647,158 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
   border-block: 1px solid color-mix(in srgb, var(--marca) 12%, transparent);
 }
 .faixa > .wrap { padding-block: var(--space-2xl); }
+
+
+/* =========================================================================
+   CABEÇALHO DE TRÊS NÍVEIS
+
+   Medido nas referências: Max Planck e Igarapé têm três faixas — utilidades,
+   identidade e navegação — e a navegação FIXA ao rolar. Um cabeçalho de uma
+   faixa só, como o nosso era, não tem onde pôr o que uma instituição precisa
+   dizer sem competir com o nome.
+
+     1 · utilidades  faixa escura fina: o que o Instituto é, e os links
+                     institucionais que não podem sumir no rodapé
+     2 · identidade  o nome, grande, com a ação em laranja
+     3 · navegação   os núcleos, e ela GRUDA no topo ao rolar
+   ========================================================================= */
+.util {
+  background: var(--capa-fundo);
+  color: var(--capa-texto-suave);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+}
+.util__linha {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: var(--space-2xs) var(--space-m);
+  padding-block: var(--space-2xs);
+}
+.util a { color: inherit; text-decoration: none; opacity: .85; }
+.util a:hover { opacity: 1; color: var(--capa-texto); text-decoration: underline; }
+.util__marca { letter-spacing: var(--tracking-wide); }
+.util__links { display: flex; flex-wrap: wrap; gap: var(--space-m); }
+
+.ident {
+  display: flex; flex-wrap: wrap; gap: var(--space-m);
+  align-items: center; justify-content: space-between;
+  padding-block: var(--space-m);
+}
+
+/* A navegação gruda ao rolar. É o detalhe que separa site institucional
+   bem-feito de página longa: em qualquer ponto do scroll, as seções estão
+   a um clique. */
+.navbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-block: 1px solid var(--rule);
+  border-block-end-color: var(--marca);
+  border-block-end-width: 2px;
+}
+.navbar__linha {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2xs) var(--space-l);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  padding-block: var(--space-2xs);
+}
+.navbar a {
+  text-decoration: none; color: var(--ink-muted);
+  padding-block: var(--space-2xs);
+  border-bottom: 3px solid transparent;
+  margin-block-end: -2px;
+  transition: color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.navbar a:hover { color: var(--marca); }
+.navbar a[aria-current] { color: var(--marca); font-weight: var(--weight-bold); border-bottom-color: var(--acao); }
+.navbar__resto { margin-inline-start: auto; display: flex; gap: var(--space-m); }
+
+/* =========================================================================
+   HERO DE LARGURA TOTAL
+
+   Max Planck abre com imagem de largura total e texto sobreposto; Igarapé,
+   com banner grande e DOIS botões de ação. O nosso era lado a lado e claro
+   — por isso não tinha peso. Escuro e sangrando de ponta a ponta, ele vira
+   o bloco que segura a página.
+   ========================================================================= */
+.hero {
+  position: relative;
+  background: var(--capa-fundo);
+  color: var(--capa-texto);
+  overflow: hidden;
+}
+.hero__fundo {
+  position: absolute; inset: 0;
+  opacity: .55;
+}
+.hero__fundo .capa-gerada { block-size: 100%; inline-size: 100%; }
+/* Véu que garante o contraste do texto sobre o desenho, sem apagá-lo. */
+.hero__veu {
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg,
+    var(--capa-fundo) 0%,
+    color-mix(in srgb, var(--capa-fundo) 92%, transparent) 46%,
+    color-mix(in srgb, var(--capa-fundo) 55%, transparent) 100%);
+}
+.hero__conteudo { position: relative; padding-block: var(--space-2xl) var(--space-xl); }
+.hero__kicker {
+  display: inline-flex; align-items: center; gap: var(--space-2xs);
+  font-family: var(--face-fluxo); font-size: var(--step--2);
+  text-transform: uppercase; letter-spacing: var(--tracking-kicker);
+  color: var(--capa-texto-fraco);
+}
+.hero__kicker::before { content: ""; inline-size: 1.75rem; block-size: 2px; background: var(--acao); }
+.hero__titulo {
+  font-family: var(--face-obra);
+  font-size: var(--step-5);
+  font-weight: var(--weight-bold);
+  line-height: 1.02;
+  letter-spacing: var(--tracking-tight);
+  max-width: 20ch;
+  margin-block-start: var(--space-s);
+  text-wrap: balance;
+}
+.hero__lead {
+  font-family: var(--face-obra);
+  font-size: var(--step-2);
+  line-height: var(--leading-snug);
+  color: var(--capa-texto-suave);
+  max-width: 48ch;
+  margin-block-start: var(--space-m);
+}
+.hero__acoes { display: flex; flex-wrap: wrap; gap: var(--space-s); margin-block-start: var(--space-l); }
+.hero__acoes .botao-acao { font-size: var(--step-0); padding: var(--space-2xs) var(--space-m); }
+.botao-vazado {
+  display: inline-flex; align-items: center;
+  border: 1px solid rgb(255 255 255 / .45);
+  color: var(--capa-texto); text-decoration: none;
+  font-family: var(--face-fluxo); font-size: var(--step-0); font-weight: var(--weight-medium);
+  padding: var(--space-2xs) var(--space-m);
+  border-radius: var(--radius-s);
+  transition: background-color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.botao-vazado:hover { background: rgb(255 255 255 / .1); border-color: var(--capa-texto); color: var(--capa-texto); }
+
+/* Os números moram DENTRO do hero: num instituto que mede, o dado é parte
+   da apresentação, não uma seção à parte. */
+.hero__numeros {
+  position: relative;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-l);
+  padding-block: var(--space-l);
+  border-block-start: 1px solid rgb(255 255 255 / .18);
+}
+.hero__num {
+  font-family: var(--face-dado); font-size: var(--step-4); font-weight: var(--weight-bold);
+  line-height: 1; font-variant-numeric: tabular-nums; color: var(--capa-texto);
+}
+.hero__rot {
+  font-family: var(--face-fluxo); font-size: var(--step--2);
+  text-transform: uppercase; letter-spacing: var(--tracking-kicker);
+  color: var(--capa-texto-fraco); margin-block-start: var(--space-2xs); max-width: 24ch;
+}
+.hero__numeros a { color: inherit; text-decoration-color: rgb(255 255 255 / .4); }
+.hero__numeros a:hover { color: var(--capa-texto); }
+
+/* Sangria de ponta a ponta dentro de um <main> com largura máxima. */
+.sangra { margin-inline: calc(50% - 50vw); padding-inline: var(--gutter); }

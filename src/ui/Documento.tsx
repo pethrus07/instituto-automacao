@@ -63,37 +63,50 @@ export const Documento = (p: Props) => {
         </a>
 
         {/*
-          Cabeçalho institucional. Duas cores com trabalho definido:
-          azul é a instituição — nome, estado ativo, link;
-          laranja é a ação — o fio de topo e o único botão.
+          Cabeçalho de três níveis, como Max Planck e Igarapé:
 
-          Os dois fios emoldurando o bloco são recurso de jornal impresso:
-          dão começo e fim ao cabeçalho sem caixa e sem sombra.
+            1 · utilidades — faixa escura fina. É onde a instituição diz o
+                que é e onde ficam os links que não podem sumir no rodapé.
+            2 · identidade — o nome, grande, com a única ação em laranja.
+            3 · navegação  — os núcleos, e ela GRUDA no topo ao rolar.
+
+          Azul é a instituição; laranja é a ação. Cada cor com um trabalho.
         */}
-        <header class="cabecalho">
-          <div class="wrap">
-            <div class="cabecalho__topo">
-              <a href="/" class="marca-nome">
-                <span class="marca-nome__texto">Instituto Automação</span>
-                <span class="marca-nome__linha">Radar · Agenda · Panorama do setor</span>
-              </a>
-              <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
-            </div>
+        <div class="util">
+          <div class="wrap util__linha">
+            <span class="util__marca">
+              Radar, agenda e panorama da automação — em português, no mesmo dia
+            </span>
+            <span class="util__links">
+              <a href="/panorama">Panorama</a>
+              <a href="/blueprints">Blueprints</a>
+              <a href="/feed/industria.xml">RSS</a>
+            </span>
+          </div>
+        </div>
 
-            <nav class="cabecalho__nav" aria-label="Seções">
+        <header>
+          <div class="wrap ident">
+            <a href="/" class="marca-nome">
+              <span class="marca-nome__texto">Instituto Automação</span>
+              <span class="marca-nome__linha">Instituto de estudos e difusão do setor</span>
+            </a>
+            <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
+          </div>
+
+          <nav class="navbar" aria-label="Seções">
+            <div class="wrap navbar__linha">
               {ORDEM_NUCLEOS.map((n) => (
                 <a href={`/${n}`} aria-current={p.nucleo === n ? 'page' : undefined}>
                   {NUCLEOS[n].nome}
                 </a>
               ))}
-              <span class="cabecalho__sep" aria-hidden="true">
-                ·
+              <span class="navbar__resto">
+                <a href="/agenda">Agenda</a>
+                <a href="/panorama">Panorama</a>
               </span>
-              <a href="/agenda">Agenda</a>
-              <a href="/panorama">Panorama</a>
-            </nav>
-          </div>
-          <div class="cabecalho__fio"></div>
+            </div>
+          </nav>
         </header>
 
         <main id="conteudo" class="wrap" style="padding-block: var(--space-xl)">

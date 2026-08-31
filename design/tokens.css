@@ -141,6 +141,13 @@
      escura do site, e é ela que dá peso visual à página branca. */
   --capa-fundo:  #0a2540;
   --capa-traco:  #3f6f9e;
+  /* Texto sobre a superfície escura. Escrevi estes três crus dentro do
+     componente e o QA reprovou — a regra "nenhuma cor fora de token" existe
+     para o tema poder mudar num arquivo só, e furá-la em três lugares já
+     bastaria para quebrar isso. */
+  --capa-texto:       #ffffff;
+  --capa-texto-suave: #d7e6f5;
+  --capa-texto-fraco: #9dc0e6;
 
   /* hex, não alias: o QA lê tokens do CSS e não resolve var(), então alias
      aqui deixaria o acento sem conferência de contraste nenhuma. */
@@ -258,6 +265,9 @@
 
   --capa-fundo:  #071a2c;
   --capa-traco:  #35608c;
+  --capa-texto:       #ffffff;
+  --capa-texto-suave: #cddff0;
+  --capa-texto-fraco: #8fb4dc;
   --acento-ink:  #8ab4f8;
   --acento-mark: #8ab4f8;
   --acento-wash: var(--marca-clara);

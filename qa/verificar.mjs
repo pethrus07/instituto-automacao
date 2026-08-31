@@ -542,7 +542,8 @@ if (rotaItem) {
 
 // Capa: número sem base é pior que capa sem número.
 const capa = respostas['/'];
-const temNumeros = capa.corpo.includes('numero__valor');
+// Os números subiram para o hero na v5; o teste procurava a marcação antiga.
+const temNumeros = capa.corpo.includes('hero__num"');
 const temAvisoSemBase = capa.corpo.includes('quando houver base para eles');
 checar(
   'B',

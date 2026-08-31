@@ -409,6 +409,7 @@ app.get('/', async (c) => {
   ]);
   const porNucleo = new Map(contagens.map((x) => [x.nucleo, x]));
   const totalItens = contagens.reduce((soma, x) => soma + x.total, 0);
+  const temBase = totalItens > 0 || atraso.medidos > 0;
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
@@ -418,29 +419,61 @@ app.get('/', async (c) => {
         descricao="O Instituto Automação acompanha o que o setor publica no mundo e traduz para o português no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
         url={c.env.SITE_URL + '/'}
       >
-        {/* 1 · A abertura. Texto à esquerda, desenho à direita — o hero que
-            toda referência institucional tem, e que o site não tinha. */}
-        <section class="abertura">
-          <div>
-            <h1 style="max-width: 18ch; font-size: var(--step-5); line-height: 1.02">
-              O setor de automação, em português, no mesmo dia
-            </h1>
-            <div class="obra" style="margin-block-start: var(--space-m)">
-              <p class="lead">
-                O Instituto Automação acompanha o que fabricantes, associações e imprensa técnica
-                publicam no mundo, traduz para o português no dia em que sai e explica o que cada
-                coisa muda para quem trabalha com automação no Brasil.
-              </p>
-              <p>
-                E mede uma coisa que ninguém mede:{' '}
-                <strong>
-                  quanto tempo a automação leva para sair da fronteira lá fora e chegar ao chão de
-                  fábrica daqui.
-                </strong>
-              </p>
+        {/*
+          1 · O HERO.
+
+          Max Planck abre com imagem de largura total e texto sobreposto;
+          Igarapé, com banner grande e DOIS botões. O nosso era lado a lado e
+          claro — por isso não tinha peso. Escuro e sangrando de ponta a
+          ponta, ele vira o bloco que segura a página.
+
+          E os números moram DENTRO dele: num instituto que mede, o dado é
+          parte da apresentação, não uma seção à parte.
+        */}
+        <section class="hero sangra">
+          <div class="hero__fundo">{raw(gerarCapa('abertura-instituto', true).svg)}</div>
+          <div class="hero__veu"></div>
+
+          <div class="wrap hero__conteudo" style="padding-inline: 0">
+            <span class="hero__kicker">O que o setor publicou hoje, lá fora</span>
+            <h1 class="hero__titulo">O setor de automação, em português, no mesmo dia</h1>
+            <p class="hero__lead">
+              Acompanhamos o que fabricantes, associações e imprensa técnica publicam no mundo,
+              traduzimos no dia em que sai e dizemos o que cada coisa muda para quem trabalha
+              com automação no Brasil.
+            </p>
+            <div class="hero__acoes">
+              <a href="/industria" class="botao-acao">Ver o radar</a>
+              <a href="#como-trabalhamos" class="botao-vazado">Como trabalhamos</a>
             </div>
+
+            {temBase ? (
+              <div class="hero__numeros">
+                <div>
+                  <div class="hero__num">{atraso.media_dias ?? '—'}</div>
+                  <div class="hero__rot">dias, em média, até um assunto chegar ao Brasil</div>
+                </div>
+                <div>
+                  <div class="hero__num">{p.nao_chega}</div>
+                  <div class="hero__rot">
+                    <a href="/industria?v=nao_chega">itens que não chegaram aqui</a>
+                  </div>
+                </div>
+                <div>
+                  <div class="hero__num">{totalItens}</div>
+                  <div class="hero__rot">itens traduzidos e publicados</div>
+                </div>
+              </div>
+            ) : (
+              /* Número zerado na abertura é pior que número nenhum: promete
+                 medição e entrega vazio. Enquanto a base não se forma, a
+                 faixa diz por que ela ainda não existe. */
+              <p class="hero__numeros hero__rot" style="max-width: 52ch">
+                Os números desta faixa aparecem quando houver base para eles. O atraso até o
+                Brasil não se estima — mede-se, coletando todo dia.
+              </p>
+            )}
           </div>
-          <div class="moldura-capa">{raw(gerarCapa('abertura-instituto', true).svg)}</div>
         </section>
 
         {/* 2 · O que fazemos: os núcleos como estrutura, não como feed */}
@@ -472,33 +505,25 @@ app.get('/', async (c) => {
           </div>
         </section>
 
-        {/* 3 · O que o Instituto mede — em faixa, para quebrar a coluna
-            branca sem trazer o cinza de volta. Tinta da marca, diluída. */}
-        <section class="faixa" style="margin-inline: calc(50% - 50vw); padding-inline: var(--gutter)">
+        {/* 3 · A pergunta que o Instituto persegue. Os números subiram para
+            o hero; aqui fica o porquê deles, que é o que dá sentido a eles. */}
+        <section class="faixa sangra">
           <div class="wrap" style="padding-inline: 0">
-          <Secao titulo="O que medimos" />
-          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            Todo item que passa pelo radar entra numa base própria. É dela que sai o Panorama —
-            e é ela que responde à pergunta acima.
-          </p>
-          <div class="numeros">
-            <Numero
-              valor={atraso.media_dias ?? '—'}
-              rotulo="dias, em média, até um assunto chegar ao Brasil"
-            />
-            <Numero
-              valor={p.nao_chega}
-              rotulo="itens que não chegaram aqui"
-              href="/industria?v=nao_chega"
-            />
-            <Numero valor={totalItens} rotulo="itens traduzidos e publicados até hoje" />
-          </div>
-          {atraso.medidos === 0 && (
-            <p class="u-faint" style="font-size: var(--step--1); margin-block-start: var(--space-s)">
-              O atraso não se estima: mede-se, coletando todo dia. Os números crescem sozinhos
-              conforme a base se forma.
-            </p>
-          )}
+            <Secao titulo="O que medimos" />
+            <div class="obra" style="font-size: var(--step-0)">
+              <p>
+                Quase toda notícia de automação nasce em inglês e alemão. Parte dela chega ao
+                Brasil semanas depois; parte nunca chega. <strong>Ninguém mede esse intervalo</strong>
+                {' '}— e sem medida não há conversa sobre o atraso do parque industrial brasileiro
+                que não seja opinião.
+              </p>
+              <p>
+                Todo item que passa pelo radar entra numa base própria, com a data em que saiu
+                lá fora e a data da primeira menção brasileira. É dela que sai o Panorama, e é
+                ela que vai ser publicada aberta, com DOI, para quem quiser conferir ou
+                contestar.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -531,7 +556,10 @@ app.get('/', async (c) => {
         )}
 
         {/* 7 · Como trabalhamos — a credibilidade, declarada na home */}
-        <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
+        <section
+          id="como-trabalhamos"
+          style="padding-block: var(--space-2xl); border-top: var(--border-hair); scroll-margin-top: 4rem"
+        >
           <Secao titulo="Como trabalhamos" />
           <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))">
             <div>
