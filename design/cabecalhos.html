@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cabeçalhos — Instituto Automação</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+
+<style>
+  body { background: var(--paper-sunken); }
+  .pag { width: min(100% - 2.5rem, 78rem); margin-inline: auto; padding-block: var(--space-l) var(--space-3xl); }
+
+  .intro { max-width: var(--measure); margin-block-end: var(--space-2xl); }
+  .intro p { font-size: var(--step--1); color: var(--ink-muted); margin-block-start: var(--space-s); }
+
+  .op { margin-block-end: var(--space-3xl); }
+  .op__cabeca { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-s); margin-block-end: var(--space-s); }
+  .op__letra {
+    font-family: var(--face-dado); font-size: var(--step-2); font-weight: 700;
+    color: var(--marca); line-height: 1;
+  }
+  .op__nome { font-family: var(--face-obra); font-size: var(--step-2); font-weight: 600; }
+  .op__ref { font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--ink-faint); }
+  .op__nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); margin-block-end: var(--space-m); }
+
+  /* a moldura de navegador */
+  .janela { border: 1px solid var(--rule-strong); border-radius: var(--radius-m); overflow: hidden; background: var(--paper); box-shadow: 0 2px 14px rgb(0 0 0 / .06); }
+  .janela__barra { display: flex; gap: 6px; padding: 8px 12px; background: var(--paper-sunken); border-bottom: 1px solid var(--rule); }
+  .janela__barra i { inline-size: 9px; block-size: 9px; border-radius: 999px; background: var(--rule-strong); }
+  .amostra { padding-block-end: var(--space-l); }
+  .amostra__miolo { padding: var(--space-l) var(--space-m) 0; }
+  .amostra__miolo h2 { font-size: var(--step-3); max-width: 20ch; }
+  .amostra__miolo p { color: var(--ink-muted); font-size: var(--step--1); margin-block-start: var(--space-2xs); max-width: 52ch; }
+
+  .par { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-m); margin-block-start: var(--space-m); font-size: var(--step--1); }
+  .par b { display: block; font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); margin-block-end: 2px; }
+  .pro { border-inline-start: 3px solid var(--marca); padding-inline-start: var(--space-s); }
+  .pro b { color: var(--marca); }
+  .con { border-inline-start: 3px dashed var(--rule-strong); padding-inline-start: var(--space-s); }
+  .con b { color: var(--ink-faint); }
+
+  /* ---------- A · faixa única ---------- */
+  .hA { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-m);
+        padding: var(--space-s) var(--space-m); border-bottom: 1px solid var(--rule); }
+  .hA__nome { font-family: var(--face-obra); font-size: var(--step-1); font-weight: 700; color: var(--ink); letter-spacing: var(--tracking-tight); }
+  .hA__nav { display: flex; flex-wrap: wrap; gap: var(--space-m); margin-inline-start: var(--space-l); font-family: var(--face-fluxo); font-size: var(--step--1); }
+  .hA__nav a { text-decoration: none; color: var(--ink-muted); }
+  .hA__nav a[data-at] { color: var(--ink); font-weight: 600; }
+  .hA__dir { margin-inline-start: auto; display: flex; align-items: center; gap: var(--space-s); }
+
+  /* ---------- B · centrado ---------- */
+  .hB { text-align: center; padding: var(--space-l) var(--space-m) 0; border-bottom: 1px solid var(--rule); }
+  .hB__nome { font-family: var(--face-obra); font-size: var(--step-4); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .hB__linha { font-family: var(--face-fluxo); font-size: var(--step--2); text-transform: uppercase; letter-spacing: .18em; color: var(--ink-faint); margin-block-start: var(--space-2xs); }
+  .hB__regua { block-size: 1px; background: var(--ink); margin-block: var(--space-m) 0; }
+  .hB__nav { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-l); padding-block: var(--space-s); font-family: var(--face-fluxo); font-size: var(--step--1); }
+  .hB__nav a { text-decoration: none; color: var(--ink-muted); }
+  .hB__nav a[data-at] { color: var(--ink); font-weight: 700; }
+
+  /* ---------- C · sigla ---------- */
+  .hC { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-m);
+        padding: var(--space-s) var(--space-m); border-bottom: 3px solid var(--marca); }
+  .hC__sigla {
+    display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem;
+    background: var(--marca); color: #fff; border-radius: var(--radius-s);
+    font-family: var(--face-obra); font-weight: 700; font-size: var(--step-1); line-height: 1;
+  }
+  .hC__bloco { display: grid; }
+  .hC__nome { font-family: var(--face-obra); font-size: var(--step-1); font-weight: 700; line-height: 1.05; }
+  .hC__linha { font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); }
+  .hC__nav { margin-inline-start: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-m); font-family: var(--face-fluxo); font-size: var(--step--1); }
+  .hC__nav a { text-decoration: none; color: var(--ink-muted); }
+  .hC__nav a[data-at] { color: var(--marca); font-weight: 700; }
+
+  /* ---------- D · escuro ---------- */
+  .hD { background: var(--capa-fundo); color: #fff; padding: var(--space-s) var(--space-m); }
+  .hD__topo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-m); }
+  .hD__nome { font-family: var(--face-obra); font-size: var(--step-1); font-weight: 700; color: #fff; }
+  .hD__nav { margin-inline-start: auto; display: flex; flex-wrap: wrap; gap: var(--space-m); font-family: var(--face-fluxo); font-size: var(--step--1); }
+  .hD__nav a { text-decoration: none; color: rgb(255 255 255 / .75); }
+  .hD__nav a[data-at] { color: #fff; font-weight: 700; border-bottom: 2px solid var(--acao); padding-block-end: 3px; }
+  .hD__acao { background: var(--acao); color: #fff; text-decoration: none; font-family: var(--face-fluxo);
+              font-size: var(--step--1); font-weight: 600; padding: var(--space-3xs) var(--space-s); border-radius: var(--radius-s); }
+</style>
+</head>
+<body>
+<div class="pag">
+
+<div class="intro">
+  <p class="kicker kicker--dot" style="--accent-ink: var(--marca); --accent-mark: var(--acao)">Escolha olhando</p>
+  <h1 style="margin-block-start: var(--space-2xs)">Quatro cabeçalhos</h1>
+  <p>
+    Todos usam os mesmos tokens e o mesmo conteúdo. O que muda é a
+    <strong>estratégia</strong>: quanto espaço o nome ocupa, onde a navegação mora e quanta
+    hierarquia existe. Cada um vem com a referência que o pratica.
+  </p>
+  <p>
+    O que está no ar hoje é o mais próximo do <strong>C</strong>, mas com o nome ocupando duas
+    linhas e oito itens de menu na mesma fileira — que é, na minha leitura, o que incomoda.
+  </p>
+</div>
+
+<!-- ================================================================= -->
+<section class="op">
+  <div class="op__cabeca">
+    <span class="op__letra">A</span>
+    <span class="op__nome">Faixa única</span>
+    <span class="op__ref">como Stripe, Linear, The Markup</span>
+  </div>
+  <p class="op__nota">
+    Tudo numa linha só: nome, navegação e ação. É o mais econômico em altura — o conteúdo
+    começa quase imediatamente — e o mais moderno. Sem tagline, sem segunda faixa.
+  </p>
+  <div class="janela">
+    <div class="janela__barra"><i></i><i></i><i></i></div>
+    <div class="amostra">
+      <div class="hA">
+        <span class="hA__nome">Instituto Automação</span>
+        <nav class="hA__nav">
+          <a href="#a" data-at>Indústria</a><a href="#a">Observatório</a><a href="#a">Operação</a>
+          <a href="#a">Edificações</a><a href="#a">Agenda</a><a href="#a">Panorama</a>
+        </nav>
+        <span class="hA__dir"><a href="#a" class="botao-acao">Enviar evento</a></span>
+      </div>
+      <div class="amostra__miolo">
+        <h2>O setor de automação, em português, no mesmo dia</h2>
+        <p>O conteúdo começa a 60 px do topo. Nenhuma altura gasta com apresentação.</p>
+      </div>
+    </div>
+  </div>
+  <div class="par">
+    <div class="pro"><b>A favor</b> Leve, moderno, o conteúdo aparece imediatamente. Funciona bem grudado no topo.</div>
+    <div class="con"><b>Contra</b> Não diz o que a instituição é. Para portal institucional pode parecer produto de software.</div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<section class="op">
+  <div class="op__cabeca">
+    <span class="op__letra">B</span>
+    <span class="op__nome">Centrado, de jornal</span>
+    <span class="op__ref">como NYT, FT, revista acadêmica</span>
+  </div>
+  <p class="op__nota">
+    O nome centralizado e grande, a linha do que é, régua preta e a navegação centralizada
+    abaixo. É o registro mais institucional que existe — e o mais antigo, no bom sentido:
+    lê como cabeçalho de publicação séria.
+  </p>
+  <div class="janela">
+    <div class="janela__barra"><i></i><i></i><i></i></div>
+    <div class="amostra">
+      <div class="hB">
+        <div class="hB__nome">Instituto Automação</div>
+        <div class="hB__linha">Estudos e difusão do setor · fundado em 2026</div>
+        <div class="hB__regua"></div>
+        <nav class="hB__nav">
+          <a href="#b" data-at>Indústria</a><a href="#b">Observatório</a><a href="#b">Operação</a>
+          <a href="#b">Edificações</a><a href="#b">Agenda</a><a href="#b">Panorama</a>
+        </nav>
+      </div>
+      <div class="amostra__miolo">
+        <h2>O setor de automação, em português, no mesmo dia</h2>
+        <p>Autoridade antes de utilidade. O nome é a primeira coisa, e é grande.</p>
+      </div>
+    </div>
+  </div>
+  <div class="par">
+    <div class="pro"><b>A favor</b> Máxima autoridade. Diz "instituição" antes de qualquer palavra. Envelhece muito bem.</div>
+    <div class="con"><b>Contra</b> Gasta altura. Não cabe botão de ação com destaque. Pode soar formal demais.</div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<section class="op">
+  <div class="op__cabeca">
+    <span class="op__letra">C</span>
+    <span class="op__nome">Sigla e assinatura</span>
+    <span class="op__ref">como Fraunhofer, VDMA, associações do setor</span>
+  </div>
+  <p class="op__nota">
+    Um selo com a sigla à esquerda, nome e descritor ao lado, navegação à direita — tudo numa
+    faixa. O selo resolve o que o nosso cabeçalho não tem: <strong>uma marca gráfica</strong>.
+    Sem logotipo, um instituto fica só com tipografia, e é isso que faz o topo parecer vazio.
+  </p>
+  <div class="janela">
+    <div class="janela__barra"><i></i><i></i><i></i></div>
+    <div class="amostra">
+      <div class="hC">
+        <span class="hC__sigla">IA</span>
+        <span class="hC__bloco">
+          <span class="hC__nome">Instituto Automação</span>
+          <span class="hC__linha">Estudos e difusão do setor</span>
+        </span>
+        <nav class="hC__nav">
+          <a href="#c" data-at>Indústria</a><a href="#c">Observatório</a><a href="#c">Operação</a>
+          <a href="#c">Edificações</a><a href="#c">Agenda</a>
+          <a href="#c" class="botao-acao">Enviar evento</a>
+        </nav>
+      </div>
+      <div class="amostra__miolo">
+        <h2>O setor de automação, em português, no mesmo dia</h2>
+        <p>Uma faixa, mas com marca gráfica. É o formato das associações do setor.</p>
+      </div>
+    </div>
+  </div>
+  <div class="par">
+    <div class="pro"><b>A favor</b> Tem marca. Compacto e institucional ao mesmo tempo. É o padrão do setor.</div>
+    <div class="con"><b>Contra</b> "IA" como sigla é ambíguo — todo mundo vai ler inteligência artificial. Precisa de outra marca gráfica.</div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<section class="op">
+  <div class="op__cabeca">
+    <span class="op__letra">D</span>
+    <span class="op__nome">Escuro, contínuo com o hero</span>
+    <span class="op__ref">como Bloomberg, Nikkei, portais técnicos</span>
+  </div>
+  <p class="op__nota">
+    O cabeçalho é escuro e <strong>emenda no hero</strong>: em vez de branco caindo em escuro,
+    o topo inteiro é um bloco só. Resolve de outro jeito a queixa da listra — não tirando a
+    banda, e sim fundindo tudo.
+  </p>
+  <div class="janela">
+    <div class="janela__barra"><i></i><i></i><i></i></div>
+    <div class="amostra" style="padding-block-end: 0">
+      <div class="hD">
+        <div class="hD__topo">
+          <span class="hD__nome">Instituto Automação</span>
+          <nav class="hD__nav">
+            <a href="#d" data-at>Indústria</a><a href="#d">Observatório</a><a href="#d">Operação</a>
+            <a href="#d">Edificações</a><a href="#d">Agenda</a><a href="#d">Panorama</a>
+          </nav>
+          <a href="#d" class="hD__acao">Enviar evento</a>
+        </div>
+      </div>
+      <div style="background: var(--capa-fundo); color: #fff; padding: var(--space-2xl) var(--space-m) var(--space-2xl)">
+        <span class="hero__kicker">O que o setor publicou hoje, lá fora</span>
+        <h2 style="font-family: var(--face-obra); font-size: var(--step-4); line-height: 1.03; max-width: 20ch; margin-block-start: var(--space-s); color: #fff">
+          O setor de automação, em português, no mesmo dia
+        </h2>
+        <p style="color: var(--capa-texto-suave); max-width: 46ch; margin-block-start: var(--space-s); font-family: var(--face-obra); font-size: var(--step-1)">
+          Um bloco escuro só, do topo da tela até o fim da abertura.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="par">
+    <div class="pro"><b>A favor</b> Máximo peso visual. Acaba com a listra fundindo as bandas. Muito comum em portal técnico.</div>
+    <div class="con"><b>Contra</b> O site inteiro passa a depender de um topo escuro. Menos "instituição", mais "produto".</div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<div class="aviso" style="background: var(--paper)">
+  <strong>O que eu faria:</strong> o <strong>C</strong>, com uma marca gráfica que não seja a
+  sigla "IA" — um símbolo simples no lugar dela, desenhado no mesmo vocabulário das capas
+  (varredura de radar, malha de pontos). Ele resolve as duas queixas de uma vez: compacta o
+  cabeçalho numa faixa e dá ao topo a <strong>marca</strong> que hoje não existe. Um instituto
+  sem símbolo fica só com tipografia — e é por isso que o topo parece vazio, por mais que se
+  mexa nas cores.
+  <br><br>
+  Se preferir peso a compacidade, o <strong>D</strong>. Se preferir autoridade a tudo, o
+  <strong>B</strong>.
+</div>
+
+</div>
+</body>
+</html>
