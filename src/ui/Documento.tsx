@@ -63,26 +63,24 @@ export const Documento = (p: Props) => {
         </a>
 
         {/*
-          Cabeçalho branco, em duas faixas.
+          Cabeçalho centrado, no registro de jornal e de revista acadêmica.
 
-          A faixa escura de utilidades saiu: ela competia com o hero, que
-          também é escuro. Duas áreas escuras separadas por uma tira branca
-          leem como listra, não como estrutura — e o contraste que interessa
-          é o do branco caindo no hero, não o de três bandas empilhadas.
+          Sem símbolo, um instituto fica só com tipografia — e num cabeçalho
+          centrado O NOME É O LOGOTIPO. É assim que publicação séria vive há
+          duzentos anos sem nenhuma marca gráfica.
 
-          Os links institucionais que moravam lá foram para a direita da
-          navegação, que é onde o leitor procura o secundário.
-
-          Azul é a instituição; laranja é a ação.
+          Só a navegação gruda ao rolar: o bloco centrado gasta altura e,
+          colado inteiro, comeria a tela. O botão de ação não cabe no centro,
+          então fica na direita da navegação. E o laranja fica só com o
+          estado ativo — azul no nome, na régua e no link deixaria o topo
+          monocromático.
         */}
         <header>
-          <div class="wrap ident">
-            <a href="/" class="marca-nome">
-              <span class="marca-nome__texto">Instituto Automação</span>
-              <span class="marca-nome__linha">Instituto de estudos e difusão do setor</span>
-            </a>
-            <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
+          <div class="wrap marca">
+            <a href="/" class="marca__nome">Instituto Automação</a>
+            <span class="marca__linha">Radar · Agenda · Panorama da automação</span>
           </div>
+          <div class="wrap"><div class="marca__regua"></div></div>
 
           <nav class="navbar" aria-label="Seções">
             <div class="wrap navbar__linha">
@@ -91,11 +89,11 @@ export const Documento = (p: Props) => {
                   {NUCLEOS[n].nome}
                 </a>
               ))}
-              <span class="navbar__resto">
-                <a href="/agenda">Agenda</a>
-                <a href="/panorama">Panorama</a>
-                <a href="/blueprints" class="navbar__secundario">Blueprints</a>
-                <a href="/feed/industria.xml" class="navbar__secundario">RSS</a>
+              <a href="/agenda">Agenda</a>
+              <a href="/panorama">Panorama</a>
+              <a href="/blueprints" class="navbar__secundario">Blueprints</a>
+              <span class="navbar__acao">
+                <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
               </span>
             </div>
           </nav>
