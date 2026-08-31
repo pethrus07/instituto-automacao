@@ -672,6 +672,11 @@ for (const [tema, t] of [['claro', claro], ['escuro', escuro]]) {
     ['--observatorio-ink', 4.5],
     ['--operacao-ink', 4.5],
     ['--edificacoes-ink', 4.5],
+    ['--acento-ink', 4.5],
+    ['--v-chega-ink', 4.5],
+    ['--v-caminho-ink', 4.5],
+    ['--v-nao-chega-ink', 4.5],
+    ['--v-sem-efeito-ink', 4.5],
     ['--live', 3.0],
   ];
   for (const [token, minimo] of alvos) {

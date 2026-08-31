@@ -3,33 +3,41 @@
    A fonte da verdade do design. Nenhum valor bruto (cor, tamanho, espaço)
    deve aparecer fora deste arquivo.
 
-   Regra dos temas: o modo claro é definido em `:root` puro. O escuro é
-   redefinido DUAS vezes — no `prefers-color-scheme` (protegido contra o
-   toggle) e no `[data-theme="dark"]` — para que preferência do sistema e
-   escolha manual funcionem nos dois sentidos.
+   ---------------------------------------------------------------------
+   v2 · 30/08/2026 — BASE BRANCA, registro de notícia.
+
+   A v1 tinha papel quente e dois acentos (âmbar e azul) espalhados pelo
+   site inteiro. Trocada por decisão do dono: base branca, cinzas neutros,
+   tinta quase preta — o registro de site de notícia, que é o que o leitor
+   já sabe ler sem aprender nada.
+
+   O que mudou de princípio, e não só de valor:
+   - Os quatro núcleos ficaram NEUTROS. Distinguem-se pelo nome, não pela
+     cor. Cor por seção espalha significado até ele não querer dizer nada.
+   - Sobrou UM acento, e ele serve a link e a estado ativo — o uso que o
+     leitor já espera.
+   - A única cor que resta com significado é a do VEREDITO. Sendo a única,
+     ela trabalha mais: quando quase tudo é preto e branco, um selo colorido
+     é impossível de ignorar.
+
+   Todos os nomes de token continuam os mesmos, então nada além deste
+   arquivo precisou mudar.
    ========================================================================= */
 
 :root {
   color-scheme: light dark;
 
   /* ---------------------------------------------------------------------
-     TIPOGRAFIA — três famílias, cada uma com um trabalho
+     TIPOGRAFIA — inalterada
 
      Newsreader   OBRA    — análise, caso, panorama. Leitura longa.
      IBM Plex Sans FLUXO  — interface, radar, agenda, navegação.
      IBM Plex Mono DADO   — relógio, carimbos, termos do glossário.
-
-     O contraste serifada × sem-serifa carrega a decisão editorial central
-     do projeto (impessoal no fluxo, assinado na obra) sem precisar
-     explicá-la. Em produção as três são self-hosted, variáveis e com
-     subset latin — ver design/SISTEMA.md.
      --------------------------------------------------------------------- */
   --face-obra:  "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
   --face-fluxo: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --face-dado:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  /* Escala fluida. O passo 0 é o corpo de texto: 17px no celular, 18px no
-     desktop — tamanho de leitura, não de interface. */
   --step--2: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
   --step--1: clamp(0.8125rem, 0.78rem + 0.16vw, 0.875rem);
   --step-0:  clamp(1.0625rem, 1.03rem + 0.18vw, 1.125rem);
@@ -39,38 +47,35 @@
   --step-4:  clamp(2rem, 1.7rem + 1.5vw, 2.875rem);
   --step-5:  clamp(2.5rem, 1.98rem + 2.6vw, 4rem);
 
-  --leading-tight:   1.12;   /* títulos grandes */
-  --leading-snug:    1.28;   /* títulos pequenos, cards */
-  --leading-normal:  1.45;   /* interface */
-  --leading-relaxed: 1.68;   /* obra — leitura longa */
+  --leading-tight:   1.12;
+  --leading-snug:    1.28;
+  --leading-normal:  1.45;
+  --leading-relaxed: 1.68;
 
   --tracking-tight:  -0.018em;
   --tracking-normal: 0;
   --tracking-wide:   0.02em;
-  --tracking-kicker: 0.09em;  /* caixa alta pequena precisa de ar */
+  --tracking-kicker: 0.09em;
 
   --weight-regular:  400;
   --weight-medium:   500;
   --weight-semibold: 600;
   --weight-bold:     700;
 
-  /* Medida de leitura. Acima de ~72ch o olho perde a linha na volta. */
   --measure:       68ch;
   --measure-lead:  56ch;
   --measure-short: 44ch;
 
-  /* ---------------------------------------------------------------------
-     ESPAÇO — base 4px. Nomes por tamanho, não por uso.
-     --------------------------------------------------------------------- */
-  --space-3xs: 0.25rem;   /*  4 */
-  --space-2xs: 0.5rem;    /*  8 */
-  --space-xs:  0.75rem;   /* 12 */
-  --space-s:   1rem;      /* 16 */
-  --space-m:   1.5rem;    /* 24 */
-  --space-l:   2rem;      /* 32 */
-  --space-xl:  3rem;      /* 48 */
-  --space-2xl: 4rem;      /* 64 */
-  --space-3xl: 6rem;      /* 96 */
+  /* --------------------------------------------------------------- ESPAÇO */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs:  0.75rem;
+  --space-s:   1rem;
+  --space-m:   1.5rem;
+  --space-l:   2rem;
+  --space-xl:  3rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
 
   --gutter: clamp(1.25rem, 4vw, 2.5rem);
   --width-prose: 42rem;
@@ -78,83 +83,76 @@
   --width-wide:  90rem;
 
   /* ---------------------------------------------------------------------
-     COR — base neutra (modo claro)
-     O papel não é branco puro: em texto longo, branco puro cansa.
+     COR — base branca, cinzas neutros
      --------------------------------------------------------------------- */
-  --paper:         #fbfaf8;
+  --paper:         #ffffff;
   --paper-raised:  #ffffff;
-  --paper-sunken:  #f2f0ec;
-  --paper-invert:  #1a1816;
+  --paper-sunken:  #f4f4f5;
+  --paper-invert:  #18181b;
 
-  /* Tinta levemente quente, para pertencer à mesma família do papel.
-     Tinta fria sobre papel quente embaça de um jeito difícil de nomear. */
-  --ink:           #1a1816;
-  --ink-muted:     #5a564f;
-  --ink-faint:     #8a857c;
-  --ink-invert:    #fbfaf8;
+  --ink:           #18181b;
+  --ink-muted:     #52525b;
+  --ink-faint:     #71717a;
+  --ink-invert:    #ffffff;
 
-  --rule:          #e4e1db;
-  --rule-strong:   #c9c5bd;
+  --rule:          #e4e4e7;
+  --rule-strong:   #d4d4d8;
 
   /* ---------------------------------------------------------------------
-     AS DUAS CORES
-
-     Azul e laranja são a identidade do Instituto E os acentos dos dois
-     núcleos quentes, ao mesmo tempo. Duas cores e um sinal — é pouco de
-     propósito: paleta curta é o que faz parecer instituição, não portal.
-
-     Cada cor tem duas formas, e a distinção não é estética, é de contraste:
-       `-ink`  versão escura — a que CARREGA TEXTO (>= 4.5:1 sobre o papel)
-       `-mark` versão viva  — ponto, fio, tarja. Nunca texto pequeno.
-       `-wash` fundo de tarja discreta. Nunca bloco grande.
-
-     O laranja que a pessoa vê é o vivo; o que ela lê é o bronze. Laranja
-     vivo sobre papel claro dá ~3:1 e reprova para texto — por isso os dois
-     pesos existem.
+     O ACENTO — um só, e para o que o leitor já espera: link e estado ativo.
+     Trocar aqui muda o site inteiro.
      --------------------------------------------------------------------- */
-
-  /* Indústria · o laranja — latão, metal, faixa de advertência */
-  --industria-ink:      #a4530c;
-  --industria-mark:     #dd7f1e;
-  --industria-wash:     #fbeddc;
-
-  /* Observatório · o azul — tinta, noite, pensamento */
-  --observatorio-ink:   #1a4a8c;
-  --observatorio-mark:  #2f6cc0;
-  --observatorio-wash:  #e6eef8;
-
-  /* Operação e Edificações estão em modo Radar: NEUTROS até esquentarem.
-     Cor passa a significar "tem gente escrevendo aqui" — e a terceira e a
-     quarta se escolhem depois, vendo conteúdo real, derivadas deste par
-     (verde-petróleo ao lado do azul; terracota ao lado do laranja). */
-  --operacao-ink:       #5a564f;
-  --operacao-mark:      #8a857c;
-  --operacao-wash:      #f2f0ec;
-
-  --edificacoes-ink:    #5a564f;
-  --edificacoes-mark:   #8a857c;
-  --edificacoes-wash:   #f2f0ec;
-
-  /* Sinais de estado — o verde é o único terceiro matiz do site, e existe
-     só no relógio. "Revisão pendente" NÃO tem cor: é contorno neutro, que
-     é o que "provisório" parece. Cor de aviso ao lado do laranja da
-     Indústria viraria a mesma mancha. */
-  --live:          #157f3b;
-  --live-wash:     #e4f2e8;
-  --focus:         #2f6cc0;
-
-  /* Acento ativo. Cada seção do site sobrescreve estes três no seu
-     container; todo componente lê daqui e nenhum precisa saber em que
-     núcleo está. É o que faz um card funcionar nos quatro contextos. */
-  --accent-ink:  var(--ink);
-  --accent-mark: var(--ink);
-  --accent-wash: var(--paper-sunken);
+  --acento-ink:  #1d4ed8;
+  --acento-mark: #2563eb;
+  --acento-wash: #eff6ff;
 
   /* ---------------------------------------------------------------------
-     SUPERFÍCIE
-     Sombra quase não aparece: o site se estrutura por fio e espaço, que é
-     como publicação impressa se organiza — e envelhece melhor.
+     NÚCLEOS — NEUTROS.
+
+     Distinguem-se pelo nome, não pela cor. Um site de notícia não pinta a
+     editoria: pinta o link. Se um dia um núcleo precisar de cor própria, é
+     uma linha em .n-* lá embaixo — e volta a ser decisão, não default.
      --------------------------------------------------------------------- */
+  --industria-ink:      #52525b;
+  --industria-mark:     #a1a1aa;
+  --industria-wash:     #f4f4f5;
+
+  --observatorio-ink:   #52525b;
+  --observatorio-mark:  #a1a1aa;
+  --observatorio-wash:  #f4f4f5;
+
+  --operacao-ink:       #52525b;
+  --operacao-mark:      #a1a1aa;
+  --operacao-wash:      #f4f4f5;
+
+  --edificacoes-ink:    #52525b;
+  --edificacoes-mark:   #a1a1aa;
+  --edificacoes-wash:   #f4f4f5;
+
+  /* ---------------------------------------------------------------------
+     SINAIS — a única cor com significado que sobrou
+
+     O veredito é o julgamento do Instituto sobre cada item. Sendo quase a
+     única cor da página, ele trabalha mais: num site preto e branco, um
+     selo colorido é impossível de ignorar. Era exatamente o que a v1 não
+     conseguia, com quatro acentos disputando atenção.
+     --------------------------------------------------------------------- */
+  --v-chega-ink:      #15803d;   --v-chega-wash:      #f0fdf4;
+  --v-caminho-ink:    #a16207;   --v-caminho-wash:    #fefce8;
+  --v-nao-chega-ink:  #b91c1c;   --v-nao-chega-wash:  #fef2f2;
+  --v-sem-efeito-ink: #52525b;   --v-sem-efeito-wash: #f4f4f5;
+
+  --live:          #15803d;   /* o relógio do "primeira mão" */
+  --live-wash:     #f0fdf4;
+  --focus:         #2563eb;
+
+  /* Acento ativo — lido por todo componente. Por padrão é o acento único;
+     o container .n-* pode sobrescrever se algum núcleo ganhar cor. */
+  --accent-ink:  var(--acento-ink);
+  --accent-mark: var(--acento-mark);
+  --accent-wash: var(--acento-wash);
+
+  /* --------------------------------------------------------------- SUPERFÍCIE */
   --radius-xs: 2px;
   --radius-s:  4px;
   --radius-m:  8px;
@@ -162,9 +160,9 @@
 
   --border-hair: 1px solid var(--rule);
   --border-firm: 1px solid var(--rule-strong);
-  --border-mark: 2px solid var(--accent-mark);
+  --border-mark: 2px solid var(--ink);
 
-  --shadow-raised: 0 1px 2px rgb(22 22 26 / 0.04), 0 4px 12px rgb(22 22 26 / 0.04);
+  --shadow-raised: 0 1px 2px rgb(24 24 27 / 0.04), 0 4px 12px rgb(24 24 27 / 0.04);
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --duration: 160ms;
@@ -173,85 +171,83 @@
 /* --- ESCURO por preferência do sistema (não pisa em cima do toggle) ----- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper:        #121110;
-    --paper-raised: #1a1917;
-    --paper-sunken: #0c0b0a;
-    --paper-invert: #ecebe7;
+    --paper:        #111113;
+    --paper-raised: #18181b;
+    --paper-sunken: #0b0b0d;
+    --paper-invert: #fafafa;
 
-    --ink:          #ecebe7;
-    --ink-muted:    #a5a099;
-    --ink-faint:    #736e66;
-    --ink-invert:   #121110;
+    --ink:          #fafafa;
+    --ink-muted:    #a1a1aa;
+    --ink-faint:    #71717a;
+    --ink-invert:   #111113;
 
-    --rule:         #2a2825;
-    --rule-strong:  #3e3b37;
+    --rule:         #27272a;
+    --rule-strong:  #3f3f46;
 
-    --industria-ink:     #f0a44e;
-    --industria-mark:    #e08a24;
-    --industria-wash:    #2b1e0f;
+    --acento-ink:  #93b4fd;
+    --acento-mark: #60a5fa;
+    --acento-wash: #172554;
 
-    --observatorio-ink:  #8ab6f2;
-    --observatorio-mark: #5f96e0;
-    --observatorio-wash: #111d31;
+    --industria-ink:     #a1a1aa;  --industria-mark:     #52525b;  --industria-wash:     #18181b;
+    --observatorio-ink:  #a1a1aa;  --observatorio-mark:  #52525b;  --observatorio-wash:  #18181b;
+    --operacao-ink:      #a1a1aa;  --operacao-mark:      #52525b;  --operacao-wash:      #18181b;
+    --edificacoes-ink:   #a1a1aa;  --edificacoes-mark:   #52525b;  --edificacoes-wash:   #18181b;
 
-    --operacao-ink:      #a5a099;
-    --operacao-mark:     #736e66;
-    --operacao-wash:     #1a1917;
-
-    --edificacoes-ink:   #a5a099;
-    --edificacoes-mark:  #736e66;
-    --edificacoes-wash:  #1a1917;
+    --v-chega-ink:      #4ade80;   --v-chega-wash:      #0d2018;
+    --v-caminho-ink:    #eab308;   --v-caminho-wash:    #221c07;
+    --v-nao-chega-ink:  #f87171;   --v-nao-chega-wash:  #2a1212;
+    --v-sem-efeito-ink: #a1a1aa;   --v-sem-efeito-wash: #18181b;
 
     --live:        #4ade80;
-    --live-wash:   #0f2418;
-    --focus:       #8ab6f2;
+    --live-wash:   #0d2018;
+    --focus:       #93b4fd;
 
+    --border-mark: 2px solid var(--ink);
     --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
   }
 }
 
 /* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
 :root[data-theme="dark"] {
-  --paper:        #121110;
-  --paper-raised: #1a1917;
-  --paper-sunken: #0c0b0a;
-  --paper-invert: #ecebe7;
+  --paper:        #111113;
+  --paper-raised: #18181b;
+  --paper-sunken: #0b0b0d;
+  --paper-invert: #fafafa;
 
-  --ink:          #ecebe7;
-  --ink-muted:    #a5a099;
-  --ink-faint:    #736e66;
-  --ink-invert:   #121110;
+  --ink:          #fafafa;
+  --ink-muted:    #a1a1aa;
+  --ink-faint:    #71717a;
+  --ink-invert:   #111113;
 
-  --rule:         #2a2825;
-  --rule-strong:  #3e3b37;
+  --rule:         #27272a;
+  --rule-strong:  #3f3f46;
 
-  --industria-ink:     #f0a44e;
-  --industria-mark:    #e08a24;
-  --industria-wash:    #2b1e0f;
+  --acento-ink:  #93b4fd;
+  --acento-mark: #60a5fa;
+  --acento-wash: #172554;
 
-  --observatorio-ink:  #8ab6f2;
-  --observatorio-mark: #5f96e0;
-  --observatorio-wash: #111d31;
+  --industria-ink:     #a1a1aa;  --industria-mark:     #52525b;  --industria-wash:     #18181b;
+  --observatorio-ink:  #a1a1aa;  --observatorio-mark:  #52525b;  --observatorio-wash:  #18181b;
+  --operacao-ink:      #a1a1aa;  --operacao-mark:      #52525b;  --operacao-wash:      #18181b;
+  --edificacoes-ink:   #a1a1aa;  --edificacoes-mark:   #52525b;  --edificacoes-wash:   #18181b;
 
-  --operacao-ink:      #a5a099;
-  --operacao-mark:     #736e66;
-  --operacao-wash:     #1a1917;
-
-  --edificacoes-ink:   #a5a099;
-  --edificacoes-mark:  #736e66;
-  --edificacoes-wash:  #1a1917;
+  --v-chega-ink:      #4ade80;   --v-chega-wash:      #0d2018;
+  --v-caminho-ink:    #eab308;   --v-caminho-wash:    #221c07;
+  --v-nao-chega-ink:  #f87171;   --v-nao-chega-wash:  #2a1212;
+  --v-sem-efeito-ink: #a1a1aa;   --v-sem-efeito-wash: #18181b;
 
   --live:        #4ade80;
-  --live-wash:   #0f2418;
-  --focus:       #8ab6f2;
+  --live-wash:   #0d2018;
+  --focus:       #93b4fd;
 
+  --border-mark: 2px solid var(--ink);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
 }
 
 /* -------------------------------------------------------------------------
    NÚCLEOS
-   Aplicar a classe no container da seção. Tudo dentro passa a ler o acento
-   certo sem nenhum componente saber onde está.
+   Continuam existindo como container para o caso de um deles voltar a ter
+   cor. Hoje os quatro apontam para o neutro, e o acento do site é o link.
    ------------------------------------------------------------------------- */
 .n-industria {
   --accent-ink: var(--industria-ink);

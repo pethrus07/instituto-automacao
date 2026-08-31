@@ -78,8 +78,11 @@ a {
   transition: color var(--duration) var(--ease),
               text-decoration-color var(--duration) var(--ease);
 }
+/* O acento do site é o LINK — é o uso que o leitor já espera, e o único
+   lugar onde sobrou cor fora do veredito. Não usa --accent-* porque esse
+   segue o núcleo, e núcleo virou neutro na v2. */
 a:hover {
-  color: var(--accent-ink);
+  color: var(--acento-ink);
   text-decoration-color: currentColor;
 }
 
@@ -96,8 +99,8 @@ hr {
 }
 
 ::selection {
-  background: var(--accent-wash);
-  color: var(--accent-ink);
+  background: var(--acento-wash);
+  color: var(--acento-ink);
 }
 
 small { font-size: var(--step--1); }

@@ -424,10 +424,13 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
   background: var(--v-ink);
   flex: none;
 }
-.v-chega      { --v-ink: var(--operacao-ink);    --v-wash: var(--operacao-wash); }
-.v-a_caminho  { --v-ink: var(--industria-ink);   --v-wash: var(--industria-wash); }
-.v-nao_chega  { --v-ink: var(--edificacoes-ink); --v-wash: var(--edificacoes-wash); }
-.v-sem_efeito { --v-ink: var(--ink-muted);       --v-wash: var(--paper-sunken); }
+/* Desde a v2 dos tokens o veredito tem cor PRÓPRIA, e não emprestada de
+   núcleo: núcleo virou neutro, e emprestar dele apagaria o único sinal
+   colorido que restou na página. */
+.v-chega      { --v-ink: var(--v-chega-ink);      --v-wash: var(--v-chega-wash); }
+.v-a_caminho  { --v-ink: var(--v-caminho-ink);    --v-wash: var(--v-caminho-wash); }
+.v-nao_chega  { --v-ink: var(--v-nao-chega-ink);  --v-wash: var(--v-nao-chega-wash); }
+.v-sem_efeito { --v-ink: var(--v-sem-efeito-ink); --v-wash: var(--v-sem-efeito-wash); }
 
 /* -------------------------------------------------------------------------
    RÓTULO DE CAMADA — separa o que a fonte diz do que nós lemos
@@ -454,12 +457,15 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 @media (min-width: 52rem) {
   .destaque { grid-template-columns: 1.15fr 1fr; align-items: start; gap: var(--space-xl); }
 }
+/* Sem imagem licenciada, a capa é um cartão escuro com o nome do núcleo.
+   Numa página branca ele lê como imagem — e é o mesmo desenho que vira a
+   OG image gerada, então uma decisão serve aos dois lugares. */
 .destaque__capa {
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-s);
-  border: var(--border-hair);
   overflow: hidden;
-  background: linear-gradient(150deg, var(--accent-wash), var(--paper-sunken));
+  background: var(--paper-invert);
+  color: var(--ink-invert);
   display: grid;
   align-content: end;
   padding: var(--space-m);
@@ -470,10 +476,10 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
   font-size: var(--step-2);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
-  color: var(--accent-ink);
+  color: var(--ink-invert);
   max-width: 22ch;
 }
-.destaque__credito { font-size: var(--step--2); color: var(--ink-faint); margin-block-start: var(--space-2xs); }
+.destaque__credito { font-size: var(--step--2); color: var(--ink-invert); opacity: .65; margin-block-start: var(--space-2xs); }
 .destaque__titulo {
   font-family: var(--face-obra);
   font-size: var(--step-4);
