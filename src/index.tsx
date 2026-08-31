@@ -9,15 +9,20 @@
 import { Hono } from 'hono';
 import { Documento } from './ui/Documento';
 import {
-  ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR,
+  ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR, Kicker,
   EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
+  AssinaturaObra, ObraNaLista, LeituraNoItem, ROTULO_OBRA,
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
+import { renderizarObra, minutosDeLeitura } from './ui/markdown';
+import { feedDoNucleo, sitemap, robots } from './feed';
+import { raw } from 'hono/html';
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
 import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
 import {
   listarRadar, obterItem, contarPorNucleo, medirAtraso,
   listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
+  listarObras, obterObra, leituraDoItem, type FormatoObra,
 } from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
@@ -61,6 +66,64 @@ app.get('/saude', async (c) => {
     rota_css: CSS_ROTA,
     ms: Date.now() - t0,
   });
+});
+
+/* ----------------------------------------------------- feeds e indexação
+ * O <head> anuncia estes quatro feeds desde a primeira sprint. Até aqui era
+ * promessa sem lastro — apontada pelo próprio QA na sprint 0.
+ */
+app.get('/feed/:arquivo', async (c) => {
+  const nome = c.req.param('arquivo').replace(/\.xml$/, '');
+  if (!ehNucleo(nome)) return c.notFound();
+  c.header('Content-Type', 'application/rss+xml; charset=utf-8');
+  c.header('Cache-Control', CACHE.listagem);
+  return c.body(await feedDoNucleo(c.env, nome));
+});
+
+app.get('/sitemap.xml', async (c) => {
+  c.header('Content-Type', 'application/xml; charset=utf-8');
+  c.header('Cache-Control', CACHE.listagem);
+  return c.body(await sitemap(c.env));
+});
+
+app.get('/robots.txt', (c) => {
+  c.header('Content-Type', 'text/plain; charset=utf-8');
+  c.header('Cache-Control', CACHE.listagem);
+  return c.body(robots(c.env));
+});
+
+/* -------------------------------------------------------------- panorama
+ * Índice do que é institucional e assinado.
+ */
+app.get('/panorama', async (c) => {
+  const obras = await listarObras(c.env.DB, { formato: 'panorama' }, 30);
+  c.header('Cache-Control', CACHE.listagem);
+  return c.html(
+    pagina(
+      <Documento
+        titulo="Panorama"
+        descricao="Relatórios do Instituto Automação, extraídos da própria base do radar."
+        url={c.env.SITE_URL + '/panorama'}
+      >
+        <h1>Panorama</h1>
+        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
+          O que a nossa própria base responde: quanto tempo a automação leva para sair da
+          fronteira lá fora e chegar ao chão de fábrica daqui.
+        </p>
+        <div style="margin-block-start: var(--space-xl)">
+          {obras.length === 0 ? (
+            <Aviso>
+              <strong>O primeiro Panorama sai quando houver base para ele.</strong> Ele não vem
+              de entrevista nem de pesquisa de campo: sai do que o radar coletou. Por isso
+              depende de tempo de coleta, e não de esforço.
+            </Aviso>
+          ) : (
+            obras.map((o) => <ObraNaLista obra={o} />)
+          )}
+        </div>
+      </Documento>,
+    ),
+  );
 });
 
 /* ------------------------------------------------------------------ agenda
@@ -404,6 +467,61 @@ app.get('/', async (c) => {
   );
 });
 
+/* --------------------------------------------------------------- a obra
+ * Análise, Caso e Panorama têm página própria e URL sem núcleo: obra é para
+ * durar, e o núcleo pode mudar de nome antes do texto envelhecer.
+ * A Leitura NÃO tem página: ela vive dentro do item que comenta.
+ *
+ * ⚠️ Antes de /:nucleo/:slug — senão o curinga casa primeiro.
+ */
+app.get('/:formato{analise|caso|panorama}/:slug', async (c) => {
+  const formato = c.req.param('formato') as FormatoObra;
+  const o = await obterObra(c.env.DB, formato, c.req.param('slug'));
+  if (!o) return c.notFound();
+
+  const html = renderizarObra(o.corpo);
+  const minutos = minutosDeLeitura(o.corpo);
+
+  c.header('Cache-Control', CACHE.item);
+  return c.html(
+    pagina(
+      <Documento
+        titulo={o.titulo}
+        nucleo={o.nucleo}
+        descricao={o.lead ?? undefined}
+        url={`${c.env.SITE_URL}/${o.formato}/${o.slug}`}
+      >
+        <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
+        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{o.titulo}</h1>
+
+        <div style="margin-block-start: var(--space-m)">
+          <AssinaturaObra obra={o} minutos={minutos} />
+        </div>
+
+        <div class="obra" style="margin-block-start: var(--space-l)">
+          {o.lead && <p class="lead">{o.lead}</p>}
+          {raw(html)}
+        </div>
+
+        {o.item_slug && o.item_nucleo && (
+          <p class="u-muted" style="margin-block-start: var(--space-xl); font-size: var(--step--1)">
+            Comenta:{' '}
+            <a href={`/${o.item_nucleo}/${o.item_slug}`}>{o.item_titulo}</a>
+          </p>
+        )}
+
+        <div style="margin-block-start: var(--space-xl)">
+          <Aviso>
+            <strong>Texto assinado.</strong> O radar e a agenda deste site não têm autor — são
+            agregação. Análise, Caso e Panorama têm, e a responsabilidade pelo que está escrito
+            aqui é de quem assina.
+          </Aviso>
+        </div>
+      </Documento>,
+    ),
+  );
+});
+
 /* ------------------------------------------------------------------ núcleo */
 app.get('/:nucleo', async (c) => {
   const chave = c.req.param('nucleo');
@@ -411,6 +529,7 @@ app.get('/:nucleo', async (c) => {
 
   const n = NUCLEOS[chave];
   const itens = await listarRadar(c.env.DB, chave, 30);
+  const obras = await listarObras(c.env.DB, { nucleo: chave }, 5);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
@@ -424,6 +543,15 @@ app.get('/:nucleo', async (c) => {
         {!n.quente && (
           <div style="margin-block-start: var(--space-m)">
             <EmRadar nucleo={chave} />
+          </div>
+        )}
+
+        {obras.length > 0 && (
+          <div style="margin-block-start: var(--space-xl)">
+            <Secao titulo="Obra" />
+            {obras.map((o) => (
+              <ObraNaLista obra={o} />
+            ))}
           </div>
         )}
 
@@ -452,6 +580,7 @@ app.get('/:nucleo/:slug', async (c) => {
   if (!i) return c.notFound();
 
   const n = NUCLEOS[chave];
+  const leitura = await leituraDoItem(c.env.DB, i.id);
   const traduzido = i.modo === 'traducao';
   const pendente = traduzido && i.revisado_humano === 0;
 
@@ -499,6 +628,8 @@ app.get('/:nucleo/:slug', async (c) => {
               <p>{par}</p>
             ))}
         </div>
+
+        {leitura && <LeituraNoItem obra={leitura} html={renderizarObra(leitura.corpo)} />}
 
         <div style="margin-block-start: var(--space-xl)">
           <Aviso>

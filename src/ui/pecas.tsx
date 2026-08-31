@@ -5,7 +5,8 @@
  * container .n-* define. É o que permite o mesmo card servir aos quatro.
  * Elas vestem design/components.css — não trazem estilo próprio.
  */
-import type { ItemRadar, Evento } from '../db';
+import { raw } from 'hono/html';
+import type { ItemRadar, Evento, Obra } from '../db';
 import { NUCLEOS, ORDEM_NUCLEOS, type ChaveNucleo } from '../config';
 
 /** ---------------------------------------------------------------- Kicker */
@@ -338,4 +339,89 @@ export const FormularioEvento = () => (
       </div>
     </div>
   </form>
+);
+
+/* ========================================================================= */
+/* Obra — o conteúdo assinado                                                 */
+/* ========================================================================= */
+
+export const ROTULO_OBRA: Record<string, string> = {
+  analise: 'Análise',
+  caso: 'Caso',
+  panorama: 'Panorama',
+  leitura: 'Leitura do Instituto',
+};
+
+/** O caminho de cada obra. A Leitura não tem página própria: vive no item. */
+export function caminhoObra(o: Obra): string {
+  return o.formato === 'leitura' && o.item_nucleo && o.item_slug
+    ? `/${o.item_nucleo}/${o.item_slug}#leitura`
+    : `/${o.formato}/${o.slug}`;
+}
+
+/**
+ * A assinatura.
+ *
+ * É aqui que a decisão central do projeto aparece na tela: radar e agenda
+ * não têm autor, obra tem. Autoridade não transfere de marca anônima para
+ * pessoa — e é autoridade pessoal o objetivo do Instituto.
+ *
+ * A Leitura sai como voz do núcleo (`assinada = 0`): o formato é curto e o
+ * parceiro não quer ser colunista.
+ */
+export const AssinaturaObra = (p: { obra: Obra; minutos?: number }) => {
+  const o = p.obra;
+  return (
+    <div class="assinatura">
+      <span class="assinatura__autor">{o.assinada ? o.autor : `Núcleo ${NUCLEOS[o.nucleo].nome}`}</span>
+      {o.assinada && <span class="assinatura__nucleo">Núcleo {NUCLEOS[o.nucleo].nome}</span>}
+      {o.publicado_em && <span class="u-dado">{dataBR(o.publicado_em, false)}</span>}
+      {p.minutos && <span>{p.minutos} min de leitura</span>}
+    </div>
+  );
+};
+
+/** A obra numa lista — no núcleo ou no índice de Panoramas. */
+export const ObraNaLista = (p: { obra: Obra }) => {
+  const o = p.obra;
+  return (
+    <article class={`item ${NUCLEOS[o.nucleo].classe}`}>
+      <div class="item__topo">
+        <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
+        {o.assinada ? (
+          <span class="u-faint" style="font-size:var(--step--2)">por {o.autor}</span>
+        ) : (
+          <Selo tipo="radar">voz do núcleo</Selo>
+        )}
+        {o.publicado_em && (
+          <span class="u-dado u-faint" style="font-size:var(--step--2)">
+            {dataBR(o.publicado_em, false)}
+          </span>
+        )}
+      </div>
+      <h3 class="item__titulo">
+        <a href={caminhoObra(o)}>{o.titulo}</a>
+      </h3>
+      {o.lead && <p class="item__resumo">{o.lead}</p>}
+    </article>
+  );
+};
+
+/**
+ * A Leitura do Instituto, dentro da página do item.
+ *
+ * Três a cinco linhas por cima de um item que o parceiro já ia ler de
+ * qualquer jeito. Atrito quase zero — e é o suficiente para o núcleo ter
+ * voz própria sem exigir que alguém vire colunista.
+ */
+export const LeituraNoItem = (p: { obra: Obra; html: string }) => (
+  <aside
+    id="leitura"
+    style="margin-block-start: var(--space-xl); border-block: var(--border-mark); padding-block: var(--space-m); scroll-margin-top: var(--space-l)"
+  >
+    <Kicker>Leitura do Instituto</Kicker>
+    <div class="obra" style="margin-block-start: var(--space-s); font-size: var(--step-0)">
+      {raw(p.html)}
+    </div>
+  </aside>
 );

@@ -210,3 +210,91 @@ export async function contarAgenda(db: D1Database): Promise<{ total: number; bra
     .first<{ total: number; brasil: number }>();
   return { total: l?.total ?? 0, brasil: l?.brasil ?? 0 };
 }
+
+/* ========================================================================= */
+/* Obra — o conteúdo assinado                                                 */
+/* ========================================================================= */
+
+export type FormatoObra = 'leitura' | 'analise' | 'caso' | 'panorama';
+
+export type Obra = {
+  id: string;
+  slug: string;
+  nucleo: ChaveNucleo;
+  formato: FormatoObra;
+  titulo: string;
+  lead: string | null;
+  corpo: string;
+  autor: string;
+  assinada: number;
+  item_id: string | null;
+  publicado_em: string | null;
+  /** vem da junção, quando a obra está ancorada num item do radar */
+  item_slug?: string | null;
+  item_titulo?: string | null;
+  item_nucleo?: string | null;
+};
+
+const CAMPOS_OBRA = `
+  o.id, o.slug, o.nucleo, o.formato, o.titulo, o.lead, o.corpo, o.autor,
+  o.assinada, o.item_id, o.publicado_em,
+  i.slug AS item_slug, i.titulo AS item_titulo, i.nucleo AS item_nucleo
+`;
+
+export async function listarObras(
+  db: D1Database,
+  filtro: { nucleo?: ChaveNucleo; formato?: FormatoObra } = {},
+  limite = 20,
+): Promise<Obra[]> {
+  const cond = [`o.status = 'publicado'`];
+  const args: unknown[] = [];
+  if (filtro.nucleo) {
+    args.push(filtro.nucleo);
+    cond.push(`o.nucleo = ?${args.length}`);
+  }
+  if (filtro.formato) {
+    args.push(filtro.formato);
+    cond.push(`o.formato = ?${args.length}`);
+  }
+  args.push(limite);
+
+  const { results } = await db
+    .prepare(
+      `SELECT ${CAMPOS_OBRA} FROM obra o
+         LEFT JOIN item i ON i.id = o.item_id
+        WHERE ${cond.join(' AND ')}
+        ORDER BY o.publicado_em DESC
+        LIMIT ?${args.length}`,
+    )
+    .bind(...args)
+    .all<Obra>();
+  return results ?? [];
+}
+
+export async function obterObra(
+  db: D1Database,
+  formato: FormatoObra,
+  slug: string,
+): Promise<Obra | null> {
+  return await db
+    .prepare(
+      `SELECT ${CAMPOS_OBRA} FROM obra o
+         LEFT JOIN item i ON i.id = o.item_id
+        WHERE o.formato = ?1 AND o.slug = ?2 AND o.status = 'publicado'`,
+    )
+    .bind(formato, slug)
+    .first<Obra>();
+}
+
+/** A Leitura do Instituto ancorada num item — aparece na página do item. */
+export async function leituraDoItem(db: D1Database, itemId: string): Promise<Obra | null> {
+  return await db
+    .prepare(
+      `SELECT ${CAMPOS_OBRA} FROM obra o
+         LEFT JOIN item i ON i.id = o.item_id
+        WHERE o.item_id = ?1 AND o.formato = 'leitura' AND o.status = 'publicado'
+        LIMIT 1`,
+    )
+    .bind(itemId)
+    .first<Obra>();
+}

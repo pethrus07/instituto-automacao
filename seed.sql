@@ -154,3 +154,40 @@ INSERT OR REPLACE INTO evento (id, slug, nucleo, nome, descricao, inicio, fim, c
   ('ev-007','evento-nao-conferido-exemplo','industria',
    'Evento enviado e não conferido (exemplo)','Existe para provar que envio não conferido não vai ao ar.',
    '2026-12-01',NULL,'Curitiba','PR','BR','presencial','Exemplo',NULL,NULL,'formulario','coletado');
+
+-- Obra de exemplo ----------------------------------------------------------
+-- FICTÍCIA, como o resto do seed. Serve para exercitar a assinatura, o
+-- markdown e a Leitura ancorada num item do radar.
+INSERT OR REPLACE INTO obra (id, slug, nucleo, formato, titulo, lead, corpo, autor,
+                             assinada, item_id, publicado_em, status) VALUES
+  ('ob-001','o-atraso-nao-esta-na-tecnologia','observatorio','analise',
+   'O atraso não está na tecnologia — está no orçamento de manutenção',
+   'Todo mês o radar registra lançamentos que só chegam ao Brasil um ano depois. A explicação fácil é preço de importação. Os números da nossa própria base apontam para outro lugar.',
+   'De março a agosto o Instituto catalogou lançamentos de controladores, sensores e plataformas de supervisão publicados fora do país. A pergunta que interessa não é quantos existem, e sim quantos foram citados por alguém que opera no Brasil — e quanto tempo passou entre uma coisa e outra.
+
+## O que a base mostra
+
+> Ninguém cita agregador. O que dá autoridade não é ter lido tudo: é ter medido alguma coisa que ninguém mediu.
+
+O padrão que aparece é consistente e desconfortável:
+
+- onde há verba recorrente de manutenção, o intervalo cai pela metade
+- onde a compra é tratada como investimento pontual, o parque envelhece até quebrar
+- e aí o critério de escolha deixa de ser técnico
+
+## Por que isso importa para quem integra
+
+Quando a decisão vira emergência, o integrador perde a conversa técnica e entra numa disputa de prazo. **O atraso que medimos não é de catálogo — é de orçamento.**
+
+Este texto é ficção de desenvolvimento e existe para exercitar a página de obra.',
+   'Pedro Oliveira', 1, NULL, '2026-08-30T13:00:00Z', 'publicado'),
+
+  ('ob-002','leitura-clp-preditivo','industria','leitura',
+   'Leitura do Instituto sobre o diagnóstico preditivo no CLP',
+   NULL,
+   'O anúncio é menos sobre o modelo rodar no controlador e mais sobre o protocolo continuar retrocompatível. Quem tem parque antigo não troca linha inteira por diagnóstico — troca quando o CLP morre.
+
+Na prática: vale pedir ao representante a lista de modelos que aceitam o firmware novo antes de considerar qualquer projeto.
+
+Texto fictício de desenvolvimento.',
+   'Núcleo Indústria', 0, 'i-001', '2026-08-30T15:30:00Z', 'publicado');

@@ -466,6 +466,88 @@ checar(
     !agenda.corpo.includes('</script></script>'),
 );
 
+/* --------------------------------------------------------- B. OBRA E FEED */
+titulo('B · Conformidade — a obra assinada e a distribuição');
+
+const obras = sql(`SELECT slug, nucleo, formato, autor, assinada, item_id FROM obra WHERE status='publicado'`);
+medidas.obrasPublicadas = obras.length;
+
+const assinadas = obras.filter((o) => o.formato !== 'leitura');
+const semAutor = assinadas.filter((o) => !o.assinada || !o.autor);
+checar(
+  'B',
+  'Análise, Caso e Panorama são SEMPRE assinados',
+  semAutor.length === 0,
+  'autoridade não transfere de marca anônima para pessoa — é o objetivo do projeto',
+);
+
+const leituras = obras.filter((o) => o.formato === 'leitura');
+checar(
+  'B',
+  'a Leitura sai como voz do núcleo, não assinada',
+  leituras.every((o) => !o.assinada),
+);
+checar(
+  'B',
+  'toda Leitura está ancorada num item do radar',
+  leituras.every((o) => Boolean(o.item_id)),
+  'Leitura solta não é leitura de nada',
+);
+
+// O radar continua sem autor — o outro lado da mesma decisão.
+const radarSemAutor = !/assinatura__autor/.test(radar);
+checar('B', 'o radar continua SEM assinatura', radarSemAutor);
+
+if (assinadas.length) {
+  const o = assinadas[0];
+  const r = await pegar(`/${o.formato}/${o.slug}`);
+  checar('B', `página da obra responde (/${o.formato}/${o.slug})`, r.status === 200, `veio ${r.status}`);
+  checar('B', 'e mostra a assinatura de quem escreveu', r.corpo.includes(o.autor));
+  checar('B', 'e declara que é texto assinado', r.corpo.includes('Texto assinado'));
+  const h1 = (r.corpo.match(/<h1[\s>]/g) ?? []).length;
+  checar('C', 'obra tem exatamente um h1 (markdown começa no h2)', h1 === 1, `tem ${h1}`);
+  checar('C', 'nenhuma tag crua sobreviveu ao markdown', !/<(script|iframe|object|embed)\b/i.test(r.corpo.replace(/<script>\(function/, '')));
+}
+
+if (leituras.length) {
+  const it = sql(`SELECT nucleo, slug FROM item WHERE id='${leituras[0].item_id}' AND slug IS NOT NULL`)[0];
+  if (it) {
+    const r = await pegar(`/${it.nucleo}/${it.slug}`);
+    checar('B', 'a Leitura aparece dentro do item que comenta', r.corpo.includes('Leitura do Instituto'));
+  }
+}
+
+/* ---- os feeds que o <head> anuncia desde a sprint 0 ---- */
+const NUCLEOS_LISTA = ['industria', 'observatorio', 'operacao', 'edificacoes'];
+for (const n of NUCLEOS_LISTA) {
+  const r = await pegar(`/feed/${n}.xml`);
+  checar('B', `/feed/${n}.xml existe (o <head> já o anunciava)`, r.status === 200, `veio ${r.status}`);
+  checar(
+    'C',
+    `/feed/${n}.xml é XML bem formado`,
+    (r.cab['content-type'] ?? '').includes('rss+xml') &&
+      r.corpo.startsWith('<?xml') &&
+      !/&(?!(amp|lt|gt|quot|apos|#\d+);)/.test(r.corpo.replace(/<\?xml[^>]*>/, '')),
+    'ampersand solto quebra o feed inteiro em qualquer leitor',
+  );
+}
+checar('B', 'feed de núcleo inexistente dá 404', (await pegar('/feed/inventado.xml')).status === 404);
+
+const mapa = await pegar('/sitemap.xml');
+checar('B', 'sitemap.xml existe', mapa.status === 200);
+const qtdUrls = (mapa.corpo.match(/<loc>/g) ?? []).length;
+medidas.sitemapUrls = qtdUrls;
+checar('B', 'sitemap traz as páginas do site', qtdUrls >= 6, `${qtdUrls} URLs`);
+checar(
+  'B',
+  'sitemap não lista evento que já passou',
+  !passados.some((e) => mapa.corpo.includes(`/agenda/${e.slug}<`)),
+  'sitemap com evento passado gasta rastreio à toa',
+);
+
+const rb = await pegar('/robots.txt');
+checar('B', 'robots.txt existe e aponta o sitemap', rb.status === 200 && rb.corpo.includes('Sitemap:'));
+
 /* --------------------------------------------------------- C. QUALIDADE */
 titulo('C · Qualidade — semântica e acessibilidade (medidas no HTML)');
 

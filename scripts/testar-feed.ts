@@ -9,6 +9,7 @@
  */
 import { lerFeed, paraISO } from '../src/coletor/feed.ts';
 import { canonicalizar, chaveAssunto, slugificar } from '../src/coletor/url.ts';
+import { renderizarObra, minutosDeLeitura } from '../src/ui/markdown.ts';
 
 let ok = 0;
 let falhou = 0;
@@ -133,6 +134,70 @@ conferir(
 );
 conferir('slug sem acento e sem cauda quebrada', slugificar('Automação é assunto sério'), 'automacao-e-assunto-serio');
 
+/* ===================================================================== */
+/* Markdown da obra — e o que ele NÃO pode deixar passar                  */
+/* ===================================================================== */
+console.log('\nMarkdown da obra');
+
+conferir(
+  'parágrafo vira <p>',
+  renderizarObra('Uma frase.'),
+  '<p>Uma frase.</p>',
+);
+conferir(
+  'título começa no h2 (o h1 é o título da obra)',
+  renderizarObra('## Seção'),
+  '<h2>Seção</h2>',
+);
+conferir(
+  'lista com marcador',
+  renderizarObra('- um\n- dois'),
+  '<ul>\n<li>um</li>\n<li>dois</li>\n</ul>',
+);
+conferir('citação', renderizarObra('> dito'), '<blockquote><p>dito</p></blockquote>');
+conferir('negrito e itálico', renderizarObra('**forte** e _leve_'), '<p><strong>forte</strong> e <em>leve</em></p>');
+conferir(
+  'link externo ganha rel e target',
+  renderizarObra('[fonte](https://exemplo.com)'),
+  '<p><a href="https://exemplo.com" rel="nofollow noopener" target="_blank">fonte</a></p>',
+);
+conferir(
+  'link interno fica sem target',
+  renderizarObra('[agenda](/agenda)'),
+  '<p><a href="/agenda">agenda</a></p>',
+);
+
+/* --- segurança: o corpo chega pelo WhatsApp, não é código de confiança --- */
+console.log('\nMarkdown — o que não pode passar');
+
+conferir(
+  'tag HTML crua é escapada',
+  renderizarObra('<script>alert(1)</script>'),
+  '<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>',
+);
+conferir(
+  'atributo com aspas não escapa do contexto',
+  renderizarObra('texto " onmouseover="x'),
+  '<p>texto &quot; onmouseover=&quot;x</p>',
+);
+conferir(
+  'javascript: não vira link',
+  renderizarObra('[clique](javascript:alert(1))'),
+  '<p>[clique](javascript:alert(1))</p>',
+);
+conferir(
+  'data: não vira link',
+  renderizarObra('[x](data:text/html,<script>alert(1)</script>)'),
+  '<p>[x](data:text/html,&lt;script&gt;alert(1)&lt;/script&gt;)</p>',
+);
+conferir(
+  'img com onerror não sobrevive',
+  renderizarObra('<img src=x onerror=alert(1)>'),
+  '<p>&lt;img src=x onerror=alert(1)&gt;</p>',
+);
+conferir('minutos de leitura', minutosDeLeitura('palavra '.repeat(400)), 2);
+
 /* --------------------------------------------------------------- resultado */
-console.log(`\n${ok} ok · ${falhou} falha(s)`);
+console.log(`
+${ok} ok · ${falhou} falha(s)`);
 if (falhou > 0) process.exit(1);
