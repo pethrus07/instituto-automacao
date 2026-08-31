@@ -44,10 +44,23 @@ primeiro deploy:
 Motivo de não deixar no Google: um terceiro no caminho crítico da página, latência extra e
 um pedido a mais que o leitor não pediu.
 
+## A cor — v2, 30/08/2026
+
+A v1 tinha papel quente e dois acentos (âmbar e azul). Trocada por decisão do dono:
+**base branca, cinzas neutros, tinta quase preta.** Os quatro núcleos ficaram **neutros** —
+distinguem-se pelo nome, não pela cor. Sobrou **um acento**, e ele é o link.
+
+A única cor com significado é a do **veredito**. Sendo quase a única da página, ela trabalha
+muito mais: num site preto e branco, um selo colorido é impossível de ignorar.
+
+Se um núcleo precisar de cor própria um dia, é uma linha em `.n-*` — e volta a ser decisão,
+não default.
+
 ## Acessibilidade — o que já está garantido
 
-- Contraste: todos os `*-ink` passam de 4.5:1 sobre `--paper` nos dois modos
-- Os quatro acentos se distinguem por **matiz**, não por saturação — funcionam para quem
+- Contraste: todos os `*-ink`, o acento e os quatro vereditos passam de 4.5:1 sobre
+  `--paper` nos dois modos — **medido pelo `npm run qa`**, não afirmado
+- Os quatro vereditos se distinguem por **matiz**, não por saturação — funcionam para quem
   não separa verde de vermelho
 - `:focus-visible` com anel de 2px em todo elemento interativo
 - `prefers-reduced-motion` respeitado
