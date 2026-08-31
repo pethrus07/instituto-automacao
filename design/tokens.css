@@ -4,21 +4,25 @@
    deve aparecer fora deste arquivo.
 
    ---------------------------------------------------------------------
-   v2 · 30/08/2026 — BASE BRANCA, registro de notícia.
+   v3 · 30/08/2026 — REGISTRO POPULAR, medido nas referências.
 
-   A v1 tinha papel quente e dois acentos (âmbar e azul) espalhados pelo
-   site inteiro. Trocada por decisão do dono: base branca, cinzas neutros,
-   tinta quase preta — o registro de site de notícia, que é o que o leitor
-   já sabe ler sem aprender nada.
+   A v2 era branco chapado, sem cartão e sem marca. A v3 vem de MEDIÇÃO,
+   não de gosto: fundo, cartão e cor de marca extraídos do CSS real das
+   referências em 30/08/2026.
 
-   O que mudou de princípio, e não só de valor:
-   - Os quatro núcleos ficaram NEUTROS. Distinguem-se pelo nome, não pela
-     cor. Cor por seção espalha significado até ele não querer dizer nada.
-   - Sobrou UM acento, e ele serve a link e a estado ativo — o uso que o
-     leitor já espera.
-   - A única cor que resta com significado é a do VEREDITO. Sendo a única,
-     ela trabalha mais: quando quase tudo é preto e branco, um selo colorido
-     é impossível de ignorar.
+     UOL        página #f2f2f2 (21x) · cartão #ffffff (35x) · marca #cb0003
+     G1         página #eeeeee       · cartão #ffffff (13x) · marca #c4170c
+     Tecnoblog                         cartão #ffffff  (9x) · marca #004ab0
+
+   A fórmula popular não é "branco liso": é PÁGINA CINZA-CLARO com CARTÃO
+   BRANCO e uma COR DE MARCA FORTE no topo. Os três elementos juntos — sem
+   um deles o site lê como blog, não como veículo.
+
+   O que continua da v2:
+   - Os quatro núcleos seguem NEUTROS. Cor por seção espalha significado
+     até ele não querer dizer nada.
+   - A cor com significado é a do VEREDITO. Agora ela contrasta contra
+     cartão branco, que é onde ela some com menos facilidade.
 
    Todos os nomes de token continuam os mesmos, então nada além deste
    arquivo precisou mudar.
@@ -85,9 +89,11 @@
   /* ---------------------------------------------------------------------
      COR — base branca, cinzas neutros
      --------------------------------------------------------------------- */
-  --paper:         #ffffff;
+  /* A PÁGINA é cinza; o CARTÃO é branco. É o que separa veículo de blog no
+     registro popular — e é a medida do UOL e do G1, não um chute. */
+  --paper:         #f1f1f2;
   --paper-raised:  #ffffff;
-  --paper-sunken:  #f4f4f5;
+  --paper-sunken:  #e6e6e8;
   --paper-invert:  #18181b;
 
   --ink:           #18181b;
@@ -99,12 +105,26 @@
   --rule-strong:   #d4d4d8;
 
   /* ---------------------------------------------------------------------
-     O ACENTO — um só, e para o que o leitor já espera: link e estado ativo.
-     Trocar aqui muda o site inteiro.
+     A MARCA — a faixa do topo e os rótulos de seção.
+
+     Toda referência popular tem uma, e forte: UOL e G1 em vermelho, Terra
+     em laranja, Tecnoblog em azul. Azul é o que cabe num instituto técnico
+     sem virar tabloide.
+
+     Trocar as três linhas abaixo muda o site inteiro.
      --------------------------------------------------------------------- */
-  --acento-ink:  #1d4ed8;
-  --acento-mark: #2563eb;
-  --acento-wash: #eff6ff;
+  --marca:       #0d47a1;
+  --marca-forte: #0a3880;
+  --marca-clara: #e8f0fb;
+  /* Texto sobre a faixa de marca. NÃO é --ink-invert: no tema escuro o
+     invertido vira preto, e o resultado seria texto preto sobre azul. */
+  --marca-texto: #ffffff;
+
+  /* hex, não alias: o QA lê tokens do CSS e não resolve var(), então alias
+     aqui deixaria o acento sem conferência de contraste nenhuma. */
+  --acento-ink:  #0d47a1;
+  --acento-mark: #0d47a1;
+  --acento-wash: var(--marca-clara);
 
   /* ---------------------------------------------------------------------
      NÚCLEOS — NEUTROS.
@@ -137,13 +157,17 @@
      selo colorido é impossível de ignorar. Era exatamente o que a v1 não
      conseguia, com quatro acentos disputando atenção.
      --------------------------------------------------------------------- */
-  --v-chega-ink:      #15803d;   --v-chega-wash:      #f0fdf4;
-  --v-caminho-ink:    #a16207;   --v-caminho-wash:    #fefce8;
+  /* Escurecidos na v3: foram calibrados contra branco e a página virou
+     cinza. O selo aparece nos dois lugares — dentro do cartão e sobre a
+     página —, então o alvo é a superfície MAIS ESCURA das duas. Token que
+     só passa numa delas é frágil. */
+  --v-chega-ink:      #146332;   --v-chega-wash:      #eefbf1;
+  --v-caminho-ink:    #7d4a0a;   --v-caminho-wash:    #fdf6e3;
   --v-nao-chega-ink:  #b91c1c;   --v-nao-chega-wash:  #fef2f2;
   --v-sem-efeito-ink: #52525b;   --v-sem-efeito-wash: #f4f4f5;
 
-  --live:          #15803d;   /* o relógio do "primeira mão" */
-  --live-wash:     #f0fdf4;
+  --live:          #146332;   /* o relógio do "primeira mão" */
+  --live-wash:     #eefbf1;
   --focus:         #2563eb;
 
   /* Acento ativo — lido por todo componente. Por padrão é o acento único;
@@ -171,7 +195,7 @@
 /* --- ESCURO por preferência do sistema (não pisa em cima do toggle) ----- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper:        #111113;
+    --paper:        #0d0d0f;
     --paper-raised: #18181b;
     --paper-sunken: #0b0b0d;
     --paper-invert: #fafafa;
@@ -184,9 +208,13 @@
     --rule:         #27272a;
     --rule-strong:  #3f3f46;
 
-    --acento-ink:  #93b4fd;
-    --acento-mark: #60a5fa;
-    --acento-wash: #172554;
+    --marca:       #1e5fd0;
+    --marca-forte: #164a9e;
+    --marca-clara: #16233d;
+    --marca-texto: #ffffff;
+    --acento-ink:  #8ab4f8;
+    --acento-mark: #8ab4f8;
+    --acento-wash: var(--marca-clara);
 
     --industria-ink:     #a1a1aa;  --industria-mark:     #52525b;  --industria-wash:     #18181b;
     --observatorio-ink:  #a1a1aa;  --observatorio-mark:  #52525b;  --observatorio-wash:  #18181b;
@@ -209,7 +237,7 @@
 
 /* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
 :root[data-theme="dark"] {
-  --paper:        #111113;
+  --paper:        #0d0d0f;
   --paper-raised: #18181b;
   --paper-sunken: #0b0b0d;
   --paper-invert: #fafafa;
@@ -222,9 +250,13 @@
   --rule:         #27272a;
   --rule-strong:  #3f3f46;
 
-  --acento-ink:  #93b4fd;
-  --acento-mark: #60a5fa;
-  --acento-wash: #172554;
+  --marca:       #1e5fd0;
+  --marca-forte: #164a9e;
+  --marca-clara: #16233d;
+  --marca-texto: #ffffff;
+  --acento-ink:  #8ab4f8;
+  --acento-mark: #8ab4f8;
+  --acento-wash: var(--marca-clara);
 
   --industria-ink:     #a1a1aa;  --industria-mark:     #52525b;  --industria-wash:     #18181b;
   --observatorio-ink:  #a1a1aa;  --observatorio-mark:  #52525b;  --observatorio-wash:  #18181b;

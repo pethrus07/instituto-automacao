@@ -62,28 +62,38 @@ export const Documento = (p: Props) => {
           Pular para o conteúdo
         </a>
 
-        <header class="wrap" style="padding-block: var(--space-m); border-bottom: var(--border-hair)">
-          <div style="display:flex; flex-wrap:wrap; gap:var(--space-m); align-items:baseline; justify-content:space-between">
+        {/* v3 · a faixa de marca no topo. Toda referência popular tem uma —
+            UOL e G1 em vermelho, Terra em laranja, Tecnoblog em azul — e é
+            ela que faz o site ler como veículo em vez de blog. */}
+        <header style="background: var(--marca); color: var(--marca-texto)">
+          <div
+            class="wrap"
+            style="display:flex; flex-wrap:wrap; gap:var(--space-m); align-items:center; justify-content:space-between; padding-block: var(--space-s)"
+          >
             <a
               href="/"
-              style="text-decoration:none; font-family:var(--face-obra); font-size:var(--step-1); font-weight:600"
+              style="text-decoration:none; color:inherit; font-family:var(--face-obra); font-size:var(--step-2); font-weight:700; letter-spacing:var(--tracking-tight)"
             >
               Instituto Automação
             </a>
-            <nav class="u-fluxo" style="display:flex; flex-wrap:wrap; gap:var(--space-s); font-size:var(--step--1)">
+            <nav
+              class="u-fluxo"
+              style="display:flex; flex-wrap:wrap; gap:var(--space-m); font-size:var(--step--1); font-weight:500"
+            >
               {ORDEM_NUCLEOS.map((n) => (
                 <a
                   href={`/${n}`}
-                  class={NUCLEOS[n].classe}
-                  style="text-decoration:none"
+                  style={
+                    p.nucleo === n
+                      ? 'color:inherit; text-decoration:none; border-bottom:2px solid currentColor; padding-block-end:2px; font-weight:700'
+                      : 'color:inherit; text-decoration:none; opacity:.85'
+                  }
                   aria-current={p.nucleo === n ? 'page' : undefined}
                 >
-                  <span style={p.nucleo === n ? 'color:var(--accent-ink); font-weight:600' : ''}>
-                    {NUCLEOS[n].nome}
-                  </span>
+                  {NUCLEOS[n].nome}
                 </a>
               ))}
-              <a href="/agenda" style="text-decoration:none">
+              <a href="/agenda" style="color:inherit; text-decoration:none; opacity:.85">
                 Agenda
               </a>
             </nav>

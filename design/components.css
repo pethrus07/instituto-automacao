@@ -130,13 +130,21 @@
    Sem caixa, sem sombra: fio embaixo e espaço. Lista longa com card
    fechado vira parede — e o radar tem que ser varrido, não lido.
    ------------------------------------------------------------------------- */
+/* v3: o item virou CARTÃO. Fio-e-espaço lê como blog; cartão branco sobre
+   página cinza lê como veículo — é a medida do UOL e do G1, e é o que
+   separa os dois registros. */
 .item {
   display: grid;
   gap: var(--space-2xs);
-  padding-block: var(--space-m);
-  border-bottom: var(--border-hair);
+  padding: var(--space-m);
+  margin-block-end: var(--space-s);
+  background: var(--paper-raised);
+  border: var(--border-hair);
+  border-radius: var(--radius-s);
   position: relative;
+  transition: border-color var(--duration) var(--ease);
 }
+.item:hover { border-color: var(--rule-strong); }
 .item__topo {
   display: flex;
   flex-wrap: wrap;
@@ -206,8 +214,11 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-s) var(--space-m);
-  padding-block: var(--space-m);
-  border-bottom: var(--border-hair);
+  padding: var(--space-m);
+  margin-block-end: var(--space-s);
+  background: var(--paper-raised);
+  border: var(--border-hair);
+  border-radius: var(--radius-s);
   position: relative;
 }
 .evento__data {
@@ -337,20 +348,25 @@
 .secao {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-s);
   padding-block-end: var(--space-2xs);
-  border-bottom: var(--border-mark);
-  margin-block-end: var(--space-s);
+  border-bottom: 2px solid var(--marca);
+  margin-block-end: var(--space-m);
 }
+/* Rótulo de seção na cor da marca, com tarja — é como todo portal marca
+   editoria, e é o que dá ritmo à página densa. */
 .secao__titulo {
   font-family: var(--face-fluxo);
   font-size: var(--step--1);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
-  color: var(--accent-ink);
+  color: var(--marca-texto);
+  background: var(--marca);
+  padding: var(--space-3xs) var(--space-2xs);
+  border-radius: var(--radius-xs);
 }
 .secao__acao { font-size: var(--step--1); color: var(--ink-muted); }
 
@@ -359,7 +375,7 @@
    ------------------------------------------------------------------------- */
 .aviso {
   border: var(--border-hair);
-  border-inline-start: var(--border-mark);
+  border-inline-start: 3px solid var(--marca);
   border-radius: 0 var(--radius-s) var(--radius-s) 0;
   background: var(--paper-raised);
   padding: var(--space-s) var(--space-m);
@@ -453,9 +469,15 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
    capa. Não é remendo: é o MESMO desenho que vira a OG image gerada, então
    uma decisão serve aos dois lugares e o layout nunca fica com buraco.
    ------------------------------------------------------------------------- */
-.destaque { display: grid; gap: var(--space-m); padding-block-end: var(--space-l); border-bottom: var(--border-mark); }
+.destaque {
+  display: grid; gap: var(--space-m);
+  padding: var(--space-m);
+  background: var(--paper-raised);
+  border: var(--border-hair);
+  border-radius: var(--radius-s);
+}
 @media (min-width: 52rem) {
-  .destaque { grid-template-columns: 1.15fr 1fr; align-items: start; gap: var(--space-xl); }
+  .destaque { grid-template-columns: 1.15fr 1fr; align-items: start; gap: var(--space-l); }
 }
 /* Sem imagem licenciada, a capa é um cartão escuro com o nome do núcleo.
    Numa página branca ele lê como imagem — e é o mesmo desenho que vira a

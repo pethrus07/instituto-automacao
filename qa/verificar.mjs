@@ -688,6 +688,15 @@ for (const [tema, t] of [['claro', claro], ['escuro', escuro]]) {
     medidas[`contraste_${tema}_${token}`] = r.toFixed(2);
     checar('C', `${tema}: ${token} ≥ ${minimo}:1 sobre o papel`, r >= minimo, `medido ${r.toFixed(2)}:1`);
   }
+
+  // A marca é SUPERFÍCIE, não texto: ela é o fundo da faixa do topo e do
+  // rótulo de seção, com texto invertido em cima. Medi-la contra o papel
+  // seria medir a coisa errada — foi o que o QA fez antes desta correção.
+  if (t['--marca'] && t['--marca-texto']) {
+    const rr = contraste(t['--marca-texto'], t['--marca']);
+    medidas[`contraste_${tema}_texto-sobre-marca`] = rr.toFixed(2);
+    checar('C', `${tema}: texto invertido sobre a faixa de marca ≥ 4.5:1`, rr >= 4.5, `medido ${rr.toFixed(2)}:1`);
+  }
 }
 
 /* ---------------------------------------------- C. tokens órfãos no CSS */
