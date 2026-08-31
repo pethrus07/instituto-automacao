@@ -128,6 +128,8 @@ O que transforma o protótipo em veículo.
 | Página de "perguntas abertas" para orientadores | junto do dataset com DOI |
 | Espanhol nas fontes | depois de EN e DE estarem estáveis |
 | Repositório público | quando estiver apresentável **e** o acordo do código estiver escrito |
+| **Marca gráfica (logotipo)** | **futuro breve.** Hoje o wordmark centralizado do cabeçalho faz o papel — é assim que jornal e revista acadêmica vivem sem símbolo. Quando entrar, o símbolo deve nascer no mesmo vocabulário das capas geradas (varredura de radar, malha de pontos), porque aí ele já vem com sistema em vez de virar um desenho solto. Serve também de favicon e de assinatura na OG image |
+| OG image rasterizada | ⚠️ não é trivial num Worker: `og:image` em SVG não é aceito pelo WhatsApp nem pelo LinkedIn, e rasterizar exige biblioteca wasm (`workers-og`). O desenho já existe — falta só o encoder |
 
 ---
 

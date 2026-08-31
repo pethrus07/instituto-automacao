@@ -26,6 +26,7 @@ import {
   listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
   listarObras, obterObra, leituraDoItem, type FormatoObra,
   placar, destaque as itemDestaque,
+  listarGlossario, inventarioFontes, listarCorrecoes, assinar, contarAssinantes,
 } from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
@@ -399,6 +400,7 @@ app.get('/agenda/:slug', async (c) => {
  * é o único gênero que não denuncia a falta.
  */
 app.get('/', async (c) => {
+  const q = c.req.query();
   const [contagens, atraso, p, destaque, eventos, obras] = await Promise.all([
     contarPorNucleo(c.env.DB),
     medirAtraso(c.env.DB),
@@ -555,6 +557,56 @@ app.get('/', async (c) => {
           </section>
         )}
 
+        {/* 6.5 · A lista.
+            Manufacturing Dive põe a chamada em três pontos fixos; Igarapé
+            fecha a home com ela. O motivo é o mesmo: o site é aluguel, a
+            lista é propriedade — é o único ativo que sobrevive a mudança de
+            domínio, de plataforma e de humor de buscador. */}
+        <section style="padding-block: var(--space-2xl)">
+          <div class="lista">
+            <p class="lista__titulo">O que saiu lá fora, em português, na sua caixa</p>
+            <p class="lista__nota">
+              Um resumo por semana com o que o setor publicou e o que muda por aqui. Sem
+              patrocínio disfarçado de matéria, e sem repassar seu e-mail a ninguém.
+            </p>
+            <form class="lista__form" method="post" action="/assinar">
+              <div aria-hidden="true" style="position:absolute; left:-9999px">
+                <label>
+                  Não preencha
+                  <input type="text" name="sitio" tabindex={-1} autocomplete="off" />
+                </label>
+              </div>
+              <label class="u-visually-hidden" for="email-lista">
+                Seu e-mail
+              </label>
+              <input
+                class="campo"
+                id="email-lista"
+                type="email"
+                name="email"
+                required
+                placeholder="seu@email.com.br"
+              />
+              <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
+                Quero receber
+              </button>
+            </form>
+            {q.assinado === '1' ? (
+              <p class="lista__rodape">
+                <strong>Anotado.</strong> O primeiro envio sai quando houver o que mandar — a
+                lista não serve para avisar que a lista existe.
+              </p>
+            ) : q.assinado === 'erro' ? (
+              <p class="lista__rodape">Esse e-mail não parece válido. Confere e tenta de novo?</p>
+            ) : (
+              <p class="lista__rodape">
+                Ainda não enviamos nada: a lista começa agora, e o primeiro envio sai quando
+                houver conteúdo que justifique.
+              </p>
+            )}
+          </div>
+        </section>
+
         {/* 7 · Como trabalhamos — a credibilidade, declarada na home */}
         <section
           id="como-trabalhamos"
@@ -566,14 +618,16 @@ app.get('/', async (c) => {
               <h3 style="font-size: var(--step-1)">Só publicamos o que a fonte autoriza</h3>
               <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
                 Tradução integral apenas de material liberado para imprensa. Do restante, resumo
-                próprio com crédito e link. A regra está no código, não na intenção.
+                próprio com crédito e link. A regra está no código, não na intenção — e o{' '}
+                <a href="/blueprints">inventário de fontes</a> mostra a autorização de cada uma.
               </p>
             </div>
             <div>
               <h3 style="font-size: var(--step-1)">Dizemos onde a IA entra</h3>
               <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
                 A tradução e a triagem são feitas por máquina, e o item avisa quando ainda não
-                passou por revisão humana. O que é juízo do Instituto vem rotulado como tal.
+                passou por revisão humana. O que é juízo do Instituto vem rotulado como tal, e o{' '}
+                <a href="/glossario">glossário</a> que trava os termos técnicos é público.
               </p>
             </div>
             <div>
@@ -588,6 +642,273 @@ app.get('/', async (c) => {
       </Documento>,
     ),
   );
+});
+
+/* ----------------------------------------------------------- glossário
+ * A infraestrutura de tradução, aberta.
+ *
+ * Ele já existia como dado — entra no prompt como dicionário obrigatório.
+ * Publicá-lo é o mesmo movimento do inventário de fontes: mostrar a régua,
+ * não só o resultado. E cresce sozinho conforme as traduções são corrigidas.
+ */
+app.get('/glossario', async (c) => {
+  const termos = await listarGlossario(c.env.DB);
+  const traduz = termos.filter((t) => !t.manter_original);
+  const mantem = termos.filter((t) => t.manter_original);
+
+  c.header('Cache-Control', CACHE.listagem);
+  return c.html(
+    pagina(
+      <Documento
+        titulo="Glossário"
+        descricao="Os termos técnicos de automação e como o Instituto os traduz — inclusive os que não se traduzem."
+        url={c.env.SITE_URL + '/glossario'}
+      >
+        <h1>Glossário</h1>
+        <div class="obra" style="margin-block-start: var(--space-m)">
+          <p class="lead">
+            Estes termos não são sugestão: entram travados no prompt de tradução. Vocabulário de
+            automação em português é traiçoeiro, e uma máquina traduzindo cru erra na primeira
+            linha — o engenheiro percebe antes do segundo parágrafo.
+          </p>
+        </div>
+
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo={`Traduções travadas · ${traduz.length}`} />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            Têm equivalente consagrado no setor, e ele é obrigatório.
+          </p>
+          {traduz.map((t) => (
+            <div class="termo">
+              <div class="termo__par">
+                <span class="termo__origem">{t.termo_origem}</span>
+                <span class="termo__seta">→</span>
+                <span class="termo__pt">{t.termo_pt}</span>
+                <span class="termo__travado">{t.idioma}</span>
+              </div>
+              {t.nota && <p class="termo__nota">{t.nota}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo={`Não se traduzem · ${mantem.length}`} />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            Ficam na língua de origem, com o significado aproximado na primeira ocorrência.
+            Inventar um equivalente em português que ninguém usa no chão de fábrica é pior que
+            manter o estrangeirismo: denuncia tradução automática e queima o texto inteiro.
+          </p>
+          {mantem.map((t) => (
+            <div class="termo">
+              <div class="termo__par">
+                <span class="termo__origem">{t.termo_origem}</span>
+                <span class="termo__seta">→</span>
+                <span class="termo__pt">mantém {t.termo_origem}</span>
+                <span class="termo__travado">{t.idioma}</span>
+              </div>
+              {t.nota && <p class="termo__nota">({t.nota})</p>}
+            </div>
+          ))}
+        </div>
+      </Documento>,
+    ),
+  );
+});
+
+/* ---------------------------------------------------------- blueprints
+ * O que o The Markup chama de Blueprints: dataset, metodologia e processo
+ * publicados como SEÇÃO, não como anexo. Anexo ninguém acha; seção tem
+ * endereço e é citada.
+ */
+app.get('/blueprints', async (c) => {
+  const [fontes, correcoes, atraso] = await Promise.all([
+    inventarioFontes(c.env.DB),
+    listarCorrecoes(c.env.DB),
+    medirAtraso(c.env.DB),
+  ]);
+  const liberadas = fontes.filter((f) => f.licenca === 'liberada');
+  const relogio = fontes.filter((f) => f.marca_relogio);
+
+  c.header('Cache-Control', CACHE.listagem);
+  return c.html(
+    pagina(
+      <Documento
+        titulo="Blueprints"
+        descricao="Nossos dados, nosso método e nossas fontes — abertos para conferência."
+        url={c.env.SITE_URL + '/blueprints'}
+      >
+        <h1>Blueprints</h1>
+        <div class="obra" style="margin-block-start: var(--space-m)">
+          <p class="lead">
+            Nossos dados, nosso método e as licenças de cada fonte. Se você quiser conferir,
+            contestar ou ampliar o que publicamos, comece por aqui.
+          </p>
+        </div>
+
+        {/* --- o inventário: a regra central exposta para conferência --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo={`As fontes e suas licenças · ${fontes.length}`} />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            <strong>Tradução integral só de fonte que autoriza.</strong> A coluna da direita traz
+            o link da página que dá essa autorização — é a nossa prova de que nada foi
+            republicado sem permissão, e não um pedido para acreditar na gente.
+          </p>
+          <div class="scroll-x">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fonte</th>
+                  <th>Origem</th>
+                  <th>O que podemos fazer</th>
+                  <th>Autorização</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fontes.map((f) => (
+                  <tr>
+                    <td>
+                      <a href={f.url_site} rel="nofollow noopener" target="_blank">
+                        {f.nome}
+                      </a>
+                      {Boolean(f.marca_relogio) && (
+                        <span class="u-faint"> · marca o relógio</span>
+                      )}
+                    </td>
+                    <td class="u-dado">
+                      {f.pais} · {f.idioma}
+                    </td>
+                    <td>
+                      <span class={`licenca licenca--${f.licenca}`}>
+                        {f.licenca === 'liberada'
+                          ? 'tradução integral'
+                          : f.licenca === 'resumo'
+                            ? 'só resumo próprio'
+                            : 'não coletamos'}
+                      </span>
+                    </td>
+                    <td>
+                      {f.licenca_evidencia ? (
+                        <a href={f.licenca_evidencia} rel="nofollow noopener" target="_blank">
+                          termos
+                        </a>
+                      ) : (
+                        <span class="u-faint">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="u-faint" style="font-size: var(--step--2); margin-block-start: var(--space-s)">
+            {liberadas.length} de {fontes.length} fontes autorizam tradução integral.{' '}
+            {relogio.length} são brasileiras e não são publicadas: existem para medir quando o
+            assunto chegou aqui.
+          </p>
+        </div>
+
+        {/* --- método --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="Como medimos o atraso" />
+          <div class="obra" style="font-size: var(--step-0)">
+            <p>
+              Cada item coletado é agrupado num <strong>assunto</strong> — a mesma notícia
+              publicada por fontes e em idiomas diferentes. O agrupamento usa título
+              normalizado, fornecedores citados em comum e uma janela de 30 dias.
+            </p>
+            <p>
+              O atraso é a diferença entre a <strong>primeira publicação em qualquer lugar</strong>{' '}
+              e a <strong>primeira menção em fonte brasileira</strong>. Só a primeira menção
+              conta.
+            </p>
+            <p>
+              <strong>Assunto que fica sem menção brasileira não é falha de coleta.</strong> É o
+              achado: é o que o setor lançou lá fora e nunca chegou aqui. Hoje temos{' '}
+              {atraso.medidos} assunto{atraso.medidos === 1 ? '' : 's'} com atraso apurado.
+            </p>
+            <p>
+              <em>Limitações declaradas:</em> o agrupamento por título erra quando duas notícias
+              diferentes usam palavras muito parecidas, e acerta menos entre idiomas distantes.
+              Fonte que bloqueia robô não entra — e duas das principais publicações técnicas do
+              setor bloqueiam.
+            </p>
+          </div>
+        </div>
+
+        {/* --- IA --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="Como usamos inteligência artificial" />
+          <div class="obra" style="font-size: var(--step-0)">
+            <p>
+              <strong>A IA decide sozinha:</strong> se um item é notícia ou ruído, em que núcleo
+              ele entra, e o resumo em português.
+            </p>
+            <p>
+              <strong>A IA escreve, e a licença manda:</strong> a tradução integral só acontece
+              quando a fonte autoriza, e essa checagem é feita no banco, não pelo modelo.
+            </p>
+            <p>
+              <strong>A IA nunca decide:</strong> se uma fonte pode ser traduzida, se um evento
+              entra na agenda, ou o que é publicado com assinatura.
+            </p>
+            <p>
+              Item traduzido que ainda não passou por olho humano vai ao ar{' '}
+              <strong>com o selo dizendo isso</strong>. O selo some quando alguém revisa.
+            </p>
+          </div>
+        </div>
+
+        {/* --- correções --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo={`Correções · ${correcoes.length}`} />
+          {correcoes.length === 0 ? (
+            <Aviso>
+              <strong>Nenhuma correção até agora.</strong> Quando houver, ela aparece aqui com
+              data e com o que mudou — e o texto original não é apagado. Registro que some não
+              é registro.
+            </Aviso>
+          ) : (
+            correcoes.map((k) => (
+              <div class="termo">
+                <p class="termo__nota">
+                  <span class="u-dado">{dataBR(k.data, false)}</span> — {k.texto}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* --- dataset --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="O dataset" />
+          <Aviso>
+            <strong>Ainda não publicado.</strong> O conjunto de dados sai com DOI e licença
+            CC-BY quando houver o primeiro trimestre de coleta — publicar uma base vazia seria a
+            única forma de estragá-la. Enquanto isso, a tabela de fontes acima já mostra o que
+            está sendo coletado e sob que autorização.
+          </Aviso>
+        </div>
+      </Documento>,
+    ),
+  );
+});
+
+/* ------------------------------------------------------------ assinar */
+app.post('/assinar', async (c) => {
+  const f = await c.req.formData();
+  const email = String(f.get('email') ?? '').trim().slice(0, 200);
+  const sitio = String(f.get('sitio') ?? '').trim();
+
+  // Robô: devolve sucesso sem gravar. Ele acha que funcionou.
+  if (sitio) return c.redirect('/?assinado=1', 303);
+
+  const valido = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+  if (!valido) return c.redirect('/?assinado=erro', 303);
+
+  await assinar(c.env.DB, email, 'capa');
+  // Sempre a mesma resposta, tenha ou não gravado: dizer "já existe"
+  // entregaria a terceiros quem está na lista.
+  return c.redirect('/?assinado=1', 303);
 });
 
 /* --------------------------------------------------------------- a obra

@@ -340,3 +340,90 @@ export async function destaque(db: D1Database, nucleo?: ChaveNucleo): Promise<It
     .bind(...(nucleo ? [nucleo] : []))
     .first<ItemRadar>();
 }
+
+
+/* ========================================================================= */
+/* Glossário, inventário de fontes e lista                                    */
+/* ========================================================================= */
+
+export type TermoPublico = {
+  termo_origem: string;
+  idioma: string;
+  termo_pt: string;
+  nota: string | null;
+  manter_original: number;
+  nucleo: string | null;
+};
+
+export async function listarGlossario(db: D1Database): Promise<TermoPublico[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT termo_origem, idioma, termo_pt, nota, manter_original, nucleo
+         FROM glossario WHERE travado = 1
+        ORDER BY manter_original, LOWER(termo_origem)`,
+    )
+    .all<TermoPublico>();
+  return results ?? [];
+}
+
+export type FonteInventario = {
+  nome: string;
+  veiculo: string | null;
+  url_site: string;
+  tipo: string;
+  idioma: string;
+  pais: string;
+  licenca: 'liberada' | 'resumo' | 'bloqueada';
+  licenca_evidencia: string | null;
+  marca_relogio: number;
+  ativo: number;
+};
+
+/**
+ * O inventário público de fontes.
+ *
+ * É o card mais valioso do Blueprints: publica o link que AUTORIZA cada
+ * tradução. A regra central do projeto — tradução integral só de fonte
+ * liberada — deixa de ser promessa e vira coisa que qualquer um confere.
+ * É a diferença entre "traduzimos com autorização" e "confie em nós".
+ */
+export async function inventarioFontes(db: D1Database): Promise<FonteInventario[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT nome, veiculo, url_site, tipo, idioma, pais, licenca,
+              licenca_evidencia, marca_relogio, ativo
+         FROM fonte ORDER BY licenca, nome`,
+    )
+    .all<FonteInventario>();
+  return results ?? [];
+}
+
+export type Correcao = { texto: string; data: string; item_slug: string | null; item_nucleo: string | null };
+
+export async function listarCorrecoes(db: D1Database): Promise<Correcao[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT c.texto, c.data, i.slug AS item_slug, i.nucleo AS item_nucleo
+         FROM correcao c LEFT JOIN item i ON i.id = c.item_id
+        ORDER BY c.data DESC LIMIT 100`,
+    )
+    .all<Correcao>();
+  return results ?? [];
+}
+
+/** Guarda o e-mail. Devolve false se já estava lá — sem dizer isso a quem enviou. */
+export async function assinar(db: D1Database, email: string, origem: string): Promise<boolean> {
+  const r = await db
+    .prepare(
+      `INSERT OR IGNORE INTO assinante (email, origem, criado_em)
+       VALUES (?1, ?2, datetime('now'))`,
+    )
+    .bind(email.toLowerCase(), origem)
+    .run();
+  return (r.meta?.changes ?? 0) > 0;
+}
+
+export async function contarAssinantes(db: D1Database): Promise<number> {
+  const l = await db.prepare(`SELECT COUNT(*) n FROM assinante`).first<{ n: number }>();
+  return l?.n ?? 0;
+}

@@ -91,6 +91,7 @@ export const Documento = (p: Props) => {
               ))}
               <a href="/agenda">Agenda</a>
               <a href="/panorama">Panorama</a>
+              <a href="/glossario" class="navbar__secundario">Glossário</a>
               <a href="/blueprints" class="navbar__secundario">Blueprints</a>
               <span class="navbar__acao">
                 <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>

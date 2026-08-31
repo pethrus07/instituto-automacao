@@ -698,6 +698,99 @@ checar(
   'sem isso o navegador escurece formulário e barra de rolagem por conta própria',
 );
 
+/* ------------------------------------- B. GLOSSÁRIO, BLUEPRINTS E LISTA */
+titulo('B · Conformidade — glossário, blueprints e lista');
+
+const glossario2 = await pegar('/glossario');
+const blue = await pegar('/blueprints');
+checar('B', '/glossario responde', glossario2.status === 200, `veio ${glossario2.status}`);
+checar('B', '/blueprints responde', blue.status === 200, `veio ${blue.status}`);
+
+const gDb = sql(
+  `SELECT SUM(CASE WHEN manter_original=0 THEN 1 ELSE 0 END) traduz,
+          SUM(CASE WHEN manter_original=1 THEN 1 ELSE 0 END) mantem
+     FROM glossario WHERE travado=1`,
+)[0];
+checar(
+  'B',
+  'o glossário publica as duas colunas com a contagem do banco',
+  glossario2.corpo.includes(`Traduções travadas · ${gDb.traduz}`) &&
+    glossario2.corpo.includes(`Não se traduzem · ${gDb.mantem}`),
+);
+
+/* ---- o inventário: a regra central exposta para conferência ---- */
+const fontesDb = sql(`SELECT COUNT(*) n FROM fonte`)[0].n;
+const linhasInv = (blue.corpo.match(/class="licenca licenca--/g) ?? []).length;
+medidas.fontesNoInventario = linhasInv;
+checar(
+  'B',
+  'o inventário publica TODAS as fontes',
+  linhasInv === fontesDb,
+  `publicou ${linhasInv}, existem ${fontesDb} — inventário incompleto é pior que inventário nenhum`,
+);
+
+const liberadasDb = sql(`SELECT COUNT(*) n FROM fonte WHERE licenca='liberada'`)[0].n;
+const liberadasPag = (blue.corpo.match(/licenca--liberada/g) ?? []).length;
+checar('B', 'as fontes liberadas aparecem como tal', liberadasPag === liberadasDb);
+checar(
+  'B',
+  'toda fonte liberada mostra o link que autoriza',
+  liberadasDb === 0 || blue.corpo.includes('>termos</a>'),
+  'sem o link, o inventário vira "confie em nós" — que é justamente o que ele existe para não ser',
+);
+checar(
+  'B',
+  'o blueprints declara onde a IA NÃO decide',
+  blue.corpo.includes('A IA nunca decide'),
+);
+checar(
+  'B',
+  'e diz que o dataset ainda não foi publicado',
+  blue.corpo.includes('Ainda não publicado'),
+  'publicar base vazia com DOI seria a única forma de estragá-la',
+);
+
+/* ---- a lista ---- */
+const antes = sql(`SELECT COUNT(*) n FROM assinante`)[0].n;
+
+async function postar(caminho, corpo) {
+  return await fetch(BASE + caminho, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: corpo,
+    redirect: 'manual',
+  });
+}
+
+const rInvalido = await postar('/assinar', 'email=nao-e-email');
+const depoisInvalido = sql(`SELECT COUNT(*) n FROM assinante`)[0].n;
+checar('B', 'e-mail inválido não entra na lista', depoisInvalido === antes, `${depoisInvalido} vs ${antes}`);
+checar('B', 'e o inválido não devolve erro cru', rInvalido.status === 303);
+
+const rRobo = await postar('/assinar', 'email=robo.qa@exemplo.com&sitio=preenchido');
+const depoisRobo = sql(`SELECT COUNT(*) n FROM assinante`)[0].n;
+checar('B', 'honeypot não grava', depoisRobo === antes);
+checar(
+  'B',
+  'e o robô recebe a MESMA resposta de quem acertou',
+  rRobo.status === 303,
+  'resposta diferente ensina o robô a contornar a armadilha',
+);
+
+const alvoQa = `qa.${Date.now()}@exemplo.com`;
+const r1 = await postar('/assinar', `email=${encodeURIComponent(alvoQa.toUpperCase())}`);
+const guardado = sql(`SELECT email FROM assinante WHERE email='${alvoQa}'`)[0];
+checar('B', 'e-mail válido entra, normalizado em minúsculas', Boolean(guardado), alvoQa);
+
+const r2 = await postar('/assinar', `email=${encodeURIComponent(alvoQa)}`);
+checar(
+  'B',
+  'reenviar o mesmo e-mail responde IGUAL',
+  r1.status === r2.status && r1.headers.get('location') === r2.headers.get('location'),
+  'resposta diferente entregaria a terceiros quem está na lista',
+);
+sql(`DELETE FROM assinante WHERE email='${alvoQa}'`);
+
 /* --------------------------------------------------------- C. QUALIDADE */
 titulo('C · Qualidade — semântica e acessibilidade (medidas no HTML)');
 
