@@ -1,6 +1,8 @@
 name = "instituto-automacao"
 main = "src/index.tsx"
 compatibility_date = "2026-08-30"
+# A SDK da Anthropic precisa das APIs de Node no runtime do Worker.
+compatibility_flags = ["nodejs_compat"]
 
 # ---------------------------------------------------------------------------
 # D1 — a base do radar, da agenda e do atraso.
@@ -36,6 +38,17 @@ fallthrough = true
 [vars]
 SITE_NOME = "Instituto Automação"
 SITE_URL = "http://localhost:8787"
+
+# Simulação: sem chave, o pipeline devolve resposta determinística e custo
+# zero. Dá para exercitar a esteira inteira — inclusive o teto — sem gastar
+# da conta do sócio. Trocar para "0" só depois de:
+#   npx wrangler secret put ANTHROPIC_API_KEY
+IA_SIMULAR = "1"
+
+# Kill-switch. Ao bater o teto no dia, o PIPELINE para; o coletor continua,
+# porque feed não guarda histórico e dia sem coletar não volta.
+TETO_DIARIO_BRL = "3.00"
+USD_BRL = "5.40"
 
 [observability]
 enabled = true

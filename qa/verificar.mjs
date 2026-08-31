@@ -125,6 +125,15 @@ console.log(`\nQA · Instituto Automação — ${BASE}`);
 /* ---------------------------------------------------------- A. FUNCIONAL */
 titulo('A · Funcional — rotas');
 
+// O caminho do item é DESCOBERTO no banco, nunca fixado no teste: o slug é
+// gerado na publicação e muda com o título. Teste que codifica dado
+// incidental quebra sozinho e mente sobre a causa.
+const publicado = sql(
+  `SELECT nucleo, slug FROM item WHERE status='publicado' AND slug IS NOT NULL LIMIT 1`,
+)[0];
+const rotaItem = publicado ? `/${publicado.nucleo}/${publicado.slug}` : null;
+if (!rotaItem) avisar('nenhum item publicado na base', 'as conferências da página de item foram puladas');
+
 const rotas = [
   ['/', 200],
   ['/industria', 200],
@@ -133,7 +142,7 @@ const rotas = [
   ['/edificacoes', 200],
   ['/agenda', 200],
   ['/saude', 200],
-  ['/industria/controladores-diagnostico-preditivo-no-clp', 200],
+  ...(rotaItem ? [[rotaItem, 200]] : []),
   ['/industria/nao-existe', 404],
   ['/nucleo-inventado', 404],
 ];
@@ -170,12 +179,13 @@ checar(
   respostas['/industria'].cab['cache-control'] === 'public, max-age=0, s-maxage=300',
   respostas['/industria'].cab['cache-control'],
 );
-checar(
-  'A',
-  'item tem s-maxage de 1 h',
-  respostas['/industria/controladores-diagnostico-preditivo-no-clp'].cab['cache-control'] ===
-    'public, max-age=0, s-maxage=3600',
-);
+if (rotaItem)
+  checar(
+    'A',
+    'item tem s-maxage de 1 h',
+    respostas[rotaItem].cab['cache-control'] === 'public, max-age=0, s-maxage=3600',
+    respostas[rotaItem].cab['cache-control'],
+  );
 checar('A', 'CSS é immutable', (css.cab['cache-control'] ?? '').includes('immutable'));
 
 /* ------------------------------------------------------------ B. BANCO */
@@ -215,6 +225,54 @@ checar('B', 'nenhum item publicado antes da fonte', relogioNeg.n === 0);
 const atrasoNeg = sql(`SELECT COUNT(*) n FROM assunto WHERE atraso_br_dias < 0`)[0];
 checar('B', 'nenhum atraso negativo', atrasoNeg.n === 0);
 
+// Mais forte que a checagem de `modo`: prova que o TEXTO integral de fonte
+// não liberada não existe na base. `modo` é intenção; `corpo` é o texto.
+const corpoIndevido = sql(
+  `SELECT COUNT(*) n FROM item i JOIN fonte f ON f.id=i.fonte_id
+    WHERE i.corpo IS NOT NULL AND f.licenca<>'liberada'`,
+)[0];
+checar(
+  'B',
+  'REGRA CENTRAL: texto integral só existe de fonte liberada',
+  corpoIndevido.n === 0,
+  `${corpoIndevido.n} item(ns) com corpo de fonte não liberada`,
+);
+
+const semContexto = sql(`SELECT COUNT(*) n FROM item WHERE status='publicado' AND (contexto_br IS NULL OR contexto_br='')`)[0];
+checar(
+  'B',
+  'todo item publicado tem o "o que isso muda aqui"',
+  semContexto.n === 0,
+  'é a camada que separa autoridade de tradução automática em massa',
+);
+
+const semRelogio = sql(`SELECT COUNT(*) n FROM item WHERE status='publicado' AND minutos_apos_fonte IS NULL`)[0];
+checar('B', 'todo item publicado tem o relógio calculado', semRelogio.n === 0);
+
+const arquivadoSemMotivo = sql(`SELECT COUNT(*) n FROM item WHERE status='arquivado' AND (motivo_arquivo IS NULL OR motivo_arquivo='')`)[0];
+checar('B', 'todo item arquivado registra o motivo', arquivadoSemMotivo.n === 0);
+
+const publicadoSemAlta = sql(
+  `SELECT COUNT(*) n FROM item i JOIN fonte f ON f.id=i.fonte_id
+    WHERE i.status='publicado' AND i.revisado_humano=0
+      AND NOT (f.licenca='liberada' AND f.confianca='alta')`,
+)[0];
+checar(
+  'B',
+  'publicação automática só de fonte liberada E confiável',
+  publicadoSemAlta.n === 0,
+  `${publicadoSemAlta.n} item(ns) no ar sem revisão vindos de fonte que não permite`,
+);
+
+const custo = sql(`SELECT COALESCE(SUM(brl),0) brl, COUNT(*) dias FROM custo_dia`)[0];
+medidas.custoAcumuladoBRL = Number(custo.brl).toFixed(4);
+checar(
+  'B',
+  'contabilidade de custo existe e é coerente',
+  Number(custo.brl) >= 0,
+  `R$ ${custo.brl} em ${custo.dias} dia(s)`,
+);
+
 const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf%' AND name NOT LIKE 'd1_%'`).map((r) => r.name).sort();
 const esperadas = ['assinante','assunto','correcao','custo_dia','evento','fonte','glossario','item','obra'];
 checar('B', 'as 9 tabelas do modelo existem', JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
@@ -232,7 +290,7 @@ checar('B', 'o "o que isso muda aqui" tem marcação própria', /item__contexto/
 checar('B', 'item traduzido sem revisão mostra o selo', /selo--pendente/.test(radar));
 checar('B', 'toda fonte é creditada com link', /item__fonte/.test(radar));
 
-const paginaItem = respostas['/industria/controladores-diagnostico-preditivo-no-clp'].corpo;
+const paginaItem = rotaItem ? respostas[rotaItem].corpo : '';
 checar('B', 'item explica como foi produzido', paginaItem.includes('Como este item foi produzido'));
 // Analisa a âncora inteira: a ordem dos atributos não pode influenciar o
 // resultado. A versão anterior deste teste exigia noopener DEPOIS de target
@@ -252,7 +310,9 @@ checar(
 /* --------------------------------------------------------- C. QUALIDADE */
 titulo('C · Qualidade — semântica e acessibilidade (medidas no HTML)');
 
-for (const [caminho, html] of [['/', respostas['/'].corpo], ['/industria', radar], ['/industria/…', paginaItem]]) {
+const paginas = [['/', respostas['/'].corpo], ['/industria', radar]];
+if (rotaItem) paginas.push([rotaItem, paginaItem]);
+for (const [caminho, html] of paginas) {
   const h1 = (html.match(/<h1[\s>]/g) ?? []).length;
   checar('C', `${caminho} tem exatamente um h1`, h1 === 1, `tem ${h1}`);
 }

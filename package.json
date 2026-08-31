@@ -16,6 +16,7 @@
     "qa": "node qa/verificar.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "hono": "^4.9.0"
   },
   "devDependencies": {

@@ -13,6 +13,7 @@ import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
 import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
 import { listarRadar, obterItem, contarPorNucleo, medirAtraso } from './db';
 import { coletar } from './coletor';
+import { processar } from './pipeline';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -304,15 +305,34 @@ export default {
    */
   async scheduled(_evento: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(
-      coletar(env)
-        .then((r) => {
+      (async () => {
+        // Coletor primeiro, pipeline depois — e o pipeline nunca pode
+        // impedir a coleta: feed não guarda histórico, e dia sem coletar
+        // não volta. Se o teto de custo estourar, a base continua crescendo.
+        try {
+          const c = await coletar(env);
           console.log(
-            `[coletor] ${r.fontes} fontes · ${r.novos} novos · ${r.repetidos} repetidos · ` +
-              `${r.ignorados} ignorados · ${r.erros.length} erros · ${r.ms}ms`,
+            `[coletor] ${c.fontes} fontes · ${c.novos} novos · ${c.repetidos} repetidos · ` +
+              `${c.ignorados} ignorados · ${c.erros.length} erros · ${c.ms}ms`,
           );
-          for (const e of r.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
-        })
-        .catch((e) => console.error('[coletor] falhou inteiro:', e)),
+          for (const e of c.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
+        } catch (e) {
+          console.error('[coletor] falhou inteiro:', e);
+        }
+
+        try {
+          const p = await processar(env);
+          console.log(
+            `[pipeline] ${p.processados} processados · ${p.publicados} publicados · ` +
+              `${p.aguardando} na fila · ${p.arquivados} arquivados · ` +
+              `R$ ${p.custo_brl.toFixed(4)} no dia${p.simulado ? ' · SIMULADO' : ''}` +
+              `${p.pausado_por_teto ? ' · PAUSADO PELO TETO' : ''} · ${p.ms}ms`,
+          );
+          for (const e of p.erros) console.warn(`[pipeline] ${e.item}: ${e.erro}`);
+        } catch (e) {
+          console.error('[pipeline] falhou inteiro:', e);
+        }
+      })(),
     );
   },
 } satisfies ExportedHandler<Env>;

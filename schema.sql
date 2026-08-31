@@ -106,6 +106,7 @@ CREATE TABLE item (
   publicado_fonte    TEXT NOT NULL,
   coletado_em        TEXT NOT NULL DEFAULT (datetime('now')),
   publicado_em       TEXT,
+  traduzido_em       TEXT,
   -- o relógio: é conteúdo, não metadado
   minutos_apos_fonte INTEGER,
 

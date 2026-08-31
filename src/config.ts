@@ -7,6 +7,15 @@ export type Env = {
   DB: D1Database;
   SITE_NOME: string;
   SITE_URL: string;
+
+  /** Segredo (`wrangler secret put`). Ausente = pipeline roda em simulação. */
+  ANTHROPIC_API_KEY?: string;
+  /** '1' força simulação mesmo com chave presente. */
+  IA_SIMULAR?: string;
+  /** Teto de gasto por dia, em reais. Ao bater, o pipeline para. */
+  TETO_DIARIO_BRL?: string;
+  /** Cotação usada para converter o custo da API. Estimativa declarada. */
+  USD_BRL?: string;
 };
 
 export type ChaveNucleo = 'industria' | 'observatorio' | 'operacao' | 'edificacoes';
