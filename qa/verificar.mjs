@@ -754,6 +754,14 @@ for (const [tema, t] of [['claro', claro], ['escuro', escuro]]) {
   // A marca é SUPERFÍCIE, não texto: ela é o fundo da faixa do topo e do
   // rótulo de seção, com texto invertido em cima. Medi-la contra o papel
   // seria medir a coisa errada — foi o que o QA fez antes desta correção.
+  // O botão de ação é preenchimento sólido com texto em cima: o alvo é o
+  // texto SOBRE o laranja, não o laranja sobre o papel.
+  if (t['--acao'] && t['--acao-texto']) {
+    const ra = contraste(t['--acao-texto'], t['--acao']);
+    medidas[`contraste_${tema}_texto-sobre-acao`] = ra.toFixed(2);
+    checar('C', `${tema}: texto sobre o botão de ação ≥ 4.5:1`, ra >= 4.5, `medido ${ra.toFixed(2)}:1`);
+  }
+
   if (t['--marca'] && t['--marca-texto']) {
     const rr = contraste(t['--marca-texto'], t['--marca']);
     medidas[`contraste_${tema}_texto-sobre-marca`] = rr.toFixed(2);

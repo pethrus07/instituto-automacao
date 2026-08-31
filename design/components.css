@@ -524,3 +524,79 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
   margin-block-start: var(--space-2xs);
   max-width: 24ch;
 }
+
+
+/* =========================================================================
+   CABEÇALHO INSTITUCIONAL
+
+   Duas cores, dois trabalhos: azul é a instituição, laranja é a ação. O fio
+   fino laranja no topo e o fio azul embaixo emolduram o bloco — é um recurso
+   velho de jornal impresso, e funciona porque dá começo e fim ao cabeçalho
+   sem precisar de caixa nem de sombra.
+   ========================================================================= */
+.cabecalho { background: var(--paper); border-block-start: 3px solid var(--acao); }
+.cabecalho__fio { block-size: 3px; background: var(--marca); }
+
+.cabecalho__topo {
+  display: flex; flex-wrap: wrap; gap: var(--space-m);
+  align-items: flex-end; justify-content: space-between;
+  padding-block: var(--space-m) var(--space-s);
+}
+
+.marca-nome {
+  display: grid; gap: var(--space-3xs);
+  text-decoration: none; color: inherit;
+}
+.marca-nome__texto {
+  font-family: var(--face-obra);
+  font-size: var(--step-3);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.02;
+  color: var(--marca);
+}
+.marca-nome__linha {
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-kicker);
+  color: var(--ink-faint);
+}
+
+/* O botão é o único lugar do cabeçalho onde há preenchimento sólido — e
+   por isso é para onde o olho vai. Laranja = ação, e há uma ação só. */
+.botao-acao {
+  display: inline-flex; align-items: center; gap: var(--space-2xs);
+  background: var(--acao);
+  color: var(--acao-texto);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius-s);
+  text-decoration: none;
+  transition: background-color var(--duration) var(--ease);
+}
+.botao-acao:hover { background: var(--acao-forte); color: var(--acao-texto); }
+
+.cabecalho__nav {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block-end: var(--space-s);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+}
+.cabecalho__nav a {
+  text-decoration: none;
+  color: var(--ink-muted);
+  padding-block-end: var(--space-3xs);
+  border-bottom: 2px solid transparent;
+  transition: color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.cabecalho__nav a:hover { color: var(--marca); border-bottom-color: var(--rule-strong); }
+.cabecalho__nav a[aria-current] {
+  color: var(--marca);
+  font-weight: var(--weight-bold);
+  border-bottom-color: var(--marca);
+}
+.cabecalho__sep { color: var(--rule-strong); user-select: none; }

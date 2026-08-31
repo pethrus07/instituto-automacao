@@ -121,6 +121,22 @@
      invertido vira preto, e o resultado seria texto preto sobre azul. */
   --marca-texto: #ffffff;
 
+  /* ---------------------------------------------------------------------
+     A AÇÃO — o laranja.
+
+     Duas cores só funcionam juntas se cada uma tiver um trabalho. Aqui:
+       azul    = a INSTITUIÇÃO (nome, link, estado ativo, rótulo de seção)
+       laranja = a AÇÃO        (o botão do cabeçalho, o fio de topo)
+
+     Espalhar as duas por decoração foi o erro da v1. Com papel definido,
+     o leitor aprende o código em três segundos e nunca mais erra onde
+     clicar.
+     --------------------------------------------------------------------- */
+  --acao:        #c2410c;
+  --acao-forte:  #9a3412;
+  --acao-clara:  #fff3ec;
+  --acao-texto:  #ffffff;
+
   /* hex, não alias: o QA lê tokens do CSS e não resolve var(), então alias
      aqui deixaria o acento sem conferência de contraste nenhuma. */
   --acento-ink:  #0d47a1;
@@ -224,6 +240,16 @@
   --marca-forte: #164a9e;
   --marca-clara: #16233d;
   --marca-texto: #ffffff;
+
+  /* No escuro o laranja CLAREIA e o texto do botão ESCURECE. Parece
+     contraintuitivo até lembrar que o botão é preenchimento sólido: sobre
+     fundo escuro, laranja vivo com texto quase preto lê muito melhor que
+     laranja escuro com texto branco. O token de texto existe justamente
+     para o par poder inverter junto. */
+  --acao:        #f97316;
+  --acao-forte:  #fb8b3c;
+  --acao-clara:  #2a1509;
+  --acao-texto:  #1a0f06;
   --acento-ink:  #8ab4f8;
   --acento-mark: #8ab4f8;
   --acento-wash: var(--marca-clara);

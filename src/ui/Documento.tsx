@@ -62,54 +62,38 @@ export const Documento = (p: Props) => {
           Pular para o conteúdo
         </a>
 
-        {/* v4 · cabeçalho institucional: nome, fio da marca, navegação.
-            A tarja sólida do topo saiu — instituição se apresenta com nome e
-            fio, não com faixa de portal. */}
-        <header style="border-bottom: 3px solid var(--marca); background: var(--paper)">
-          <div class="wrap" style="padding-block: var(--space-m) var(--space-s)">
-            <div style="display:flex; flex-wrap:wrap; gap:var(--space-m); align-items:baseline; justify-content:space-between">
-              <a href="/" style="text-decoration:none; color:inherit">
-                <span style="display:block; font-family:var(--face-obra); font-size:var(--step-3); font-weight:700; letter-spacing:var(--tracking-tight); line-height:1.05">
-                  Instituto Automação
-                </span>
-                <span
-                  class="u-fluxo"
-                  style="display:block; font-size:var(--step--2); text-transform:uppercase; letter-spacing:var(--tracking-kicker); color:var(--ink-faint); margin-block-start:var(--space-3xs)"
-                >
-                  Radar · Agenda · Panorama do setor
-                </span>
+        {/*
+          Cabeçalho institucional. Duas cores com trabalho definido:
+          azul é a instituição — nome, estado ativo, link;
+          laranja é a ação — o fio de topo e o único botão.
+
+          Os dois fios emoldurando o bloco são recurso de jornal impresso:
+          dão começo e fim ao cabeçalho sem caixa e sem sombra.
+        */}
+        <header class="cabecalho">
+          <div class="wrap">
+            <div class="cabecalho__topo">
+              <a href="/" class="marca-nome">
+                <span class="marca-nome__texto">Instituto Automação</span>
+                <span class="marca-nome__linha">Radar · Agenda · Panorama do setor</span>
               </a>
-              <a
-                href="/agenda"
-                class="u-fluxo"
-                style="font-size:var(--step--1); text-decoration:none; border:1px solid var(--marca); color:var(--marca); padding:var(--space-3xs) var(--space-xs); border-radius:var(--radius-s)"
-              >
-                Enviar um evento
-              </a>
+              <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
             </div>
 
-            <nav
-              class="u-fluxo"
-              style="display:flex; flex-wrap:wrap; gap:var(--space-m); font-size:var(--step--1); margin-block-start:var(--space-m)"
-            >
+            <nav class="cabecalho__nav" aria-label="Seções">
               {ORDEM_NUCLEOS.map((n) => (
-                <a
-                  href={`/${n}`}
-                  style={
-                    p.nucleo === n
-                      ? 'text-decoration:none; color:var(--marca); font-weight:700; border-bottom:2px solid var(--marca); padding-block-end:var(--space-3xs)'
-                      : 'text-decoration:none; color:var(--ink-muted); padding-block-end:var(--space-3xs)'
-                  }
-                  aria-current={p.nucleo === n ? 'page' : undefined}
-                >
+                <a href={`/${n}`} aria-current={p.nucleo === n ? 'page' : undefined}>
                   {NUCLEOS[n].nome}
                 </a>
               ))}
-              <span style="color:var(--rule-strong)">|</span>
-              <a href="/agenda" style="text-decoration:none; color:var(--ink-muted)">Agenda</a>
-              <a href="/panorama" style="text-decoration:none; color:var(--ink-muted)">Panorama</a>
+              <span class="cabecalho__sep" aria-hidden="true">
+                ·
+              </span>
+              <a href="/agenda">Agenda</a>
+              <a href="/panorama">Panorama</a>
             </nav>
           </div>
+          <div class="cabecalho__fio"></div>
         </header>
 
         <main id="conteudo" class="wrap" style="padding-block: var(--space-xl)">
