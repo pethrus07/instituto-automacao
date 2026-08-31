@@ -634,6 +634,69 @@ checar(
 const rb = await pegar('/robots.txt');
 checar('B', 'robots.txt existe e aponta o sitemap', rb.status === 200 && rb.corpo.includes('Sitemap:'));
 
+const tokensCss = readFileSync(join(RAIZ, 'design', 'tokens.css'), 'utf8');
+
+/* --------------------------------------------- B. PORTUGUÊS E TEMA */
+titulo('B · Conformidade — o texto e o tema');
+
+/**
+ * Português sem acento.
+ *
+ * Nasceu de um defeito real: o conteúdo da capa foi escrito em ASCII num
+ * script de edição, para fugir de problema de codificação, e foi para a
+ * tela assim — "automacao", "portugues", "ninguem". Nenhum teste pegava,
+ * e é a primeira coisa que o leitor vê.
+ */
+const SEM_ACENTO = [
+  'automacao', 'portugues', 'nucleo', 'nucleos', 'traducao', 'associacoes',
+  'ninguem', 'publicacoes', 'agregacao', 'analise', 'juizo', 'revisao',
+  'informacao', 'proprio', 'credito', 'codigo', 'intencao', 'numeros',
+  'calendario', 'media', 'ate hoje', 'fabrica', 'chao', 'genero', 'noticia',
+  'secao', 'conteudo', 'unico',
+];
+for (const [caminho, html] of [['/', respostas['/'].corpo], ['/industria', radar]]) {
+  // Compara em minúsculas e só no texto visível, fora de tag e de atributo.
+  const texto = html
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .toLowerCase();
+  const achados = SEM_ACENTO.filter((w) => new RegExp(`(^|[^a-zà-ú])${w}([^a-zà-ú]|$)`).test(texto));
+  checar(
+    'B',
+    `${caminho} não tem português sem acento`,
+    achados.length === 0,
+    achados.join(', '),
+  );
+}
+
+/**
+ * O tema.
+ *
+ * O site seguia `prefers-color-scheme` e escurecia sozinho — três rodadas
+ * de ajuste na paleta clara passaram sem que ninguém visse, porque a tela
+ * estava em modo escuro. Portal institucional não auto-escurece.
+ */
+// Procura a REGRA, não a palavra: o comentário do arquivo explica por que a
+// media query saiu, e citar o nome dela não pode reprovar o teste.
+checar(
+  'B',
+  'o tema NÃO segue a preferência do sistema',
+  !/@media[^{]*prefers-color-scheme/.test(tokensCss),
+  'claro é o site; escuro é cortesia para quem pede no botão',
+);
+checar(
+  'B',
+  'o escuro só existe sob [data-theme="dark"]',
+  tokensCss.includes(':root[data-theme="dark"]'),
+);
+checar(
+  'C',
+  'a raiz declara color-scheme: light',
+  /:root\s*\{[\s\S]{0,200}color-scheme:\s*light\s*;/.test(tokensCss),
+  'sem isso o navegador escurece formulário e barra de rolagem por conta própria',
+);
+
 /* --------------------------------------------------------- C. QUALIDADE */
 titulo('C · Qualidade — semântica e acessibilidade (medidas no HTML)');
 
@@ -658,7 +721,6 @@ checar('C', 'nenhum recurso JS externo', !/<script[^>]+src=/.test(radar));
 /* ------------------------------------------------------ C. contraste real */
 titulo('C · Qualidade — contraste WCAG, calculado dos tokens');
 
-const tokensCss = readFileSync(join(RAIZ, 'design', 'tokens.css'), 'utf8');
 const claro = tokensDo(tokensCss, ':root {');
 const escuro = tokensDo(tokensCss, ':root[data-theme="dark"]');
 

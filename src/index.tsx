@@ -389,13 +389,13 @@ app.get('/agenda/:slug', async (c) => {
 });
 
 /* -------------------------------------------------------------------- capa
- * PORTAL INSTITUCIONAL, nao portal de noticia.
+ * PORTAL INSTITUCIONAL, não portal de notícia.
  *
- * A diferenca nao e de estilo, e de genero: a home diz o que a instituicao
- * E e o que ela FAZ; a noticia e uma secao dentro disso. E ha um motivo
- * pratico para o momento — portal institucional envelhece bem com pouco
- * conteudo, portal de noticia parece abandonado. Com o radar ainda vazio,
- * e o unico genero que nao denuncia a falta.
+ * A diferença não é de estilo, é de gênero: a home diz o que a instituição
+ * É e o que ela FAZ; a notícia é uma seção dentro disso. E há um motivo
+ * prático para o momento — portal institucional envelhece bem com pouco
+ * conteúdo, portal de notícia parece abandonado. Com o radar ainda vazio,
+ * é o único gênero que não denuncia a falta.
  */
 app.get('/', async (c) => {
   const [contagens, atraso, p, destaque, eventos, obras] = await Promise.all([
@@ -413,34 +413,34 @@ app.get('/', async (c) => {
   return c.html(
     pagina(
       <Documento
-        titulo="Instituto Automacao"
-        descricao="O Instituto Automacao acompanha o que o setor publica no mundo e traduz para o portugues no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
+        titulo="Instituto Automação"
+        descricao="O Instituto Automação acompanha o que o setor publica no mundo e traduz para o português no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
         url={c.env.SITE_URL + '/'}
       >
-        {/* 1 · Quem somos. Uma instituicao abre se apresentando. */}
+        {/* 1 · Quem somos. Uma instituição abre se apresentando. */}
         <section style="padding-block: var(--space-xl) var(--space-2xl); border-bottom: var(--border-hair)">
           <h1 style="max-width: 22ch; font-size: var(--step-5); line-height: 1.04">
-            O setor de automacao, em portugues, no mesmo dia
+            O setor de automação, em português, no mesmo dia
           </h1>
           <div class="obra" style="margin-block-start: var(--space-l)">
             <p class="lead">
-              O Instituto Automacao acompanha o que fabricantes, associacoes e imprensa tecnica
-              publicam no mundo, traduz para o portugues no dia em que sai e explica o que cada
-              coisa muda para quem trabalha com automacao no Brasil.
+              O Instituto Automação acompanha o que fabricantes, associações e imprensa técnica
+              publicam no mundo, traduz para o português no dia em que sai e explica o que cada
+              coisa muda para quem trabalha com automação no Brasil.
             </p>
             <p>
-              E mede uma coisa que ninguem mede:{' '}
+              E mede uma coisa que ninguém mede:{' '}
               <strong>
-                quanto tempo a automacao leva para sair da fronteira la fora e chegar ao chao de
-                fabrica daqui.
+                quanto tempo a automação leva para sair da fronteira lá fora e chegar ao chão de
+                fábrica daqui.
               </strong>
             </p>
           </div>
         </section>
 
-        {/* 2 · O que fazemos: os nucleos como estrutura, nao como feed */}
+        {/* 2 · O que fazemos: os núcleos como estrutura, não como feed */}
         <section style="padding-block: var(--space-2xl)">
-          <Secao titulo="Os nucleos" />
+          <Secao titulo="Os núcleos" />
           <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))">
             {ORDEM_NUCLEOS.map((chave) => {
               const n = NUCLEOS[chave];
@@ -468,30 +468,30 @@ app.get('/', async (c) => {
         <section style="padding-block: var(--space-2xl); border-block: var(--border-hair)">
           <Secao titulo="O que medimos" />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            Todo item que passa pelo radar entra numa base propria. E dela que sai o Panorama —
-            e e ela que responde a pergunta acima.
+            Todo item que passa pelo radar entra numa base própria. É dela que sai o Panorama —
+            e é ela que responde à pergunta acima.
           </p>
           <div class="numeros">
             <Numero
               valor={atraso.media_dias ?? '—'}
-              rotulo="dias, em media, ate um assunto chegar ao Brasil"
+              rotulo="dias, em média, até um assunto chegar ao Brasil"
             />
             <Numero
               valor={p.nao_chega}
-              rotulo="itens que nao chegaram aqui"
+              rotulo="itens que não chegaram aqui"
               href="/industria?v=nao_chega"
             />
-            <Numero valor={totalItens} rotulo="itens traduzidos e publicados ate hoje" />
+            <Numero valor={totalItens} rotulo="itens traduzidos e publicados até hoje" />
           </div>
           {atraso.medidos === 0 && (
             <p class="u-faint" style="font-size: var(--step--1); margin-block-start: var(--space-s)">
-              O atraso nao se estima: mede-se, coletando todo dia. Os numeros crescem sozinhos
+              O atraso não se estima: mede-se, coletando todo dia. Os números crescem sozinhos
               conforme a base se forma.
             </p>
           )}
         </section>
 
-        {/* 4 · A noticia. Secao, nao a home inteira. */}
+        {/* 4 · A notícia. Seção, não a home inteira. */}
         {destaque && (
           <section style="padding-block: var(--space-2xl)">
             <Secao titulo="Do radar" acao={{ texto: 'ver tudo', href: '/industria' }} />
@@ -502,7 +502,7 @@ app.get('/', async (c) => {
         {/* 5 · Obra assinada */}
         {obras.length > 0 && (
           <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
-            <Secao titulo="Publicacoes" acao={{ texto: 'panorama', href: '/panorama' }} />
+            <Secao titulo="Publicações" acao={{ texto: 'panorama', href: '/panorama' }} />
             {obras.map((o) => (
               <ObraNaLista obra={o} />
             ))}
@@ -512,7 +512,7 @@ app.get('/', async (c) => {
         {/* 6 · Agenda */}
         {eventos.length > 0 && (
           <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
-            <Secao titulo="Agenda" acao={{ texto: 'calendario completo', href: '/agenda' }} />
+            <Secao titulo="Agenda" acao={{ texto: 'calendário completo', href: '/agenda' }} />
             {eventos.map((e) => (
               <EventoNaAgenda evento={e} />
             ))}
@@ -524,24 +524,24 @@ app.get('/', async (c) => {
           <Secao titulo="Como trabalhamos" />
           <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))">
             <div>
-              <h3 style="font-size: var(--step-1)">So publicamos o que a fonte autoriza</h3>
+              <h3 style="font-size: var(--step-1)">Só publicamos o que a fonte autoriza</h3>
               <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                Traducao integral apenas de material liberado para imprensa. Do restante, resumo
-                proprio com credito e link. A regra esta no codigo, nao na intencao.
+                Tradução integral apenas de material liberado para imprensa. Do restante, resumo
+                próprio com crédito e link. A regra está no código, não na intenção.
               </p>
             </div>
             <div>
               <h3 style="font-size: var(--step-1)">Dizemos onde a IA entra</h3>
               <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                A traducao e a triagem sao feitas por maquina, e o item avisa quando ainda nao
-                passou por revisao humana. O que e juizo do Instituto vem rotulado como tal.
+                A tradução e a triagem são feitas por máquina, e o item avisa quando ainda não
+                passou por revisão humana. O que é juízo do Instituto vem rotulado como tal.
               </p>
             </div>
             <div>
-              <h3 style="font-size: var(--step-1)">O radar e a agenda nao tem autor</h3>
+              <h3 style="font-size: var(--step-1)">O radar e a agenda não têm autor</h3>
               <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                Sao agregacao. Analise, Caso e Panorama sao assinados — e a responsabilidade
-                pelo que esta escrito ali e de quem assina.
+                São agregação. Análise, Caso e Panorama são assinados — e a responsabilidade
+                pelo que está escrito ali é de quem assina.
               </p>
             </div>
           </div>

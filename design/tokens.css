@@ -30,7 +30,7 @@
    ========================================================================= */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* ---------------------------------------------------------------------
      TIPOGRAFIA — inalterada
@@ -193,51 +193,20 @@
   --duration: 160ms;
 }
 
-/* --- ESCURO por preferência do sistema (não pisa em cima do toggle) ----- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper:        #0d0d0f;
-    --paper-raised: #18181b;
-    --paper-sunken: #0b0b0d;
-    --paper-invert: #fafafa;
+/* -------------------------------------------------------------------------
+   NÃO existe mais bloco de `prefers-color-scheme`.
 
-    --ink:          #fafafa;
-    --ink-muted:    #a1a1aa;
-    --ink-faint:    #71717a;
-    --ink-invert:   #111113;
+   O site seguia a preferência do sistema e escurecia sozinho — e foi assim
+   que três rodadas de ajuste na paleta clara passaram sem que o dono visse
+   nenhuma delas: a tela dele estava em modo escuro o tempo todo.
 
-    --rule:         #27272a;
-    --rule-strong:  #3f3f46;
-
-    --marca:       #1e5fd0;
-    --marca-forte: #164a9e;
-    --marca-clara: #16233d;
-    --marca-texto: #ffffff;
-    --acento-ink:  #8ab4f8;
-    --acento-mark: #8ab4f8;
-    --acento-wash: var(--marca-clara);
-
-    --industria-ink:     #a1a1aa;  --industria-mark:     #52525b;  --industria-wash:     #18181b;
-    --observatorio-ink:  #a1a1aa;  --observatorio-mark:  #52525b;  --observatorio-wash:  #18181b;
-    --operacao-ink:      #a1a1aa;  --operacao-mark:      #52525b;  --operacao-wash:      #18181b;
-    --edificacoes-ink:   #a1a1aa;  --edificacoes-mark:   #52525b;  --edificacoes-wash:   #18181b;
-
-    --v-chega-ink:      #4ade80;   --v-chega-wash:      #0d2018;
-    --v-caminho-ink:    #eab308;   --v-caminho-wash:    #221c07;
-    --v-nao-chega-ink:  #f87171;   --v-nao-chega-wash:  #2a1212;
-    --v-sem-efeito-ink: #a1a1aa;   --v-sem-efeito-wash: #18181b;
-
-    --live:        #4ade80;
-    --live-wash:   #0d2018;
-    --focus:       #93b4fd;
-
-    --border-mark: 2px solid var(--ink);
-    --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.35);
-  }
-}
+   Portal institucional não auto-escurece. O claro é o site; o escuro é uma
+   cortesia para quem pede no botão, e só então.
+   ------------------------------------------------------------------------- */
 
 /* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --paper:        #0d0d0f;
   --paper-raised: #18181b;
   --paper-sunken: #0b0b0d;
