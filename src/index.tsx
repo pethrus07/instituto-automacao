@@ -12,6 +12,7 @@ import { ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR } from './ui/
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
 import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
 import { listarRadar, obterItem, contarPorNucleo, medirAtraso } from './db';
+import { coletar } from './coletor';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -292,18 +293,26 @@ export default {
   fetch: app.fetch,
 
   /**
-   * O coletor entra aqui no bloco 2.
+   * O cron.
    *
-   * ⚠️ Quando entrar: TODO trabalho assíncrono precisa passar por
-   * ctx.waitUntil. Promessa não esperada é CANCELADA quando a resposta sai —
-   * e o miniflare local deixa terminar, então esse defeito só aparece em
-   * produção. Já derrubou outro Worker desta casa.
+   * ⚠️ TODO trabalho assíncrono passa por ctx.waitUntil. Promessa não
+   * esperada é CANCELADA quando a resposta sai — e o miniflare local deixa
+   * terminar, então esse defeito só aparece em produção. Já derrubou outro
+   * Worker desta casa.
+   *
+   * Testar local:  npm run dev  →  curl "localhost:8787/cdn-cgi/handler/scheduled"
    */
-  async scheduled(_evento: ScheduledController, _env: Env, ctx: ExecutionContext) {
+  async scheduled(_evento: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(
-      (async () => {
-        console.log('[cron] coletor entra no bloco 2 do P0');
-      })(),
+      coletar(env)
+        .then((r) => {
+          console.log(
+            `[coletor] ${r.fontes} fontes · ${r.novos} novos · ${r.repetidos} repetidos · ` +
+              `${r.ignorados} ignorados · ${r.erros.length} erros · ${r.ms}ms`,
+          );
+          for (const e of r.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
+        })
+        .catch((e) => console.error('[coletor] falhou inteiro:', e)),
     );
   },
 } satisfies ExportedHandler<Env>;

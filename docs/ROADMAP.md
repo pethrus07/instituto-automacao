@@ -1,7 +1,29 @@
 # Instituto Automação — Roadmap
 
-> Marco atual: **P0 · protótipo mínimo funcional em 15 dias → 14/09/2026.**
+> Marco atual: **P0 · protótipo mínimo funcional → 14/09/2026.**
 > Compromisso contratado: máquina rodando até **31/12/2026** (acordo interno).
+
+## Sprints
+
+Sprints de uma semana. **São 7 até o site público**, mais uma em dezembro para o Panorama.
+Entre a 7 e a 8 não há construção: são ~6 semanas de **operação**, e é ela que faz a base do
+Panorama existir. Essa parte não acelera.
+
+| Sprint | Semana | Entrega | Marco |
+|---|---|---|---|
+| **0** ✅ | 30/08 | conceito · sistema de design · planning · Worker + schema + rotas · **coletor** | feito |
+| **1** | 31/08 – 06/09 | fontes reais classificadas · raspagem de quem não tem feed · robustez do coletor | |
+| **2** | 07/09 – 13/09 | pipeline de IA · teto de custo · atraso apurado · página com conteúdo real | 🎯 **P0 · 14/09** |
+| **3** | 14/09 – 20/09 | agenda nos 4 núcleos · filtro por URL · `schema.org/Event` | |
+| **4** | 21/09 – 27/09 | WhatsApp como backoffice: fila, aprovar/descartar/editar, Leitura | |
+| **5** | 28/09 – 04/10 | obra assinada: Análise, Caso, Leitura | |
+| **6** | 05/10 – 11/10 | glossário como tabela · OG image · RSS · sitemap | |
+| **7** | 12/10 – 18/10 | os 4 núcleos no ar · política editorial · captura de e-mail · polimento | 🎯 **v0 · 18/10** |
+| **8** | 1ª quinzena dez | Panorama nº 1 · dataset no Zenodo com DOI | 🎯 **31/12** |
+
+A sprint 0 rendeu mais que o previsto — o coletor, que era da sprint 1, entrou junto. A folga
+foi para a sprint 1, que absorve a parte imprevisível: **fonte real quebra de jeitos que
+fixture nenhuma prevê.**
 
 ```mermaid
 gantt

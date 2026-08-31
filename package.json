@@ -4,14 +4,15 @@
   "type": "module",
   "description": "Instituto Automação — radar, agenda e obra. Um Worker só.",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --test-scheduled",
     "deploy": "wrangler deploy",
     "tipos": "tsc --noEmit",
     "db:criar": "wrangler d1 create instituto",
     "db:local": "wrangler d1 execute instituto --local --file=./schema.sql",
     "db:semente": "wrangler d1 execute instituto --local --file=./seed.sql",
     "db:zerar": "wrangler d1 execute instituto --local --command=\"SELECT 'use db:local para recriar'\"",
-    "db:remoto": "wrangler d1 execute instituto --remote --file=./schema.sql"
+    "db:remoto": "wrangler d1 execute instituto --remote --file=./schema.sql",
+    "test": "node --experimental-strip-types scripts/testar-feed.ts"
   },
   "dependencies": {
     "hono": "^4.9.0"
