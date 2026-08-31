@@ -389,97 +389,163 @@ app.get('/agenda/:slug', async (c) => {
 });
 
 /* -------------------------------------------------------------------- capa
- * O mapa das referências aplicado:
- *   Our World in Data → frase de propósito e o número com pergunta, antes
- *   Manufacturing Dive → UMA manchete manda, e ela vem logo abaixo
- *   Rest of World      → o peso editorial vira tamanho
+ * PORTAL INSTITUCIONAL, nao portal de noticia.
  *
- * A faixa de números só aparece quando existe dado. Capa abrindo com zeros
- * seria pior que capa sem faixa — e ela volta sozinha quando a base encher.
+ * A diferenca nao e de estilo, e de genero: a home diz o que a instituicao
+ * E e o que ela FAZ; a noticia e uma secao dentro disso. E ha um motivo
+ * pratico para o momento — portal institucional envelhece bem com pouco
+ * conteudo, portal de noticia parece abandonado. Com o radar ainda vazio,
+ * e o unico genero que nao denuncia a falta.
  */
 app.get('/', async (c) => {
-  const [contagens, atraso, p, destaque] = await Promise.all([
+  const [contagens, atraso, p, destaque, eventos, obras] = await Promise.all([
     contarPorNucleo(c.env.DB),
     medirAtraso(c.env.DB),
     placar(c.env.DB),
     itemDestaque(c.env.DB),
+    listarAgenda(c.env.DB, {}, 3),
+    listarObras(c.env.DB, {}, 2),
   ]);
   const porNucleo = new Map(contagens.map((x) => [x.nucleo, x]));
-  const temDado = p.nao_chega + p.chega > 0 || atraso.medidos > 0;
+  const totalItens = contagens.reduce((soma, x) => soma + x.total, 0);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
       <Documento
-        titulo="O que o setor publicou lá fora hoje"
-        descricao="Notícia internacional de automação, em português, no mesmo dia — com o que muda no Brasil."
+        titulo="Instituto Automacao"
+        descricao="O Instituto Automacao acompanha o que o setor publica no mundo e traduz para o portugues no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
         url={c.env.SITE_URL + '/'}
       >
-        {/* O h1 da capa É a promessa do site. Toda página tem exatamente um. */}
-        <h1 class="u-obra" style="font-size: var(--step-3); line-height: var(--leading-snug); max-width: var(--measure); font-weight: 400; color: var(--ink-muted)">
-          Quase toda notícia de automação nasce em inglês e alemão e chega ao Brasil com dias ou
-          semanas de atraso — quando chega. <strong style="color: var(--ink); font-weight: 600">Aqui ela
-          chega no mesmo dia, e nós dizemos o que muda por aqui.</strong>
-        </h1>
+        {/* 1 · Quem somos. Uma instituicao abre se apresentando. */}
+        <section style="padding-block: var(--space-xl) var(--space-2xl); border-bottom: var(--border-hair)">
+          <h1 style="max-width: 22ch; font-size: var(--step-5); line-height: 1.04">
+            O setor de automacao, em portugues, no mesmo dia
+          </h1>
+          <div class="obra" style="margin-block-start: var(--space-l)">
+            <p class="lead">
+              O Instituto Automacao acompanha o que fabricantes, associacoes e imprensa tecnica
+              publicam no mundo, traduz para o portugues no dia em que sai e explica o que cada
+              coisa muda para quem trabalha com automacao no Brasil.
+            </p>
+            <p>
+              E mede uma coisa que ninguem mede:{' '}
+              <strong>
+                quanto tempo a automacao leva para sair da fronteira la fora e chegar ao chao de
+                fabrica daqui.
+              </strong>
+            </p>
+          </div>
+        </section>
 
-        {temDado ? (
-          <div class="n-observatorio" style="margin-block-start: var(--space-l); border-block: var(--border-mark)">
-            <div class="numeros">
-              <Numero
-                valor={atraso.media_dias ?? '—'}
-                rotulo="dias, em média, até um assunto chegar ao Brasil"
-              />
-              <Numero
-                valor={p.nao_chega}
-                rotulo="itens que não chegaram aqui"
-                href="/industria?v=nao_chega"
-              />
-              <Numero valor={p.traduzidos_24h} rotulo="traduzidos nas últimas 24 horas" />
+        {/* 2 · O que fazemos: os nucleos como estrutura, nao como feed */}
+        <section style="padding-block: var(--space-2xl)">
+          <Secao titulo="Os nucleos" />
+          <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))">
+            {ORDEM_NUCLEOS.map((chave) => {
+              const n = NUCLEOS[chave];
+              const c2 = porNucleo.get(chave);
+              return (
+                <article style="display:grid; gap:var(--space-2xs); align-content:start; border-top:2px solid var(--marca); padding-block-start:var(--space-s)">
+                  <h3 style="font-size: var(--step-1)">
+                    <a href={`/${chave}`} style="text-decoration:none">
+                      {n.nome}
+                    </a>
+                  </h3>
+                  <p class="u-muted" style="font-size: var(--step--1)">
+                    {n.resumo}
+                  </p>
+                  <p class="u-faint u-fluxo" style="font-size: var(--step--2); margin-block-start: var(--space-2xs)">
+                    {c2?.total ?? 0} publicados{n.quente ? '' : ' · em modo Radar'}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 3 · O que o Instituto mede */}
+        <section style="padding-block: var(--space-2xl); border-block: var(--border-hair)">
+          <Secao titulo="O que medimos" />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            Todo item que passa pelo radar entra numa base propria. E dela que sai o Panorama —
+            e e ela que responde a pergunta acima.
+          </p>
+          <div class="numeros">
+            <Numero
+              valor={atraso.media_dias ?? '—'}
+              rotulo="dias, em media, ate um assunto chegar ao Brasil"
+            />
+            <Numero
+              valor={p.nao_chega}
+              rotulo="itens que nao chegaram aqui"
+              href="/industria?v=nao_chega"
+            />
+            <Numero valor={totalItens} rotulo="itens traduzidos e publicados ate hoje" />
+          </div>
+          {atraso.medidos === 0 && (
+            <p class="u-faint" style="font-size: var(--step--1); margin-block-start: var(--space-s)">
+              O atraso nao se estima: mede-se, coletando todo dia. Os numeros crescem sozinhos
+              conforme a base se forma.
+            </p>
+          )}
+        </section>
+
+        {/* 4 · A noticia. Secao, nao a home inteira. */}
+        {destaque && (
+          <section style="padding-block: var(--space-2xl)">
+            <Secao titulo="Do radar" acao={{ texto: 'ver tudo', href: '/industria' }} />
+            <Destaque item={destaque} />
+          </section>
+        )}
+
+        {/* 5 · Obra assinada */}
+        {obras.length > 0 && (
+          <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
+            <Secao titulo="Publicacoes" acao={{ texto: 'panorama', href: '/panorama' }} />
+            {obras.map((o) => (
+              <ObraNaLista obra={o} />
+            ))}
+          </section>
+        )}
+
+        {/* 6 · Agenda */}
+        {eventos.length > 0 && (
+          <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
+            <Secao titulo="Agenda" acao={{ texto: 'calendario completo', href: '/agenda' }} />
+            {eventos.map((e) => (
+              <EventoNaAgenda evento={e} />
+            ))}
+          </section>
+        )}
+
+        {/* 7 · Como trabalhamos — a credibilidade, declarada na home */}
+        <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
+          <Secao titulo="Como trabalhamos" />
+          <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))">
+            <div>
+              <h3 style="font-size: var(--step-1)">So publicamos o que a fonte autoriza</h3>
+              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
+                Traducao integral apenas de material liberado para imprensa. Do restante, resumo
+                proprio com credito e link. A regra esta no codigo, nao na intencao.
+              </p>
+            </div>
+            <div>
+              <h3 style="font-size: var(--step-1)">Dizemos onde a IA entra</h3>
+              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
+                A traducao e a triagem sao feitas por maquina, e o item avisa quando ainda nao
+                passou por revisao humana. O que e juizo do Instituto vem rotulado como tal.
+              </p>
+            </div>
+            <div>
+              <h3 style="font-size: var(--step-1)">O radar e a agenda nao tem autor</h3>
+              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
+                Sao agregacao. Analise, Caso e Panorama sao assinados — e a responsabilidade
+                pelo que esta escrito ali e de quem assina.
+              </p>
             </div>
           </div>
-        ) : (
-          <div style="margin-block-start: var(--space-l)">
-            <Aviso>
-              <strong>Os números da capa aparecem quando houver base para eles.</strong> O atraso
-              até o Brasil não se estima: mede-se, coletando todo dia. Enquanto isso, o radar já
-              está rodando.
-            </Aviso>
-          </div>
-        )}
-
-        {destaque && (
-          <div style="margin-block-start: var(--space-2xl)">
-            <Destaque item={destaque} />
-          </div>
-        )}
-
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="Núcleos" />
-          {ORDEM_NUCLEOS.map((chave) => {
-            const n = NUCLEOS[chave];
-            const c2 = porNucleo.get(chave);
-            return (
-              <article class={`item ${n.classe}`}>
-                <div class="item__topo">
-                  <span class="kicker kicker--dot">{n.nome}</span>
-                  {!n.quente && <Selo tipo="radar">Radar</Selo>}
-                </div>
-                <h3 class="item__titulo">
-                  <a href={`/${chave}`}>{n.resumo}</a>
-                </h3>
-                <p class="item__pe">
-                  <span>{c2?.total ?? 0} itens publicados</span>
-                  {c2?.ultimo && (
-                    <>
-                      <span>·</span>
-                      <span>último em {dataBR(c2.ultimo, false)}</span>
-                    </>
-                  )}
-                </p>
-              </article>
-            );
-          })}
-        </div>
+        </section>
       </Documento>,
     ),
   );

@@ -130,21 +130,18 @@
    Sem caixa, sem sombra: fio embaixo e espaço. Lista longa com card
    fechado vira parede — e o radar tem que ser varrido, não lido.
    ------------------------------------------------------------------------- */
-/* v3: o item virou CARTÃO. Fio-e-espaço lê como blog; cartão branco sobre
-   página cinza lê como veículo — é a medida do UOL e do G1, e é o que
-   separa os dois registros. */
+/* v4: sem caixa. Numa página branca, cartão empilhado é linguagem de feed —
+   e a base do projeto é portal institucional, onde a estrutura vem de fio e
+   de ar. O hover marca a linha, não desenha uma borda. */
 .item {
   display: grid;
   gap: var(--space-2xs);
-  padding: var(--space-m);
-  margin-block-end: var(--space-s);
-  background: var(--paper-raised);
-  border: var(--border-hair);
-  border-radius: var(--radius-s);
+  padding-block: var(--space-m);
+  border-bottom: var(--border-hair);
   position: relative;
-  transition: border-color var(--duration) var(--ease);
+  transition: background-color var(--duration) var(--ease);
 }
-.item:hover { border-color: var(--rule-strong); }
+.item:hover { background: var(--paper-sunken); }
 .item__topo {
   display: flex;
   flex-wrap: wrap;
@@ -214,11 +211,8 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-s) var(--space-m);
-  padding: var(--space-m);
-  margin-block-end: var(--space-s);
-  background: var(--paper-raised);
-  border: var(--border-hair);
-  border-radius: var(--radius-s);
+  padding-block: var(--space-m);
+  border-bottom: var(--border-hair);
   position: relative;
 }
 .evento__data {
@@ -363,10 +357,7 @@
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
-  color: var(--marca-texto);
-  background: var(--marca);
-  padding: var(--space-3xs) var(--space-2xs);
-  border-radius: var(--radius-xs);
+  color: var(--marca);
 }
 .secao__acao { font-size: var(--step--1); color: var(--ink-muted); }
 
@@ -471,10 +462,8 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
    ------------------------------------------------------------------------- */
 .destaque {
   display: grid; gap: var(--space-m);
-  padding: var(--space-m);
-  background: var(--paper-raised);
-  border: var(--border-hair);
-  border-radius: var(--radius-s);
+  padding-block-end: var(--space-l);
+  border-bottom: var(--border-firm);
 }
 @media (min-width: 52rem) {
   .destaque { grid-template-columns: 1.15fr 1fr; align-items: start; gap: var(--space-l); }

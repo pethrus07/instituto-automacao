@@ -4,25 +4,26 @@
    deve aparecer fora deste arquivo.
 
    ---------------------------------------------------------------------
-   v3 · 30/08/2026 — REGISTRO POPULAR, medido nas referências.
+   v4 · 30/08/2026 — PORTAL INSTITUCIONAL, base branca.
 
-   A v2 era branco chapado, sem cartão e sem marca. A v3 vem de MEDIÇÃO,
-   não de gosto: fundo, cartão e cor de marca extraídos do CSS real das
-   referências em 30/08/2026.
+   A base do projeto é um PORTAL INSTITUCIONAL, não um portal de notícia.
+   Isso não é ajuste de estilo, é outro gênero: a home diz o que a
+   instituição é e o que ela faz; a notícia é uma seção dentro disso.
 
-     UOL        página #f2f2f2 (21x) · cartão #ffffff (35x) · marca #cb0003
-     G1         página #eeeeee       · cartão #ffffff (13x) · marca #c4170c
-     Tecnoblog                         cartão #ffffff  (9x) · marca #004ab0
+   E há um argumento prático forte para o momento: portal institucional
+   envelhece bem com pouco conteúdo — portal de notícia parece abandonado.
+   Com o radar ainda vazio, é o único gênero que não denuncia a falta.
 
-   A fórmula popular não é "branco liso": é PÁGINA CINZA-CLARO com CARTÃO
-   BRANCO e uma COR DE MARCA FORTE no topo. Os três elementos juntos — sem
-   um deles o site lê como blog, não como veículo.
+   O que a v4 desfaz da v3:
+   - A PÁGINA VOLTA A SER BRANCA. O cinza veio da medição do UOL e do G1,
+     mas medição perde para decisão do dono, dita duas vezes.
+   - A faixa de marca sólida no topo sai. Instituição se apresenta com nome
+     e fio, não com tarja de portal.
+   - Some o peso de "feed": menos caixa, mais ar.
 
-   O que continua da v2:
-   - Os quatro núcleos seguem NEUTROS. Cor por seção espalha significado
-     até ele não querer dizer nada.
-   - A cor com significado é a do VEREDITO. Agora ela contrasta contra
-     cartão branco, que é onde ela some com menos facilidade.
+   O que continua:
+   - Núcleos NEUTROS.
+   - O VEREDITO como única cor com significado.
 
    Todos os nomes de token continuam os mesmos, então nada além deste
    arquivo precisou mudar.
@@ -89,11 +90,11 @@
   /* ---------------------------------------------------------------------
      COR — base branca, cinzas neutros
      --------------------------------------------------------------------- */
-  /* A PÁGINA é cinza; o CARTÃO é branco. É o que separa veículo de blog no
-     registro popular — e é a medida do UOL e do G1, não um chute. */
-  --paper:         #f1f1f2;
+  /* Branca. E o "elevado" é branco também: em portal institucional a
+     estrutura vem de fio e de ar, não de caixa cinza empilhada. */
+  --paper:         #ffffff;
   --paper-raised:  #ffffff;
-  --paper-sunken:  #e6e6e8;
+  --paper-sunken:  #f6f6f7;
   --paper-invert:  #18181b;
 
   --ink:           #18181b;
@@ -107,11 +108,11 @@
   /* ---------------------------------------------------------------------
      A MARCA — a faixa do topo e os rótulos de seção.
 
-     Toda referência popular tem uma, e forte: UOL e G1 em vermelho, Terra
-     em laranja, Tecnoblog em azul. Azul é o que cabe num instituto técnico
-     sem virar tabloide.
+     Em portal institucional a marca não é tarja no topo: é o fio sob o
+     nome, o rótulo de seção e o link. Azul é o que cabe num instituto
+     técnico sem virar tabloide.
 
-     Trocar as três linhas abaixo muda o site inteiro.
+     Trocar as linhas abaixo muda o site inteiro.
      --------------------------------------------------------------------- */
   --marca:       #0d47a1;
   --marca-forte: #0a3880;
