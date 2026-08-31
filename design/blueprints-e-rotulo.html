@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blueprints e o rótulo — Instituto Automação</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+
+<style>
+  .bp-head { border-bottom: var(--border-firm); padding-block: var(--space-l) var(--space-m); margin-block-end: var(--space-xl); }
+  .bloco { margin-block-end: var(--space-3xl); scroll-margin-top: 4.5rem; }
+  .bloco > h2 { font-family: var(--face-fluxo); font-size: var(--step--1); font-weight: 600;
+                letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--ink-faint);
+                padding-block-end: var(--space-2xs); border-bottom: var(--border-hair); margin-block-end: var(--space-l); }
+  .nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); }
+
+  .tela { border: var(--border-firm); border-radius: var(--radius-m); overflow: hidden; background: var(--paper); }
+  .tela__barra { display: flex; align-items: center; gap: var(--space-2xs); padding: var(--space-2xs) var(--space-s);
+                 border-bottom: var(--border-hair); background: var(--paper-sunken);
+                 font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); }
+  .tela__ponto { inline-size: .5rem; block-size: .5rem; border-radius: 999px; background: var(--rule-strong); }
+  .tela__corpo { padding: var(--space-l) var(--space-m); }
+
+  /* ---------- o rótulo ---------- */
+  .veredito {
+    display: inline-flex; align-items: center; gap: var(--space-2xs);
+    padding: .2rem var(--space-2xs) .2rem var(--space-3xs);
+    border-radius: var(--radius-s); font-family: var(--face-fluxo);
+    font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide);
+    background: var(--v-wash); color: var(--v-ink); white-space: nowrap;
+  }
+  .veredito::before { content: ""; inline-size: .55rem; block-size: .55rem; border-radius: 2px; background: var(--v-ink); flex: none; }
+  .v-chega      { --v-ink: var(--operacao-ink);      --v-wash: var(--operacao-wash); }
+  .v-caminho    { --v-ink: var(--industria-ink);     --v-wash: var(--industria-wash); }
+  .v-nao-chega  { --v-ink: var(--edificacoes-ink);   --v-wash: var(--edificacoes-wash); }
+  .v-sem-efeito { --v-ink: var(--ink-muted);         --v-wash: var(--paper-sunken); }
+
+  .criterio { display: grid; gap: var(--space-s); margin-block-start: var(--space-m); }
+  .criterio__linha { display: grid; grid-template-columns: 11rem 1fr; gap: var(--space-m);
+                     align-items: start; padding-block: var(--space-s); border-bottom: var(--border-hair); }
+  @media (max-width: 40rem) { .criterio__linha { grid-template-columns: 1fr; gap: var(--space-2xs); } }
+  .criterio__texto { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); }
+  .criterio__texto b { color: var(--ink); }
+
+  /* ---------- blueprints ---------- */
+  .bp-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem,1fr)); gap: var(--space-m); }
+  .bp-card { border: var(--border-hair); border-block-start: 3px solid var(--accent-mark);
+             border-radius: 0 0 var(--radius-s) var(--radius-s); background: var(--paper-raised); padding: var(--space-m); }
+  .bp-card h4 { font-family: var(--face-obra); font-size: var(--step-1); font-weight: 600; margin-block-end: var(--space-2xs); }
+  .bp-card p { font-size: var(--step--1); color: var(--ink-muted); }
+  .bp-card .u-dado { display: block; margin-block-start: var(--space-2xs); font-size: var(--step--2); color: var(--accent-ink); }
+
+  .doi { display: inline-flex; align-items: center; gap: var(--space-2xs); font-family: var(--face-dado);
+         font-size: var(--step--2); padding: var(--space-3xs) var(--space-2xs);
+         border: var(--border-firm); border-radius: var(--radius-s); }
+
+  .toggle { display: inline-flex; gap: var(--space-2xs); padding: var(--space-3xs) var(--space-xs);
+            border: var(--border-firm); border-radius: 999px; background: var(--paper-raised); cursor: pointer; font-size: var(--step--1); }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="bp-head n-observatorio">
+  <p class="kicker kicker--dot">Duas ideias que saíram da caça</p>
+  <h1 style="margin-block-start: var(--space-2xs)">O rótulo e o Blueprints</h1>
+  <p class="nota" style="margin-block-start: var(--space-s)">
+    Nenhuma das duas estava no plano. A primeira veio do Semafor e ganhou forma melhor no
+    Aos Fatos; a segunda veio do The Markup. As duas custam pouco e mexem no que o projeto
+    tem de mais frágil: a ambiguidade do que o site afirma, e a distância entre coletar dado
+    e ser citado por ele.
+  </p>
+  <p style="margin-block-start: var(--space-m)"><button class="toggle u-fluxo" id="tema" type="button">Tema</button></p>
+</header>
+
+<!-- ==================================================================== -->
+<section class="bloco n-industria" id="rotulo">
+  <h2>1 · O rótulo — dar nome ao que já fazemos</h2>
+
+  <p class="nota">
+    Todo item do radar tem duas camadas que hoje se parecem: o <strong>resumo</strong>, que é o
+    que a fonte diz, e o <strong>"o que isso muda aqui"</strong>, que é leitura nossa. Um é
+    apuração de terceiro; o outro é juízo do Instituto. Quem lê depressa não distingue — e é
+    justamente o segundo que nos responsabiliza.
+  </p>
+  <p class="nota" style="margin-block-start: var(--space-s)">
+    O Semafor separa as camadas com rótulo dentro da matéria. O <strong>Aos Fatos</strong> faz
+    melhor: o rótulo é <strong>categoria fechada, pública e auditável</strong> — e a terceira
+    opção, <em>"não é bem assim"</em>, prova que a resposta honesta cabe num selo.
+  </p>
+
+  <div class="criterio" style="margin-block-start: var(--space-l)">
+    <div class="criterio__linha">
+      <span class="veredito v-chega">Chega aqui</span>
+      <p class="criterio__texto"><b>Já existe no Brasil.</b> Há representação, distribuidor ou disponibilidade declarada. O integrador daqui consegue comprar ou especificar hoje.</p>
+    </div>
+    <div class="criterio__linha">
+      <span class="veredito v-caminho">A caminho</span>
+      <p class="criterio__texto"><b>Anunciado, com prazo ou representação declarada.</b> Ainda não dá para comprar, mas existe compromisso público de quando.</p>
+    </div>
+    <div class="criterio__linha">
+      <span class="veredito v-nao-chega">Não chega</span>
+      <p class="criterio__texto"><b>Sem representação e sem prazo.</b> Não é pessimismo: é a ausência de informação, dita com todas as letras. <b>É exatamente isto que o atraso mede</b> — e a lista destes itens é a resposta pública da pergunta-assinatura.</p>
+    </div>
+    <div class="criterio__linha">
+      <span class="veredito v-sem-efeito">Sem efeito aqui</span>
+      <p class="criterio__texto"><b>A opção honesta.</b> Acontece lá fora e não muda a prática de quem opera no Brasil — e explicamos por quê. Sem ela, o parágrafo vira enchimento: o modelo <em>sempre</em> encontra alguma consequência quando é obrigado a encontrar.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-block-start: var(--space-2xl); margin-block-end: var(--space-m)">Como fica no item</h3>
+  <div class="tela">
+    <div class="tela__barra"><span class="tela__ponto"></span> institutoautomacao.com.br/industria/…</div>
+    <div class="tela__corpo">
+      <div class="item__topo" style="margin-block-end: var(--space-s)">
+        <span class="kicker kicker--dot">Indústria</span>
+        <span class="relogio"><span class="relogio__ponto"></span><span class="relogio__valor">14 min</span> após a fonte</span>
+        <span class="selo selo--traducao">Tradução integral</span>
+      </div>
+      <h2 class="u-obra" style="font-size: var(--step-3); line-height: var(--leading-tight); max-width: var(--measure)">
+        Nova geração de controladores integra diagnóstico preditivo direto no CLP
+      </h2>
+
+      <p style="margin-block-start: var(--space-m); font-size: var(--step--2); text-transform: uppercase; letter-spacing: var(--tracking-kicker); color: var(--ink-faint)">
+        O que a fonte diz
+      </p>
+      <div class="obra" style="margin-block-start: var(--space-2xs); font-size: var(--step-0)">
+        <p>O fabricante anunciou uma linha em que o modelo de detecção de anomalia roda no próprio controlador, sem servidor externo. Segundo a nota, o tempo de reação a falha cai de minutos para segundos, e o protocolo segue retrocompatível.</p>
+      </div>
+
+      <div class="item__contexto" style="margin-block-start: var(--space-l); max-width: var(--measure)">
+        <span class="veredito v-nao-chega" style="margin-block-end: var(--space-2xs)">Não chega</span>
+        A linha não tem representação declarada no Brasil e o fabricante não deu prazo. Para quem
+        opera parque antigo o ponto prático é outro: o protocolo é retrocompatível, então a
+        atualização não obriga a trocar a linha inteira.
+      </div>
+
+      <p class="nota" style="margin-block-start: var(--space-m); font-size: var(--step--2)">
+        O rótulo é do Instituto e segue <a href="#">critério público</a>. O texto acima dele é da fonte.
+      </p>
+    </div>
+  </div>
+
+  <div class="aviso" style="margin-block-start: var(--space-l)">
+    <strong>O que isso destrava, além da clareza.</strong> O veredito é um campo, não um enfeite:
+    vira filtro (<span class="u-dado">/industria?v=nao-chega</span>), vira número na capa, e vira
+    a lista pública do que o setor lançou lá fora e nunca chegou aqui. A pergunta-assinatura
+    deixa de ser só uma métrica no banco e ganha rosto em toda página.
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco n-observatorio" id="blueprints">
+  <h2>2 · Blueprints — a ponte acadêmica vira endereço</h2>
+
+  <p class="nota">
+    O The Markup publica <em>datasets, metodologias e processos</em> numa seção própria, para
+    que outros verifiquem e ampliem o trabalho. É a mesma coisa que planejamos como "dataset com
+    DOI" e "página de perguntas abertas" — só que <strong>como seção, não como anexo</strong>.
+    A diferença não é de forma: anexo ninguém acha, seção tem endereço e é citada.
+  </p>
+
+  <h3 style="margin-block-start: var(--space-xl); margin-block-end: var(--space-m)">/blueprints</h3>
+  <div class="tela">
+    <div class="tela__barra"><span class="tela__ponto"></span> institutoautomacao.com.br/blueprints</div>
+    <div class="tela__corpo">
+      <span class="kicker kicker--dot">Blueprints</span>
+      <h2 class="u-obra" style="font-size: var(--step-4); line-height: var(--leading-tight); max-width: var(--measure); margin-block-start: var(--space-2xs)">
+        Nossos dados, nosso método, e o que ainda não respondemos
+      </h2>
+      <p class="obra" style="margin-block-start: var(--space-m)">
+        <span class="lead">Tudo o que o radar coleta é público, com licença aberta. Se você quiser conferir, contestar ou ampliar o que publicamos, comece por aqui.</span>
+      </p>
+
+      <div class="bp-grade" style="margin-block-start: var(--space-xl)">
+        <article class="bp-card">
+          <h4>O dataset</h4>
+          <p>Cada item coletado, com fonte, idioma, data de publicação lá fora e a primeira menção brasileira. CSV, atualizado a cada trimestre, licença CC-BY.</p>
+          <span class="u-dado">→ baixar · 14,2 MB</span>
+          <p style="margin-block-start: var(--space-s)"><span class="doi">DOI 10.5281/zenodo.0000000</span></p>
+        </article>
+
+        <article class="bp-card">
+          <h4>Como medimos o atraso</h4>
+          <p>O que conta como "mesmo assunto", como a primeira menção brasileira é identificada, e o que fazemos quando ela nunca acontece. Com as limitações declaradas.</p>
+          <span class="u-dado">→ metodologia</span>
+        </article>
+
+        <article class="bp-card">
+          <h4>As fontes e suas licenças</h4>
+          <p>Toda fonte que o radar acompanha, o que ela permite (tradução integral, resumo ou nada) e <b>o link da página que autoriza</b>. É a nossa prova de que nada foi republicado sem permissão.</p>
+          <span class="u-dado">→ inventário · 34 fontes</span>
+        </article>
+
+        <article class="bp-card">
+          <h4>Perguntas abertas</h4>
+          <p>O que estes dados permitem responder e nós ainda não respondemos. Serve de tema pronto para TCC, dissertação e artigo — com o dado já na mão.</p>
+          <span class="u-dado">→ 11 perguntas</span>
+        </article>
+
+        <article class="bp-card">
+          <h4>Como usamos IA</h4>
+          <p>Onde a IA entra (triagem, tradução, contexto), o que ela decide sozinha, o que passa por revisão humana e o que ela nunca faz. Com o glossário travado, aberto.</p>
+          <span class="u-dado">→ política</span>
+        </article>
+
+        <article class="bp-card">
+          <h4>Correções</h4>
+          <p>Tudo o que erramos, com data e o que mudou. Registro público, sem apagar o original.</p>
+          <span class="u-dado">→ 0 correções até agora</span>
+        </article>
+      </div>
+
+      <div class="aviso" style="margin-block-start: var(--space-xl)">
+        <strong>Como citar.</strong> Instituto Automação (2026). <em>Radar de automação:
+        publicações internacionais e primeira menção brasileira</em> [conjunto de dados].
+        Zenodo. <span class="u-dado">https://doi.org/10.5281/zenodo.0000000</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="aviso n-industria" style="margin-block-start: var(--space-l)">
+    <strong>O card mais valioso é o terceiro.</strong> "As fontes e suas licenças" publica o
+    inventário com o link que autoriza cada tradução. É a nossa regra central — <em>tradução
+    integral só de fonte liberada</em> — exposta para conferência de qualquer um. Nenhum
+    agregador faz isso, e é o que separa "traduzimos com autorização" de "confie em nós".
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section class="bloco" id="custo">
+  <h2>O que cada uma custa</h2>
+  <div class="obra" style="font-size: var(--step-0)">
+    <p><strong>O rótulo</strong> é meia sprint. Um campo <code>contexto_veredito</code> com quatro valores, o enum no esquema da etapa de IA, o critério público numa página, e o selo no componente que já existe. Ganha filtro e número de capa de brinde.</p>
+    <p><strong>Blueprints</strong> é uma sprint, e cinco dos seis cards são conteúdo que <em>já existe</em> em outro lugar: o inventário de fontes está no banco, a política de IA está na arquitetura, as correções têm tabela desde o dia 1. O único que exige trabalho novo é o dataset — e ele depende de meses de coleta, não de código.</p>
+    <p><strong>A ordem que eu faria:</strong> o rótulo primeiro, porque muda o produto todos os dias. Blueprints quando houver o primeiro trimestre de base — publicar a seção com o dataset vazio seria a única forma de estragá-la.</p>
+  </div>
+</section>
+
+<script>
+(function () {
+  var raiz = document.documentElement;
+  try { var t = localStorage.getItem('tema'); if (t === 'dark' || t === 'light') raiz.dataset.theme = t; } catch (e) {}
+  document.getElementById('tema').addEventListener('click', function () {
+    var escuro = raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    var novo = escuro ? 'light' : 'dark';
+    raiz.dataset.theme = novo;
+    try { localStorage.setItem('tema', novo); } catch (e) {}
+  });
+})();
+</script>
+</main>
+</body>
+</html>
