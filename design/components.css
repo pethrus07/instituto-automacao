@@ -662,26 +662,14 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
      2 · identidade  o nome, grande, com a ação em laranja
      3 · navegação   os núcleos, e ela GRUDA no topo ao rolar
    ========================================================================= */
-.util {
-  background: var(--capa-fundo);
-  color: var(--capa-texto-suave);
-  font-family: var(--face-fluxo);
-  font-size: var(--step--2);
-}
-.util__linha {
-  display: flex; flex-wrap: wrap; align-items: center;
-  justify-content: space-between; gap: var(--space-2xs) var(--space-m);
-  padding-block: var(--space-2xs);
-}
-.util a { color: inherit; text-decoration: none; opacity: .85; }
-.util a:hover { opacity: 1; color: var(--capa-texto); text-decoration: underline; }
-.util__marca { letter-spacing: var(--tracking-wide); }
-.util__links { display: flex; flex-wrap: wrap; gap: var(--space-m); }
+/* A faixa escura de utilidades foi removida: competia com o hero, que
+   também é escuro. Duas áreas escuras separadas por uma tira branca leem
+   como listra. Os links dela foram para a direita da navegação. */
 
 .ident {
   display: flex; flex-wrap: wrap; gap: var(--space-m);
   align-items: center; justify-content: space-between;
-  padding-block: var(--space-m);
+  padding-block: var(--space-l) var(--space-m);
 }
 
 /* A navegação gruda ao rolar. É o detalhe que separa site institucional
@@ -802,3 +790,9 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 
 /* Sangria de ponta a ponta dentro de um <main> com largura máxima. */
 .sangra { margin-inline: calc(50% - 50vw); padding-inline: var(--gutter); }
+
+
+/* Link secundário na navegação: presente para quem procura, discreto para
+   quem não procura. É o que a faixa de utilidades fazia, sem a banda. */
+.navbar__secundario { color: var(--ink-faint); font-size: var(--step--2); }
+.navbar__secundario:hover { color: var(--marca); }

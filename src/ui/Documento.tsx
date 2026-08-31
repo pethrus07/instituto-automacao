@@ -63,28 +63,18 @@ export const Documento = (p: Props) => {
         </a>
 
         {/*
-          Cabeçalho de três níveis, como Max Planck e Igarapé:
+          Cabeçalho branco, em duas faixas.
 
-            1 · utilidades — faixa escura fina. É onde a instituição diz o
-                que é e onde ficam os links que não podem sumir no rodapé.
-            2 · identidade — o nome, grande, com a única ação em laranja.
-            3 · navegação  — os núcleos, e ela GRUDA no topo ao rolar.
+          A faixa escura de utilidades saiu: ela competia com o hero, que
+          também é escuro. Duas áreas escuras separadas por uma tira branca
+          leem como listra, não como estrutura — e o contraste que interessa
+          é o do branco caindo no hero, não o de três bandas empilhadas.
 
-          Azul é a instituição; laranja é a ação. Cada cor com um trabalho.
+          Os links institucionais que moravam lá foram para a direita da
+          navegação, que é onde o leitor procura o secundário.
+
+          Azul é a instituição; laranja é a ação.
         */}
-        <div class="util">
-          <div class="wrap util__linha">
-            <span class="util__marca">
-              Radar, agenda e panorama da automação — em português, no mesmo dia
-            </span>
-            <span class="util__links">
-              <a href="/panorama">Panorama</a>
-              <a href="/blueprints">Blueprints</a>
-              <a href="/feed/industria.xml">RSS</a>
-            </span>
-          </div>
-        </div>
-
         <header>
           <div class="wrap ident">
             <a href="/" class="marca-nome">
@@ -104,6 +94,8 @@ export const Documento = (p: Props) => {
               <span class="navbar__resto">
                 <a href="/agenda">Agenda</a>
                 <a href="/panorama">Panorama</a>
+                <a href="/blueprints" class="navbar__secundario">Blueprints</a>
+                <a href="/feed/industria.xml" class="navbar__secundario">RSS</a>
               </span>
             </div>
           </nav>
