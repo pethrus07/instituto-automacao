@@ -81,15 +81,31 @@ VALUES
    '2026-08-28T11:00:00Z', '2026-08-28T11:31:00Z', 31, 'publicado', 0);
 
 -- Glossário semente — os termos que o LLM erra primeiro ---------------------
-INSERT OR REPLACE INTO glossario (termo_origem, idioma, termo_pt, nota, travado, nucleo) VALUES
+-- Coluna 1: os que TÊM tradução consagrada e ela é obrigatória.
+INSERT OR REPLACE INTO glossario (termo_origem, idioma, termo_pt, nota, travado, manter_original, nucleo) VALUES
   ('closed-loop control', 'en', 'controle em malha fechada',
-   'Nunca "controle de circuito fechado" — tradução literal que denuncia máquina na primeira linha.', 1, 'industria'),
+   'Nunca "controle de circuito fechado" — tradução literal que denuncia máquina na primeira linha.', 1, 0, 'industria'),
   ('drive', 'en', 'inversor de frequência',
-   'Quando o contexto for acionamento em geral, usar "acionamento". Nunca deixar "drive" solto.', 1, 'industria'),
-  ('PLC', 'en', 'CLP', 'Controlador lógico programável. Sigla em português.', 1, 'industria'),
-  ('SPS', 'de', 'CLP', 'Speicherprogrammierbare Steuerung. Mesma coisa que PLC.', 1, 'industria'),
+   'Quando o contexto for acionamento em geral, usar "acionamento". Nunca deixar "drive" solto.', 1, 0, 'industria'),
+  ('PLC', 'en', 'CLP', 'Controlador lógico programável. Sigla em português.', 1, 0, 'industria'),
+  ('SPS', 'de', 'CLP', 'Speicherprogrammierbare Steuerung. Mesma coisa que PLC.', 1, 0, 'industria'),
   ('safety', 'en', 'segurança de máquina',
-   '"Segurança" sozinho vira ambíguo com segurança da informação.', 1, 'industria'),
-  ('HMI', 'en', 'IHM', 'Interface homem-máquina.', 1, 'industria'),
-  ('predictive maintenance', 'en', 'manutenção preditiva', NULL, 1, 'industria'),
-  ('throughput', 'en', 'vazão', 'Em contexto de linha de produção. Não "taxa de transferência".', 1, 'industria');
+   '"Segurança" sozinho vira ambíguo com segurança da informação.', 1, 0, 'industria'),
+  ('HMI', 'en', 'IHM', 'Interface homem-máquina.', 1, 0, 'industria'),
+  ('predictive maintenance', 'en', 'manutenção preditiva', NULL, 1, 0, 'industria'),
+  ('throughput', 'en', 'vazão', 'Em contexto de linha de produção. Não "taxa de transferência".', 1, 0, 'industria');
+
+-- Coluna 2: os que NÃO se traduzem. Ficam na língua de origem, com o
+-- significado aproximado entre parênteses na primeira ocorrência.
+-- Inventar equivalente em português que ninguém usa no chão de fábrica é
+-- pior que manter o estrangeirismo — e denuncia tradução automática.
+INSERT OR REPLACE INTO glossario (termo_origem, idioma, termo_pt, nota, travado, manter_original, nucleo) VALUES
+  ('brownfield', 'en', 'brownfield', 'planta já existente, com parque instalado a integrar', 1, 1, 'industria'),
+  ('greenfield', 'en', 'greenfield', 'planta nova, projetada do zero', 1, 1, 'industria'),
+  ('cobot', 'en', 'cobot', 'robô colaborativo, que opera sem cerca junto ao operador', 1, 1, 'industria'),
+  ('lead time', 'en', 'lead time', 'tempo entre o pedido e a entrega', 1, 1, 'industria'),
+  ('payback', 'en', 'payback', 'tempo até o investimento se pagar', 1, 1, 'industria'),
+  ('OEE', 'en', 'OEE', 'eficiência global do equipamento', 1, 1, 'industria'),
+  ('setup', 'en', 'setup', 'troca e preparação de ferramenta entre lotes', 1, 1, 'industria'),
+  ('edge', 'en', 'edge', 'processamento no próprio equipamento, sem passar por servidor', 1, 1, 'industria'),
+  ('retrofit', 'en', 'retrofit', 'modernização de máquina existente', 1, 1, 'industria');

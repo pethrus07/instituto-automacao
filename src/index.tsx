@@ -14,6 +14,7 @@ import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
 import { listarRadar, obterItem, contarPorNucleo, medirAtraso } from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
+import { estadoIA } from './ia/cliente';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -45,7 +46,14 @@ app.get('/saude', async (c) => {
   } catch (e) {
     db = `erro: ${(e as Error).message}`;
   }
-  return c.json({ ok: db === 'ok', db, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
+  return c.json({
+    ok: db === 'ok',
+    db,
+    ia: estadoIA(c.env),
+    css: CSS_HASH,
+    rota_css: CSS_ROTA,
+    ms: Date.now() - t0,
+  });
 });
 
 /* ------------------------------------------------------------------ agenda

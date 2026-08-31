@@ -16,10 +16,35 @@ import { calcularUsd, type Uso } from './precos';
 
 export type Resposta<T> = { dado: T; uso: Uso; simulado: boolean };
 
-export const simulando = (env: Env) => env.IA_SIMULAR === '1' || !env.ANTHROPIC_API_KEY;
+/**
+ * Simula quando: mandaram simular, não há chave, ou não está declarado de
+ * QUEM é a conta que paga.
+ *
+ * A terceira condição é de propósito. A conta de API é do sócio
+ * (acordo interno ponto 2), e chave de IA é a coisa mais fácil do mundo de
+ * aparecer por engano — variável de ambiente esquecida, `.dev.vars` de
+ * outro projeto, cópia de configuração. Exigir `IA_CONTA` declarado
+ * transforma "de quem é o custo" numa decisão explícita, escrita, em vez de
+ * um acidente que só aparece na fatura de outra pessoa.
+ */
+export const simulando = (env: Env) =>
+  env.IA_SIMULAR === '1' || !env.ANTHROPIC_API_KEY || !env.IA_CONTA;
 
 function cliente(env: Env): Anthropic {
+  if (!env.IA_CONTA) {
+    throw new Error(
+      'IA_CONTA não declarado: defina de quem é a conta que paga antes de chamar a API',
+    );
+  }
   return new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2 });
+}
+
+/** Para o healthcheck e para o log dizerem o que está acontecendo. */
+export function estadoIA(env: Env): { modo: 'simulacao' | 'conectado'; conta: string | null } {
+  return {
+    modo: simulando(env) ? 'simulacao' : 'conectado',
+    conta: env.IA_CONTA ?? null,
+  };
 }
 
 const usoZero = (modelo: string): Uso => ({ modelo, tokens_in: 0, tokens_out: 0, usd: 0 });

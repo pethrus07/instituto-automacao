@@ -127,8 +127,30 @@ e a tradução é o produto.
 e teto que **pausa o coletor** ao bater o limite. Sem isso, um feed que enlouquece vira
 uma conta que não é sua (acordo interno, ponto 2).
 
-O **glossário entra no prompt** de tradução como dicionário obrigatório. LLM traduzindo
-cru erra termo técnico, e engenheiro percebe na primeira linha.
+O **glossário entra no prompt** de tradução como dicionário obrigatório, em **duas colunas**:
+
+| Coluna | Regra |
+|---|---|
+| termo com equivalente consagrado | a tradução é obrigatória e não admite variação |
+| termo **sem** equivalente no setor | **fica na língua de origem**, com o significado aproximado entre parênteses na primeira ocorrência |
+
+A segunda coluna é a que protege o texto. Inventar equivalente em português que ninguém usa
+no chão de fábrica é **pior** que manter o estrangeirismo: denuncia tradução automática na
+primeira linha e queima a credibilidade do texto inteiro. Na dúvida, o prompt manda manter e
+explicar — *brownfield (planta já existente, com parque instalado a integrar)*.
+
+Nome próprio de produto, linha, norma e protocolo nunca se traduz.
+
+### De quem é a conta que paga
+
+O pipeline **simula** — não chama a API — enquanto qualquer uma destas for verdade: falta a
+chave, falta `IA_CONTA` declarado, ou `IA_SIMULAR=1`.
+
+Exigir `IA_CONTA` é deliberado. A conta de API é do sócio (acordo interno ponto 2),
+e chave de IA é a coisa mais fácil do mundo de aparecer por engano — variável de ambiente
+esquecida, `.dev.vars` de outro projeto, cópia de configuração. Sem a declaração explícita, o
+código se recusa a chamar. `/saude` expõe o estado (`modo` e `conta`), e o QA falha se algo
+tiver sido gasto enquanto o modo era simulação.
 
 ## 6. Medir o atraso — **tabela `assunto`** ✅
 

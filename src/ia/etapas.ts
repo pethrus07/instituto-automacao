@@ -11,7 +11,13 @@ import { pedirEstruturado, pedirTexto } from './cliente';
 
 /* ------------------------------------------------------------- glossário */
 
-export type TermoGlossario = { termo_origem: string; idioma: string; termo_pt: string; nota: string | null };
+export type TermoGlossario = {
+  termo_origem: string;
+  idioma: string;
+  termo_pt: string;
+  nota: string | null;
+  manter_original: number;
+};
 
 /**
  * O glossário travado, formatado para entrar no prompt.
@@ -20,25 +26,46 @@ export type TermoGlossario = { termo_origem: string; idioma: string; termo_pt: s
  * chamada, então paga o preço cheio uma vez e ~10% nas seguintes. É também
  * o motivo de ele ser infraestrutura e não página bonita — LLM traduzindo
  * cru erra termo técnico, e engenheiro percebe na primeira linha.
+ *
+ * Sai em DUAS listas, porque são duas regras diferentes:
+ *   1. termo com tradução consagrada → a tradução é obrigatória
+ *   2. termo que NÃO se traduz → fica na língua de origem, com o significado
+ *      aproximado entre parênteses na primeira ocorrência
  */
 export async function carregarGlossario(env: Env, idioma: string): Promise<string> {
   const { results } = await env.DB.prepare(
-    `SELECT termo_origem, idioma, termo_pt, nota FROM glossario
+    `SELECT termo_origem, idioma, termo_pt, nota, manter_original FROM glossario
       WHERE travado = 1 AND (idioma = ?1 OR idioma = 'en')
-      ORDER BY termo_origem`,
+      ORDER BY manter_original, termo_origem`,
   )
     .bind(idioma)
     .all<TermoGlossario>();
 
   if (!results || results.length === 0) return '';
 
-  const linhas = results.map(
-    (t) => `- "${t.termo_origem}" (${t.idioma}) → "${t.termo_pt}"${t.nota ? ` — ${t.nota}` : ''}`,
-  );
-  return [
-    'GLOSSÁRIO OBRIGATÓRIO — estas traduções são travadas e não admitem variação:',
-    ...linhas,
-  ].join('\n');
+  const traduz = results.filter((t) => !t.manter_original);
+  const mantem = results.filter((t) => t.manter_original);
+  const partes: string[] = [];
+
+  if (traduz.length) {
+    partes.push(
+      'GLOSSÁRIO OBRIGATÓRIO — estas traduções são travadas e não admitem variação:',
+      ...traduz.map(
+        (t) => `- "${t.termo_origem}" (${t.idioma}) → "${t.termo_pt}"${t.nota ? ` — ${t.nota}` : ''}`,
+      ),
+    );
+  }
+
+  if (mantem.length) {
+    partes.push(
+      '',
+      'TERMOS QUE NÃO SE TRADUZEM — mantenha na língua de origem e, na PRIMEIRA',
+      'ocorrência do texto, acrescente o significado aproximado entre parênteses:',
+      ...mantem.map((t) => `- "${t.termo_origem}" → mantenha "${t.termo_origem}" (${t.nota ?? t.termo_pt})`),
+    );
+  }
+
+  return partes.join('\n');
 }
 
 /* --------------------------------------------------------------- triagem */
@@ -115,10 +142,19 @@ export async function triar(
 
 const SISTEMA_TRADUCAO = `Você traduz para o português do Brasil o texto integral de um material liberado para imprensa por um fabricante de automação.
 
-Regras:
+O critério é um só: a tradução mais fiel e mais próxima da realidade do setor no Brasil. Não a mais elegante, não a mais literal — a que um engenheiro brasileiro reconheceria como a forma correta de dizer aquilo.
+
+REGRA DO TERMO SEM TRADUÇÃO — é a mais importante:
+Quando um termo técnico NÃO tem equivalente consagrado em português no setor de automação, MANTENHA O TERMO NA LÍNGUA DE ORIGEM e, na primeira ocorrência, acrescente o significado aproximado entre parênteses. Exemplo da forma esperada: brownfield (planta já existente, com parque instalado a integrar).
+Nas ocorrências seguintes, use só o termo original, sem repetir a explicação.
+NUNCA invente um equivalente em português que ninguém usa no chão de fábrica. Termo traduzido ao pé da letra que o setor não reconhece é pior que o estrangeirismo: denuncia tradução automática na primeira linha e queima a credibilidade do texto inteiro.
+Na dúvida entre traduzir e manter, MANTENHA e explique.
+
+Demais regras:
 - Traduza o conteúdo inteiro, sem resumir, sem cortar e sem acrescentar.
 - Não invente número, data, nome de produto nem afirmação que não esteja no original.
-- Respeite o glossário obrigatório: aqueles termos não admitem variação.
+- Nome próprio de produto, linha, norma e protocolo NÃO se traduz nunca.
+- Respeite o glossário: a primeira lista é obrigatória, a segunda diz o que manter na língua de origem.
 - Português técnico brasileiro, na voz de quem escreve para engenheiro e integrador. Sem adjetivo publicitário: "revolucionário", "líder de mercado", "solução completa" saem.
 - Devolva SOMENTE o texto traduzido, em parágrafos separados por linha em branco. Sem título, sem comentário, sem marcação.`;
 

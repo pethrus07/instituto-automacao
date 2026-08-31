@@ -10,7 +10,14 @@ export type Env = {
 
   /** Segredo (`wrangler secret put`). Ausente = pipeline roda em simulação. */
   ANTHROPIC_API_KEY?: string;
-  /** '1' força simulação mesmo com chave presente. */
+  /**
+   * De quem é a conta que paga a API — declarado, não presumido.
+   * Sem isto o pipeline SIMULA, mesmo que exista uma chave no ambiente.
+   * A conta é do sócio (acordo interno ponto 2); chave que aparece por engano
+   * gasta dinheiro de outra pessoa e só aparece na fatura dela.
+   */
+  IA_CONTA?: string;
+  /** '1' força simulação mesmo com chave e conta presentes. */
   IA_SIMULAR?: string;
   /** Teto de gasto por dia, em reais. Ao bater, o pipeline para. */
   TETO_DIARIO_BRL?: string;

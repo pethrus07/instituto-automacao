@@ -45,6 +45,11 @@ SITE_URL = "http://localhost:8787"
 #   npx wrangler secret put ANTHROPIC_API_KEY
 IA_SIMULAR = "1"
 
+# De quem e a conta que paga a API. VAZIO = simula, mesmo que exista chave.
+# A conta e do sócio (acordo interno ponto 2). Preencher so quando a chave dele
+# estiver em wrangler secret — nunca com chave de outra conta.
+IA_CONTA = ""
+
 # Kill-switch. Ao bater o teto no dia, o PIPELINE para; o coletor continua,
 # porque feed não guarda histórico e dia sem coletar não volta.
 TETO_DIARIO_BRL = "3.00"

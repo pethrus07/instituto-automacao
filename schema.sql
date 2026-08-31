@@ -187,6 +187,10 @@ CREATE TABLE glossario (
   termo_pt     TEXT NOT NULL,
   nota         TEXT,
   travado      INTEGER NOT NULL DEFAULT 1,
+  -- 1 = o termo NAO se traduz: fica na lingua de origem, com o significado
+  -- aproximado entre parenteses na primeira ocorrencia. Inventar equivalente
+  -- em portugues que ninguem usa no setor e pior que manter o estrangeirismo.
+  manter_original INTEGER NOT NULL DEFAULT 0,
   nucleo       TEXT,
   criado_em    TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (termo_origem, idioma)

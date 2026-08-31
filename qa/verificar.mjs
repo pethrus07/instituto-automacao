@@ -264,6 +264,51 @@ checar(
   `${publicadoSemAlta.n} item(ns) no ar sem revisão vindos de fonte que não permite`,
 );
 
+/* ---- de quem é a conta que paga, e o glossário de duas colunas ---- */
+const ia = saude.ia ?? {};
+medidas.iaModo = ia.modo ?? '?';
+medidas.iaConta = ia.conta || '(não declarada)';
+
+checar(
+  'B',
+  'o healthcheck declara o modo da IA e a conta que paga',
+  ia.modo === 'simulacao' || ia.modo === 'conectado',
+  JSON.stringify(ia),
+);
+checar(
+  'B',
+  'conectado exige conta declarada',
+  ia.modo !== 'conectado' || Boolean(ia.conta),
+  'chamar a API sem dizer de quem é o custo gasta dinheiro de outra pessoa (acordo interno ponto 2)',
+);
+if (ia.modo === 'simulacao') {
+  const gastoSimulando = sql(`SELECT COALESCE(SUM(brl),0) brl FROM custo_dia`)[0];
+  checar(
+    'B',
+    'em simulação, nada foi gasto',
+    Number(gastoSimulando.brl) === 0,
+    `R$ ${gastoSimulando.brl} registrados com a IA em simulação — alguém chamou a API`,
+  );
+} else {
+  avisar('a IA está CONECTADA', `conta: ${ia.conta} — cada execução gasta de verdade`);
+}
+
+const glossario = sql(
+  `SELECT SUM(CASE WHEN manter_original=1 THEN 1 ELSE 0 END) mantem,
+          SUM(CASE WHEN manter_original=0 THEN 1 ELSE 0 END) traduz,
+          SUM(CASE WHEN manter_original=1 AND (nota IS NULL OR nota='') THEN 1 ELSE 0 END) semGlosa
+     FROM glossario WHERE travado=1`,
+)[0];
+medidas.glossarioTraduz = glossario.traduz;
+medidas.glossarioMantem = glossario.mantem;
+checar(
+  'B',
+  'todo termo que não se traduz tem o significado aproximado',
+  glossario.semGlosa === 0,
+  `${glossario.semGlosa} termo(s) marcados para manter no original sem a glosa — a regra fica inaplicável`,
+);
+checar('B', 'o glossário tem as duas colunas povoadas', glossario.traduz > 0 && glossario.mantem > 0);
+
 const custo = sql(`SELECT COALESCE(SUM(brl),0) brl, COUNT(*) dias FROM custo_dia`)[0];
 medidas.custoAcumuladoBRL = Number(custo.brl).toFixed(4);
 checar(
