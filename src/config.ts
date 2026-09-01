@@ -85,6 +85,17 @@ export function ehNucleo(v: string): v is ChaveNucleo {
   return Object.prototype.hasOwnProperty.call(NUCLEOS, v);
 }
 
+/**
+ * O cron do Giro da Semana — segunda 11:00 UTC = 08:00 em Brasília.
+ *
+ * Declarado AQUI e repetido em `wrangler.toml`, porque não há como um ler o
+ * outro. Um QA confere que os dois batem: se alguém mudar o horário só no
+ * TOML, o cron dispara e cai no ramo do coletor — o giro simplesmente para
+ * de sair, sem erro nenhum em lugar nenhum. Silêncio é o pior modo de
+ * falhar, e este par de strings é onde ele moraria.
+ */
+export const CRON_GIRO = '0 11 * * 1';
+
 /** Cache na borda. Listagem muda a cada coleta; item publicado quase não muda. */
 export const CACHE = {
   listagem: 'public, max-age=0, s-maxage=300',

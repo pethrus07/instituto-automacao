@@ -291,7 +291,53 @@ um coletor vira um rastreador do site inteiro.
 YouTube Data) exigem um coletor de JSON, que não existe. Ficam no backlog, listadas no
 inventário como recusadas — visíveis, não escondidas.
 
-## 12. O que fica de fora, e quando volta
+## 12. O Giro da Semana — **rotina, e a IA sob auditoria** ✅
+
+**Decisão:** uma edição semanal montada por cron na segunda-feira, cobrindo a semana que
+fechou no domingo. Não é `obra` (texto assinado): é uma tabela própria, `giro`.
+
+    dados → agregar → redigir → AUDITAR → publicar (ou parar)
+
+| Etapa | O quê | Quem vê o quê |
+|---|---|---|
+| `giro/agregar.ts` | contagens, mediana, placar do destaque | SQL puro, zero IA |
+| `giro/redigir.ts` | título, lead, parágrafo do destaque, frase por núcleo | **só o agregado** — nunca o banco |
+| `giro/auditar.ts` | cada número da prosa existe no agregado? | **nunca o modelo** |
+| `giro/index.ts` | grava `publicado` ou `rascunho` **com o motivo** | — |
+
+**A auditoria aborta.** Edição que reprova não vai ao ar, e o motivo aparece em
+`/blueprints` — auditoria que reprova em silêncio é auditoria que ninguém confere. É a mesma
+arquitetura do entregável de cliente com números: nunca redigir número à mão, e o build que
+para.
+
+**O destaque é uma fórmula publicada**, não um julgamento: repercussão (fontes independentes)
++ alcance (peso editorial) + **ineditismo** (25 pontos se nenhuma fonte brasileira mencionou)
++ veredito. Piso de **2 fontes independentes** — sem ele o ineditismo elegeria sempre o
+assunto mais obscuro, porque quem ninguém cobriu tem, por definição, zero menção brasileira.
+Quando ninguém alcança o piso, **o giro diz que não houve destaque e diz por quê**.
+
+**O agregado é congelado em JSON na hora de publicar.** A página lê dali e não refaz a conta:
+o giro da semana 36 tem de continuar dizendo o que dizia na semana 36. Balanço que se
+reescreve não é balanço.
+
+**Dois crons, um handler**, despachados pelo padrão que disparou. O par de strings
+(`CRON_GIRO` em `src/config.ts` e o `crons` do `wrangler.toml`) é conferido pelo QA: mudar só
+um faria o Giro parar de sair **sem erro nenhum em lugar nenhum**.
+
+### As vozes — um eixo, não um tipo
+
+`fonte.pessoa` e `fonte.pessoa_papel` são **ortogonais a `fonte.tipo`**. `tipo` diz o MEIO
+(imprensa, fórum, social, vídeo); `pessoa` diz de QUEM é a assinatura. Um blog pessoal é meio
+*imprensa* com pessoa; a IEEE Spectrum é meio *imprensa* sem pessoa.
+
+Acrescentar `'pessoa'` à lista de `tipo` teria continuado misturando meio e papel — que era o
+defeito de modelagem que essa coluna corrige. E a distinção é substantiva: *"a IEEE Spectrum
+noticiou"* e *"Rodney Brooks escreveu"* não pesam igual.
+
+Teto de **2 entradas por pessoa** na edição, descoberto medindo: na primeira execução real as
+doze linhas da seção eram do mesmo blog.
+
+## 13. O que fica de fora, e quando volta
 
 | Item | Quando |
 |---|---|
@@ -301,7 +347,7 @@ inventário como recusadas — visíveis, não escondidas.
 | Painel web | 🔮 só se o WhatsApp não der conta |
 | Embeddings para agrupar assunto | 🔮 quando o agrupamento simples errar demais |
 
-## 13. Convenções
+## 14. Convenções
 
 - **Fuso:** tudo em UTC no banco; exibição em `America/Sao_Paulo`. Nunca gravar hora local.
 - **Idiomas de origem no começo:** EN e DE. ES entra depois.

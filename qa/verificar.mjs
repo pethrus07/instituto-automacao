@@ -319,8 +319,8 @@ checar(
 );
 
 const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf%' AND name NOT LIKE 'd1_%'`).map((r) => r.name).sort();
-const esperadas = ['assinante','assunto','correcao','custo_dia','evento','fonte','glossario','item','obra'];
-checar('B', 'as 9 tabelas do modelo existem', JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
+const esperadas = ['assinante','assunto','correcao','custo_dia','evento','fonte','giro','glossario','item','obra'];
+checar('B', `as ${esperadas.length} tabelas do modelo existem`, JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
 
 /* -------------------------------------------- B. Conformidade com o texto */
 titulo('B · Conformidade — o site diz o que os documentos prometem');
@@ -867,6 +867,139 @@ checar(
   'e diz que o dataset ainda não foi publicado',
   blue.corpo.includes('Ainda não publicado'),
   'publicar base vazia com DOI seria a única forma de estragá-la',
+);
+
+/* --------------------------------------------- B. O GIRO DA SEMANA ---- */
+titulo('B · Conformidade — o Giro da Semana');
+
+const giroLista = await pegar('/giro');
+checar('B', '/giro responde', giroLista.status === 200, `veio ${giroLista.status}`);
+
+const girosDb = sql(`SELECT slug, status FROM giro`);
+const publicados = girosDb.filter((g) => g.status === 'publicado');
+const naLista = (giroLista.corpo.match(/data-edicao="/g) ?? []).length;
+medidas.girosPublicados = publicados.length;
+checar(
+  'B',
+  'a lista traz todas as edições publicadas',
+  naLista === publicados.length,
+  `listou ${naLista}, existem ${publicados.length}`,
+);
+
+/* O cron do Giro mora em DOIS lugares que não se leem: `src/config.ts` e o
+   `wrangler.toml`. Se alguém mudar o horário só no TOML, o disparo cai no
+   ramo do coletor e o Giro simplesmente PARA DE SAIR — sem erro em lugar
+   nenhum. Silêncio é o pior modo de falhar, e é este par que o produziria. */
+const cronNoCodigo = /CRON_GIRO = '([^']+)'/.exec(readFileSync(join(RAIZ, 'src/config.ts'), 'utf8'))?.[1];
+const cronNoToml = readFileSync(join(RAIZ, 'wrangler.toml'), 'utf8');
+checar(
+  'B',
+  'o cron do Giro é o mesmo no código e no wrangler.toml',
+  Boolean(cronNoCodigo) && cronNoToml.includes(`"${cronNoCodigo}"`),
+  `código diz "${cronNoCodigo}" e o TOML não declara esse cron — o Giro pararia de sair em silêncio`,
+);
+
+/* A promessa central: edição publicada passou na auditoria. */
+const semAuditoria = sql(
+  `SELECT COUNT(*) n FROM giro WHERE status = 'publicado' AND auditoria IS NULL`,
+)[0].n;
+checar(
+  'B',
+  'toda edição publicada tem auditoria registrada',
+  semAuditoria === 0,
+  `${semAuditoria} edições no ar sem registro do que foi conferido`,
+);
+const retidoNoAr = sql(
+  `SELECT COUNT(*) n FROM giro WHERE status = 'publicado' AND motivo_rascunho IS NOT NULL`,
+)[0].n;
+checar('B', 'nenhuma edição retida foi ao ar mesmo assim', retidoNoAr === 0);
+
+if (publicados.length > 0) {
+  const slug = publicados[0].slug;
+  const ed = await pegar(`/giro/${slug}`);
+  checar('B', `/giro/${slug} responde`, ed.status === 200, `veio ${ed.status}`);
+  checar('B', 'edição inexistente devolve 404', (await pegar('/giro/1999-s01')).status === 404);
+
+  const agregado = JSON.parse(
+    sql(`SELECT agregado FROM giro WHERE slug = '${slug}'`)[0].agregado,
+  );
+
+  /* A página lê o agregado CONGELADO; se ela recalculasse, uma coleta nova
+     mudaria uma edição já publicada — e balanço que se reescreve não é
+     balanço. Conferir o número na tela contra o JSON gravado é o jeito de
+     provar que ela não recalcula. */
+  checar(
+    'B',
+    'os números da edição vêm do agregado congelado, não de nova consulta',
+    ed.corpo.includes(`>${agregado.totais.itens}<`) &&
+      ed.corpo.includes(`>${agregado.relogio.naoChegaram}<`),
+  );
+
+  const linhasPlacar = (ed.corpo.match(/data-placar="/g) ?? []).length;
+  checar(
+    'B',
+    'o placar na tela tem as linhas que o agregado tem',
+    linhasPlacar === agregado.placar.length,
+    `tela ${linhasPlacar}, agregado ${agregado.placar.length}`,
+  );
+
+  /* O piso não é decoração: sem ele o critério de ineditismo elegeria
+     sempre o assunto mais obscuro, porque quem ninguém cobriu tem, por
+     definição, zero menção brasileira. */
+  checar(
+    'B',
+    'nenhum assunto abaixo do piso entrou no placar',
+    agregado.placar.every((c) => c.fontes >= 2),
+  );
+  checar(
+    'B',
+    'o destaque, quando existe, é o primeiro do placar',
+    agregado.destaque === null ||
+      agregado.destaque.assunto_id === agregado.placar[0]?.assunto_id,
+  );
+  checar(
+    'B',
+    'a página publica a fórmula que elegeu o destaque',
+    ed.corpo.includes('cada fonte independente vale') && ed.corpo.includes('não chega'),
+    'destaque sem a conta à vista é palpite com cara de método',
+  );
+
+  /* Uma voz prolífica engoliu a seção inteira na primeira execução real:
+     doze linhas, um blog só. */
+  const vozes = [...ed.corpo.matchAll(/data-voz="([^"]*)"/g)].map((m) => m[1]);
+  const porPessoa = {};
+  for (const v of vozes) porPessoa[v] = (porPessoa[v] ?? 0) + 1;
+  medidas.vozesNaEdicao = vozes.length;
+  checar(
+    'B',
+    'nenhuma voz aparece mais de duas vezes na edição',
+    Object.values(porPessoa).every((n) => n <= 2),
+    JSON.stringify(porPessoa),
+  );
+
+  checar('B', 'a edição está no sitemap', (await pegar('/sitemap.xml')).corpo.includes(`/giro/${slug}`));
+}
+
+checar(
+  'B',
+  'o Giro está na navegação de todas as páginas',
+  giroLista.corpo.includes('href="/giro"'),
+);
+
+/* As vozes são um EIXO da fonte, não um tipo: `tipo` diz o meio, `pessoa`
+   diz de quem é a assinatura. */
+const vozesDb = sql(`SELECT COUNT(*) n FROM fonte WHERE pessoa IS NOT NULL`)[0].n;
+medidas.vozesCadastradas = vozesDb;
+checar(
+  'B',
+  'toda voz cadastrada declara o papel de quem assina',
+  sql(`SELECT COUNT(*) n FROM fonte WHERE pessoa IS NOT NULL AND pessoa_papel IS NULL`)[0].n === 0,
+  'voz sem papel vira nome solto na página — o leitor precisa saber por que aquela pessoa importa',
+);
+checar(
+  'B',
+  'o inventário identifica quais fontes são vozes',
+  vozesDb === 0 || blue.corpo.includes('voz · '),
 );
 
 /* ---- a lista ---- */

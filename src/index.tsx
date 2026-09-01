@@ -17,11 +17,19 @@ import {
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { renderizarObra, minutosDeLeitura } from './ui/markdown';
+import {
+  FORMULA,
+  PISO_FONTES,
+  girosBarrados,
+  listarGiros,
+  montarGiro,
+  obterGiro,
+} from './giro';
 import { gerarCapa } from './ui/capa';
 import { feedDoNucleo, sitemap, robots } from './feed';
 import { raw } from 'hono/html';
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
-import { CACHE, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
+import { CACHE, CRON_GIRO, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
 import {
   listarRadar, obterItem, contarPorNucleo, medirAtraso,
   listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
@@ -733,14 +741,16 @@ function vereditoRobots(permite: number | null): string {
  * endereço e é citada.
  */
 app.get('/blueprints', async (c) => {
-  const [fontes, correcoes, atraso] = await Promise.all([
+  const [fontes, correcoes, atraso, barrados] = await Promise.all([
     inventarioFontes(c.env.DB),
     listarCorrecoes(c.env.DB),
     medirAtraso(c.env.DB),
+    girosBarrados(c.env.DB),
   ]);
   const liberadas = fontes.filter((f) => f.licenca === 'liberada');
   const relogio = fontes.filter((f) => f.marca_relogio);
   const recusadas = fontes.filter((f) => f.robots_permite === 0);
+  const vozes = fontes.filter((f) => f.pessoa);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
@@ -787,6 +797,14 @@ app.get('/blueprints', async (c) => {
                       {Boolean(f.marca_relogio) && (
                         <span class="u-faint"> · marca o relógio</span>
                       )}
+                      {f.pessoa && (
+                        <>
+                          <br />
+                          <span class="u-faint" style="font-size: var(--step--2)">
+                            voz · {f.pessoa_papel ?? f.pessoa}
+                          </span>
+                        </>
+                      )}
                     </td>
                     <td class="u-dado">
                       {f.pais} · {f.idioma}
@@ -827,6 +845,13 @@ app.get('/blueprints', async (c) => {
             </table>
           </div>
           <p class="u-faint" style="font-size: var(--step--2); margin-block-start: var(--space-s)">
+            {vozes.length > 0 && (
+              <>
+                {vozes.length} das fontes são <strong>vozes</strong> — pessoa pública que publica
+                com nome próprio, e não redação. O Giro trata as duas de forma diferente porque
+                "a IEEE Spectrum noticiou" e "Rodney Brooks escreveu" não pesam igual.{' '}
+              </>
+            )}
             {liberadas.length} de {fontes.length} fontes autorizam tradução integral.{' '}
             {recusadas.length > 0 && (
               <>
@@ -868,6 +893,49 @@ app.get('/blueprints', async (c) => {
               o veredito de cada uma e por quê.
             </p>
           </div>
+        </div>
+
+        {/* --- o giro que não saiu --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="O Giro da Semana, e o que a auditoria barrou" />
+          <div class="obra" style="font-size: var(--step-0)">
+            <p>
+              O <a href="/giro">Giro</a> é montado por máquina: os números saem de consulta ao
+              banco antes de qualquer texto existir, e a prosa escrita em cima deles passa por
+              uma auditoria que confere <strong>cada valor citado</strong> contra o agregado.
+              Edição que reprova <strong>não vai ao ar</strong>.
+            </p>
+            <p>
+              Isso só vale alguma coisa se as reprovações forem públicas — auditoria que barra em
+              silêncio é auditoria que ninguém confere. Então elas ficam aqui:
+            </p>
+          </div>
+          {barrados.length === 0 ? (
+            <p class="u-faint" style="margin-block-start: var(--space-s); font-size: var(--step--1)">
+              Nenhuma edição retida até agora.
+            </p>
+          ) : (
+            <div class="scroll-x" style="margin-block-start: var(--space-s)">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Edição</th>
+                    <th>Semana</th>
+                    <th>Por que não saiu</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {barrados.map((b) => (
+                    <tr data-barrado={b.slug}>
+                      <td class="u-dado">{b.slug}</td>
+                      <td>{b.rotulo}</td>
+                      <td class="u-faint">{b.motivo ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* --- IA --- */}
@@ -944,6 +1012,298 @@ app.post('/assinar', async (c) => {
   // Sempre a mesma resposta, tenha ou não gravado: dizer "já existe"
   // entregaria a terceiros quem está na lista.
   return c.redirect('/?assinado=1', 303);
+});
+
+/* ------------------------------------------------------------------ giro
+ * O Giro da Semana.
+ *
+ * A pergunta que ele responde não é "o que saiu?" — é "o que foi a semana?".
+ * Três coisas o separam de um resumo automático qualquer, e as três estão
+ * na página, não no comentário do código:
+ *
+ *   · o destaque sai de uma FÓRMULA publicada, com o placar à vista, para o
+ *     leitor poder discordar da escolha vendo a conta;
+ *   · a prosa passa por auditoria contra os números, e a edição não sai se
+ *     inventar um;
+ *   · quando nenhum assunto alcança o piso de repercussão, o giro diz que
+ *     não houve destaque — e diz por quê.
+ *
+ * ⚠️ Antes de /:nucleo, como toda rota de caminho fixo.
+ */
+app.get('/giro', async (c) => {
+  const giros = await listarGiros(c.env.DB, 30);
+
+  c.header('Cache-Control', CACHE.listagem);
+  return c.html(
+    pagina(
+      <Documento
+        titulo="Giro da Semana"
+        descricao="O balanço semanal do Instituto Automação: o que a base registrou, o destaque e por que ele foi o destaque."
+        url={c.env.SITE_URL + '/giro'}
+      >
+        <h1>Giro da Semana</h1>
+        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
+          Toda segunda-feira, o balanço da semana que fechou: o que o radar registrou nos quatro
+          núcleos, o que o relógio mediu, e a notícia que mais repercutiu — com o placar que
+          justifica a escolha.
+        </p>
+
+        <div style="margin-block-start: var(--space-xl)">
+          {giros.length === 0 ? (
+            <Aviso>
+              <strong>O primeiro Giro sai na segunda-feira seguinte à primeira semana cheia de
+              coleta.</strong> Ele não é escrito na segunda de manhã: é montado a partir do que a
+              base registrou, e por isso depende de haver semana registrada.
+            </Aviso>
+          ) : (
+            giros.map((g) => (
+              <article class="item" data-edicao={g.slug}>
+                <div class="item__topo">
+                  <Kicker>{g.rotulo}</Kicker>
+                  <span class="u-dado u-faint" style="font-size:var(--step--2)">
+                    {g.agregado.totais.itens} itens
+                  </span>
+                  {!g.agregado.destaque && <Selo tipo="radar">sem destaque</Selo>}
+                </div>
+                <h3 class="item__titulo">
+                  <a href={`/giro/${g.slug}`}>{g.titulo}</a>
+                </h3>
+                {g.lead && <p class="item__resumo">{g.lead}</p>}
+              </article>
+            ))
+          )}
+        </div>
+      </Documento>,
+    ),
+  );
+});
+
+app.get('/giro/:slug', async (c) => {
+  const g = await obterGiro(c.env.DB, c.req.param('slug'));
+  if (!g) return c.notFound();
+  const a = g.agregado;
+
+  c.header('Cache-Control', CACHE.item);
+  return c.html(
+    pagina(
+      <Documento
+        titulo={`${g.titulo} · Giro de ${g.rotulo}`}
+        descricao={g.lead ?? undefined}
+        url={`${c.env.SITE_URL}/giro/${g.slug}`}
+      >
+        <Kicker>Giro da Semana</Kicker>
+        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{g.titulo}</h1>
+        <p class="u-dado" style="margin-block-start: var(--space-2xs)">
+          {g.rotulo}
+          {Boolean(g.simulado) && (
+            <>
+              {' · '}
+              <Selo tipo="pendente">texto simulado · sem chamada à API</Selo>
+            </>
+          )}
+        </p>
+
+        {g.lead && (
+          <div class="obra" style="margin-block-start: var(--space-m)">
+            <p class="lead">{g.lead}</p>
+          </div>
+        )}
+
+        {/* --- os números da semana, antes de qualquer prosa --- */}
+        <div class="numeros" style="margin-block-start: var(--space-l)">
+          <Numero valor={a.totais.itens} rotulo="itens coletados" />
+          <Numero valor={a.totais.fontes} rotulo="fontes que publicaram" />
+          <Numero valor={a.relogio.naoChegaram} rotulo="assuntos que não chegaram ao Brasil" />
+          <Numero
+            valor={a.relogio.medianaDias === null ? '—' : `${a.relogio.medianaDias} d`}
+            rotulo="atraso mediano apurado"
+          />
+        </div>
+
+        {/* --- o destaque, e a conta que o elegeu --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo={a.destaque ? 'O destaque da semana' : 'Esta semana não teve destaque'} />
+          {g.destaque_texto && (
+            <div class="obra" style="font-size: var(--step-0)">
+              <p>{g.destaque_texto}</p>
+            </div>
+          )}
+
+          {a.destaque?.item_slug && a.destaque.item_nucleo && (
+            <p style="margin-block-start: var(--space-s)">
+              <a href={`/${a.destaque.item_nucleo}/${a.destaque.item_slug}`}>
+                {a.destaque.item_titulo}
+              </a>
+            </p>
+          )}
+
+          <div style="margin-block-start: var(--space-l)">
+            <p class="u-muted" style="max-width: var(--measure); font-size: var(--step--1)">
+              <strong>A escolha é uma conta, não um gosto.</strong> Cada assunto da semana
+              recebe pontos por quantas fontes independentes o cobriram, pelo peso editorial
+              delas, por ainda não ter sido mencionado no Brasil e pelo veredito. O piso para
+              entrar no placar é {PISO_FONTES} fontes independentes — notícia da semana precisa
+              ter sido notícia para mais de um.
+            </p>
+            <p class="u-faint" style="max-width: var(--measure); font-size: var(--step--2)">
+              Outros <strong>{a.sozinhos}</strong> assuntos apareceram em uma fonte só e ficaram
+              de fora do placar. Esse número também mede a nossa limitação: parte deles é a mesma
+              notícia que o agrupamento por título não juntou.{' '}
+              <a href="/blueprints">Como medimos</a>.
+            </p>
+          </div>
+
+          {a.placar.length > 0 && (
+            <div style="margin-block-start: var(--space-m)">
+              <div class="scroll-x" style="margin-block-start: var(--space-s)">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Assunto</th>
+                      <th>Fontes</th>
+                      <th>Alcance</th>
+                      <th>Inédito aqui</th>
+                      <th>Veredito</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {a.placar.map((cand) => (
+                      <tr data-placar={cand.assunto_id}>
+                        <td>
+                          {cand.item_slug && cand.item_nucleo ? (
+                            <a href={`/${cand.item_nucleo}/${cand.item_slug}`}>{cand.rotulo}</a>
+                          ) : (
+                            cand.rotulo
+                          )}
+                          {cand.assunto_id === a.destaque?.assunto_id && (
+                            <span class="u-faint"> · destaque</span>
+                          )}
+                        </td>
+                        <td class="u-dado">{cand.fontes}</td>
+                        <td class="u-dado">{cand.parcelas.alcance}</td>
+                        <td class="u-dado">{cand.parcelas.ineditismo}</td>
+                        <td class="u-dado">{cand.parcelas.veredito}</td>
+                        <td class="u-dado">
+                          <strong>{cand.pontos}</strong>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* --- a semana em cada núcleo --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="A semana em cada núcleo" />
+          {a.porNucleo.map((n) => {
+            const frase = g.nucleos.find((x) => x.nucleo === n.nucleo)?.frase;
+            return (
+              <div class={`bloco-nucleo ${NUCLEOS[n.nucleo].classe}`}>
+                <h3 class="bloco-nucleo__titulo">
+                  <a href={`/${n.nucleo}`}>{NUCLEOS[n.nucleo].nome}</a>
+                  <span class="u-dado">
+                    {' · '}
+                    {n.itens} {n.itens === 1 ? 'item' : 'itens'}
+                  </span>
+                </h3>
+                {frase && <p style="max-width: var(--measure)">{frase}</p>}
+                {n.topo.length > 0 && (
+                  <ul class="lista-seca">
+                    {n.topo.map((t) => (
+                      <li>
+                        {t.slug ? <a href={`/${n.nucleo}/${t.slug}`}>{t.titulo}</a> : t.titulo}
+                        <span class="u-faint"> — {t.fonte}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* --- as vozes --- */}
+        {a.vozes.length > 0 && (
+          <div style="margin-block-start: var(--space-2xl)">
+            <Secao titulo="O que as vozes disseram" />
+            <p class="u-muted" style="max-width: var(--measure); font-size: var(--step--1)">
+              Pessoas públicas que publicam com nome próprio. Não é a mesma coisa que uma
+              redação noticiar — e por isso aparecem em separado, com o nome de quem assina.
+            </p>
+            <ul class="lista-seca" style="margin-block-start: var(--space-s)">
+              {a.vozes.map((v) => (
+                <li data-voz={v.pessoa}>
+                  <strong>{v.pessoa}</strong>
+                  {v.papel && <span class="u-faint"> · {v.papel}</span>}
+                  <br />
+                  <a href={v.url} rel="nofollow noopener" target="_blank">
+                    {v.titulo}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* --- o que vem pela frente --- */}
+        {a.agenda.length > 0 && (
+          <div style="margin-block-start: var(--space-2xl)">
+            <Secao titulo="Nos próximos 30 dias" acao={{ texto: 'Agenda completa', href: '/agenda' }} />
+            <ul class="lista-seca">
+              {a.agenda.map((e) => (
+                <li>
+                  <a href={`/agenda/${e.slug}`}>{e.titulo}</a>
+                  <span class="u-faint">
+                    {' '}
+                    — {dataBR(e.inicio, false)}
+                    {e.cidade ? `, ${e.cidade}` : ''} · {e.pais}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* --- como este giro foi montado --- */}
+        <div style="margin-block-start: var(--space-2xl)">
+          <Secao titulo="Como este giro foi montado" />
+          <div class="obra" style="font-size: var(--step--1)">
+            <p>
+              Os números vêm de consulta ao banco do Instituto, não de redação: contagens,
+              mediana e o placar são calculados antes de qualquer texto existir. A prosa é
+              escrita a partir <em>desses</em> números e passa por uma auditoria automática que
+              confere cada valor citado contra o agregado.{' '}
+              {g.auditoria && (
+                <>
+                  <strong>
+                    {g.auditoria.conferidas} conferências nesta edição, {g.auditoria.falhas.length}{' '}
+                    reprovada{g.auditoria.falhas.length === 1 ? '' : 's'}.
+                  </strong>{' '}
+                </>
+              )}
+              Edição que reprova não vai ao ar — fica registrada em{' '}
+              <a href="/blueprints">Blueprints</a> com o motivo.
+            </p>
+            <p>
+              <strong>A fórmula do destaque:</strong> {FORMULA.repercussao}; {FORMULA.alcance};{' '}
+              {FORMULA.ineditismo}; {FORMULA.veredito}. O ineditismo pesa mais que a repercussão
+              de propósito — a pergunta que este veículo existe para responder é o que{' '}
+              <em>não</em> chegou aqui.
+            </p>
+            <p class="u-faint">
+              Os dados desta edição estão congelados na data em que ela saiu. Se a base mudar
+              depois, esta página continua dizendo o que dizia — balanço que se reescreve não é
+              balanço.
+            </p>
+          </div>
+        </div>
+      </Documento>,
+    ),
+  );
 });
 
 /* --------------------------------------------------------------- a obra
@@ -1307,7 +1667,41 @@ export default {
    *
    * Testar local:  npm run dev  →  curl "localhost:8787/cdn-cgi/handler/scheduled"
    */
-  async scheduled(_evento: ScheduledController, env: Env, ctx: ExecutionContext) {
+  async scheduled(evento: ScheduledController, env: Env, ctx: ExecutionContext) {
+    /**
+     * Dois ritmos, um handler.
+     *
+     * `0 11 * * 1` é o Giro da Semana, e ele NÃO divide invocação com o
+     * coletor: a segunda de manhã é o pior momento para as duas coisas
+     * disputarem o orçamento de CPU, e o cron das 11h05 já traz o coletor de
+     * volta. Comparar o padrão que disparou é a forma barata de separar —
+     * flag em variável de ambiente teria de ser lembrada em dois lugares.
+     */
+    /* `--test-scheduled` entrega o cron como veio na query, e `+` na query
+       é espaço em algumas rotas e literal em outras. Normalizar aqui custa
+       uma linha e evita passar meia hora achando que o despacho está
+       quebrado quando o que está diferente é a codificação da URL. */
+    const cron = (evento.cron ?? '').replace(/\+/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (cron === CRON_GIRO) {
+      ctx.waitUntil(
+        (async () => {
+          try {
+            const g = await montarGiro(env);
+            console.log(
+              `[giro] ${g.slug} (${g.rotulo}) · ${g.publicou ? 'PUBLICADO' : 'retido'} · ` +
+                `${g.conferidas} conferências${g.simulado ? ' · SIMULADO' : ''} · ` +
+                `R$ ${g.custo_brl.toFixed(4)} no dia · ${g.ms}ms`,
+            );
+            if (!g.publicou) console.warn(`[giro] retido: ${g.motivo}`);
+          } catch (e) {
+            console.error('[giro] falhou inteiro:', e);
+          }
+        })(),
+      );
+      return;
+    }
+
     ctx.waitUntil(
       (async () => {
         // Coletor primeiro, pipeline depois — e o pipeline nunca pode

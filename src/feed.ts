@@ -9,6 +9,7 @@
 import type { Env, ChaveNucleo } from './config';
 import { NUCLEOS, ORDEM_NUCLEOS } from './config';
 import { listarRadar, listarObras, listarAgenda, type Obra, type ItemRadar } from './db';
+import { listarGiros } from './giro';
 import { caminhoObra } from './ui/pecas';
 
 /** XML não perdoa `&` solto — nem em título de notícia alemã. */
@@ -88,6 +89,7 @@ export async function sitemap(env: Env): Promise<string> {
   const urls: { loc: string; mod?: string | null }[] = [
     { loc: `${base}/` },
     { loc: `${base}/agenda` },
+    { loc: `${base}/giro` },
     ...ORDEM_NUCLEOS.map((n) => ({ loc: `${base}/${n}` })),
   ];
 
@@ -95,6 +97,9 @@ export async function sitemap(env: Env): Promise<string> {
     for (const i of await listarRadar(env.DB, n, 200)) {
       urls.push({ loc: `${base}/${i.nucleo}/${i.slug}`, mod: i.publicado_em });
     }
+  }
+  for (const g of await listarGiros(env.DB, 200)) {
+    urls.push({ loc: `${base}/giro/${g.slug}`, mod: g.publicado_em });
   }
   for (const o of await listarObras(env.DB, {}, 200)) {
     urls.push({ loc: base + caminhoObra(o), mod: o.publicado_em });

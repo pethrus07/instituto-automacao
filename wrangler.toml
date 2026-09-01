@@ -24,10 +24,15 @@ database_id = "PREENCHER-APOS-CRIAR"
 # binding = "MIDIA"
 # bucket_name = "instituto-midia"
 
-# O coletor. A cada 15 min para fonte liberada de alta confiança; o próprio
-# coletor decide o que está vencido pelo intervalo_min de cada fonte.
+# Dois ritmos, e o handler despacha pelo padrão que disparou.
+#
+#   */15 * * * *  coletor + pipeline. O próprio coletor decide o que está
+#                 vencido pelo intervalo_min de cada fonte.
+#   0 11 * * 1    o Giro da Semana, segunda 11:00 UTC = 08:00 em Brasília.
+#                 Cobre a semana que fechou no domingo — nunca a corrente,
+#                 que ainda vai mudar.
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/15 * * * *", "0 11 * * 1"]
 
 # Deixa importar os CSS do sistema de design como texto, sem etapa de build.
 [[rules]]

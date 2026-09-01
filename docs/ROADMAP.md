@@ -12,7 +12,7 @@ Panorama existir. Essa parte não acelera.
 | Sprint | Semana | Entrega | Marco |
 |---|---|---|---|
 | **0** ✅ | 30/08 | conceito · sistema de design · planning · Worker + schema + rotas · **coletor** | feito |
-| **1** | 31/08 – 06/09 | fontes reais classificadas · **robots.txt obedecido** · sitemap de notícias · robustez do coletor | |
+| **1** | 31/08 – 06/09 | fontes reais classificadas · **robots.txt obedecido** · sitemap de notícias · **Giro da Semana + vozes** · robustez do coletor | |
 | **2** | 07/09 – 13/09 | pipeline de IA · teto de custo · atraso apurado · página com conteúdo real | 🎯 **P0 · 14/09** |
 | **3** | 14/09 – 20/09 | agenda nos 4 núcleos · filtro por URL · `schema.org/Event` | |
 | **4** | 21/09 – 27/09 | WhatsApp como backoffice: fila, aprovar/descartar/editar, Leitura | |
@@ -122,13 +122,15 @@ O que transforma o protótipo em veículo.
 |---|---|
 | Busca (FTS5 do D1) | quando houver conteúdo o bastante para procurar |
 | Fila (Cloudflare Queues) | se o coletor passar de ~30 s por invocação |
-| Embeddings para agrupar assunto | quando a normalização de título errar demais |
+| Embeddings para agrupar assunto | **deixou de ser dívida técnica.** O Giro publica toda semana quantos assuntos ficaram com uma fonte só (49 na primeira edição) — o número está na cara do leitor, e boa parte dele é a mesma notícia que o título não juntou |
 | Envio da newsletter | quando houver lista que justifique |
 | Diretório de fornecedores | fase 2, é receita |
 | Página de "perguntas abertas" para orientadores | junto do dataset com DOI |
 | Espanhol nas fontes | depois de EN e DE estarem estáveis |
 | Repositório público | quando estiver apresentável **e** o acordo do código estiver escrito |
 | **Marca gráfica (logotipo)** | **futuro breve.** Hoje o wordmark centralizado do cabeçalho faz o papel — é assim que jornal e revista acadêmica vivem sem símbolo. Quando entrar, o símbolo deve nascer no mesmo vocabulário das capas geradas (varredura de radar, malha de pontos), porque aí ele já vem com sistema em vez de virar um desenho solto. Serve também de favicon e de assinatura na OG image |
+| **Newsletter do Giro** | a lista de e-mail já existe e não tem envio; o Giro é o conteúdo óbvio para ela, e é semanal por natureza |
+| **Mais vozes brasileiras** | hoje só uma (Rodrigo Ghedin), e nenhuma de automação industrial. É o buraco mais visível da lista de fontes |
 | **Coletor por API com credencial** | GitHub REST, Reddit OAuth, YouTube Data API. São as saídas legítimas das 4 fontes que o `robots.txt` recusa — e o robots do GitHub literalmente oferece a API no comentário do topo. É JSON, não RSS: coletor novo, não um parser a mais |
 | **Pedido de acesso às publicações** | Control Engineering, Automation World, WEG. Não é código, é uma mensagem — e o Control Engineering merece segunda medição: o `robots.txt` dele permite, o 403 veio do WAF |
 | Sitemap onde o feed é pobre | hoje o sitemap-news é saída para quem proíbe o RSS; algumas fontes têm sitemap mais completo que o próprio feed |

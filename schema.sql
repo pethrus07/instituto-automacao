@@ -7,6 +7,7 @@
 -- feed guarda só as últimas dezenas de itens.
 -- =========================================================================
 
+DROP TABLE IF EXISTS giro;
 DROP TABLE IF EXISTS correcao;
 DROP TABLE IF EXISTS obra;
 DROP TABLE IF EXISTS item;
@@ -42,6 +43,14 @@ CREATE TABLE fonte (
   licenca_evidencia TEXT,
   licenca_conferida TEXT,
   confianca         TEXT NOT NULL DEFAULT 'media' CHECK (confianca IN ('alta','media','baixa')),
+  -- VOZ: pessoa publica que publica com nome proprio. E um EIXO, nao um
+  -- tipo — `tipo` diz o MEIO (imprensa, forum, social), `pessoa` diz de QUEM
+  -- e a assinatura. Um blog pessoal e meio 'imprensa' COM pessoa; a IEEE
+  -- Spectrum e meio 'imprensa' SEM pessoa. Para o Giro a diferenca e
+  -- substantiva: "a Spectrum noticiou" e "Rodney Brooks escreveu" nao pesam
+  -- igual, e um giro que nao sabe disso vira agregador.
+  pessoa            TEXT,
+  pessoa_papel      TEXT,
   -- 1 = fonte BR que quase nunca é publicada: existe para medir o atraso
   marca_relogio     INTEGER NOT NULL DEFAULT 0,
   peso              INTEGER NOT NULL DEFAULT 5,
@@ -252,3 +261,44 @@ CREATE TABLE assinante (
   confirmado INTEGER NOT NULL DEFAULT 0,
   criado_em  TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- -------------------------------------------------------------------------
+-- giro — a edicao semanal, congelada
+--
+-- Nao e `obra` de proposito: obra e texto ASSINADO, com responsabilidade de
+-- quem assina. O giro e montado a partir da base e auditado por maquina.
+-- Misturar os dois borraria a linha que o projeto inteiro existe para manter.
+-- -------------------------------------------------------------------------
+CREATE TABLE giro (
+  id             TEXT PRIMARY KEY,
+  -- `2026-s36`: semana ISO. Fronteira fixa de proposito — janela movel de 7
+  -- dias daria recorte diferente a cada execucao, e a edicao deixaria de ser
+  -- reproduzivel.
+  slug           TEXT UNIQUE NOT NULL,
+  inicio         TEXT NOT NULL,
+  fim            TEXT NOT NULL,
+  rotulo         TEXT NOT NULL,
+
+  titulo         TEXT NOT NULL,
+  lead           TEXT,
+  destaque_texto TEXT,
+  por_nucleo     TEXT,
+
+  -- O agregado inteiro, CONGELADO. A pagina le o placar daqui e nao refaz a
+  -- conta: o giro da semana 36 tem de continuar dizendo o que dizia na
+  -- semana 36. Sem isso, "publicamos os nossos dados" vira "publicamos os
+  -- dados de hoje".
+  agregado       TEXT NOT NULL,
+  -- O que a auditoria conferiu, inclusive quando passa: auditoria que so
+  -- aparece no erro nao da para verificar.
+  auditoria      TEXT,
+  simulado       INTEGER NOT NULL DEFAULT 0,
+
+  status         TEXT NOT NULL DEFAULT 'rascunho'
+                 CHECK (status IN ('rascunho','publicado','arquivado')),
+  motivo_rascunho TEXT,
+  publicado_em   TEXT,
+  criado_em      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_giro_periodo ON giro(status, inicio DESC);

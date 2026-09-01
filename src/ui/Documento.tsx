@@ -90,6 +90,7 @@ export const Documento = (p: Props) => {
                 </a>
               ))}
               <a href="/agenda">Agenda</a>
+              <a href="/giro">Giro</a>
               <a href="/panorama">Panorama</a>
               <a href="/glossario" class="navbar__secundario">Glossário</a>
               <a href="/blueprints" class="navbar__secundario">Blueprints</a>

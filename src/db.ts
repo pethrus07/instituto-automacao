@@ -395,6 +395,8 @@ export type FonteInventario = {
   robots_atraso: number | null;
   robots_motivo: string | null;
   robots_conferido: string | null;
+  pessoa: string | null;
+  pessoa_papel: string | null;
 };
 
 /**
@@ -410,7 +412,8 @@ export async function inventarioFontes(db: D1Database): Promise<FonteInventario[
     .prepare(
       `SELECT nome, veiculo, url_site, tipo, idioma, pais, licenca,
               licenca_evidencia, marca_relogio, ativo,
-              robots_permite, robots_atraso, robots_motivo, robots_conferido
+              robots_permite, robots_atraso, robots_motivo, robots_conferido,
+              pessoa, pessoa_papel
          FROM fonte ORDER BY licenca, nome`,
     )
     .all<FonteInventario>();
