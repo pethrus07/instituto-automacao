@@ -13,7 +13,7 @@ import {
   EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
   AssinaturaObra, ObraNaLista, LeituraNoItem, ROTULO_OBRA,
   Veredito, Destaque, Numero, ROTULO_VEREDITO,
-  ItemSecundario, ItemLinha, CardNucleo,
+  ItemSecundario, ItemLinha, CardNucleo, Paginacao,
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
 import { renderizarObra, minutosDeLeitura } from './ui/markdown';
@@ -28,6 +28,7 @@ import {
   listarObras, obterObra, leituraDoItem, type FormatoObra,
   placar, destaque as itemDestaque,
   listarGlossario, inventarioFontes, listarCorrecoes, assinar, contarAssinantes,
+  contarRadar, contarRadarPorVeredito,
 } from './db';
 import { coletar } from './coletor';
 import { processar } from './pipeline';
@@ -975,27 +976,59 @@ app.get('/:nucleo', async (c) => {
   const v = c.req.query('v');
   const filtrandoVeredito = v && ROTULO_VEREDITO[v] ? v : undefined;
 
+  /**
+   * Paginação.
+   *
+   * TODA página tem o mesmo tamanho: a 1 é manchete + 3 secundárias + 26 de
+   * fluxo; as seguintes são 30 de fluxo. Páginas de tamanhos diferentes
+   * fazem a conta do intervalo mentir — foi o que produziu "61–59 de 59".
+   *
+   * E o filtro de veredito vai no SQL, não na lista carregada.
+   */
+  const POR_PAGINA = 30;
+  const paginaAtual = Math.max(1, Number.parseInt(c.req.query('p') ?? '1', 10) || 1);
+  const naPrimeira = paginaAtual === 1;
+
+  const total = filtrandoVeredito
+    ? await contarRadarPorVeredito(c.env.DB, chave, filtrandoVeredito)
+    : await contarRadar(c.env.DB, chave);
+  const ultimaPagina = Math.max(1, Math.ceil(total / POR_PAGINA));
+
+  // Página além do fim é 404, não página vazia: página fantasma vira espaço
+  // infinito para rastreador e soft-404 na busca.
+  if (paginaAtual > ultimaPagina) return c.notFound();
+
   const [todos, obras, manchete] = await Promise.all([
-    listarRadar(c.env.DB, chave, 40),
-    listarObras(c.env.DB, { nucleo: chave }, 5),
-    itemDestaque(c.env.DB, chave),
+    listarRadar(
+      c.env.DB,
+      chave,
+      POR_PAGINA,
+      (paginaAtual - 1) * POR_PAGINA,
+      filtrandoVeredito,
+    ),
+    naPrimeira ? listarObras(c.env.DB, { nucleo: chave }, 5) : Promise.resolve([]),
+    naPrimeira && !filtrandoVeredito
+      ? itemDestaque(c.env.DB, chave)
+      : Promise.resolve(null),
   ]);
 
   // O filtro por veredito é o que dá rosto à pergunta-assinatura: a lista do
   // que o setor lançou lá fora e não chegou aqui.
-  // A manchete sai da lista para não aparecer duas vezes; as três seguintes
-  // viram o nível 2, e o resto vira fluxo. Sob filtro não há níveis: o
-  // recorte é resposta a uma pergunta, e ali toda linha vale o mesmo.
-  const restantes = filtrandoVeredito
-    ? todos.filter((i) => i.contexto_veredito === filtrandoVeredito)
-    : todos.filter((i) => i.id !== manchete?.id);
-  const secundarias = filtrandoVeredito ? [] : restantes.slice(0, 3);
-  const fluxo = filtrandoVeredito ? restantes : restantes.slice(3);
+  // A manchete sai da lista para não aparecer duas vezes. Sob filtro não há
+  // níveis: o recorte é resposta a uma pergunta, e ali toda linha vale o
+  // mesmo.
+  const restantes = todos.filter((i) => i.id !== manchete?.id);
+  const comNiveis = naPrimeira && !filtrandoVeredito;
+  const secundarias = comNiveis ? restantes.slice(0, 3) : [];
+  const fluxo = comNiveis ? restantes.slice(3) : restantes;
+
+  const buscaNucleo = new URLSearchParams();
+  if (filtrandoVeredito) buscaNucleo.set('v', filtrandoVeredito);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
-      <Documento titulo="Radar" nucleo={chave} descricao={n.resumo} url={`${c.env.SITE_URL}/${chave}${filtrandoVeredito ? `?v=${filtrandoVeredito}` : ''}`}>
+      <Documento titulo="Radar" nucleo={chave} descricao={n.resumo} url={`${c.env.SITE_URL}/${chave}${buscaNucleo.toString() || paginaAtual > 1 ? `?${new URLSearchParams([...buscaNucleo, ...(paginaAtual > 1 ? [['p', String(paginaAtual)] as [string, string]] : [])])}` : ''}`}>
         <h1>{n.nome}</h1>
         <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
           {n.resumo}
@@ -1024,7 +1057,7 @@ app.get('/:nucleo', async (c) => {
           ))}
         </div>
 
-        {manchete && !filtrandoVeredito && (
+        {manchete && naPrimeira && !filtrandoVeredito && (
           <div style="margin-block-start: var(--space-xl)">
             <Destaque item={manchete} />
           </div>
@@ -1032,7 +1065,7 @@ app.get('/:nucleo', async (c) => {
 
         {/* Sob filtro de veredito a obra sai: ela não tem veredito, e mostrá-la
             ali entregaria lista misturada onde a página prometeu um recorte. */}
-        {obras.length > 0 && !filtrandoVeredito && (
+        {obras.length > 0 && naPrimeira && !filtrandoVeredito && (
           <div style="margin-block-start: var(--space-xl)">
             <Secao titulo="Obra" />
             {obras.map((o) => (
@@ -1093,6 +1126,13 @@ app.get('/:nucleo', async (c) => {
               ))}
             </div>
           )}
+          <Paginacao
+            base={`/${chave}`}
+            busca={buscaNucleo}
+            pagina={paginaAtual}
+            porPagina={POR_PAGINA}
+            total={total}
+          />
         </div>
       </Documento>,
     ),

@@ -556,6 +556,55 @@ checar(
 );
 medidas.capaComNumeros = temNumeros ? 'sim' : 'ainda não';
 
+/* ------------------------------------------------------ B. PAGINAÇÃO */
+titulo('B · Conformidade — paginação e volume');
+
+const POR_PAGINA_QA = 30;
+const totalIndustria = sql(
+  `SELECT COUNT(*) n FROM item WHERE nucleo='industria' AND status='publicado'`,
+)[0].n;
+const ultimaEsperada = Math.max(1, Math.ceil(totalIndustria / POR_PAGINA_QA));
+medidas.itensIndustria = totalIndustria;
+medidas.paginasIndustria = ultimaEsperada;
+
+/**
+ * A soma das páginas tem de dar o total.
+ *
+ * Item que não cabe em página nenhuma some do site sem ninguém notar: não dá
+ * 404, não dá erro, simplesmente nunca é alcançável. Esta é a asserção que
+ * pega isso.
+ */
+let somaPaginas = 0;
+for (let n = 1; n <= ultimaEsperada; n++) {
+  const r = await pegar(n === 1 ? '/industria' : `/industria?p=${n}`);
+  checar('B', `página ${n} do radar responde`, r.status === 200, `veio ${r.status}`);
+  somaPaginas += (r.corpo.match(/ data-item/g) ?? []).length;
+  if (ultimaEsperada > 1) {
+    checar(
+      'B',
+      `página ${n} tem canonical próprio`,
+      n === 1
+        ? r.corpo.includes('rel="canonical" href="http://localhost:8787/industria"')
+        : r.corpo.includes(`p=${n}"`),
+      'sem canonical próprio as páginas competem entre si na busca',
+    );
+  }
+}
+checar(
+  'B',
+  'a soma das páginas devolve TODOS os itens',
+  somaPaginas === totalIndustria,
+  `as páginas somam ${somaPaginas}, o banco tem ${totalIndustria} — a diferença é item inalcançável`,
+);
+
+const alemDoFim = await pegar(`/industria?p=${ultimaEsperada + 5}`);
+checar(
+  'B',
+  'página além do fim devolve 404',
+  alemDoFim.status === 404,
+  'página fantasma vira espaço infinito para rastreador e soft-404 na busca',
+);
+
 /* --------------------------------------------------------- B. OBRA E FEED */
 titulo('B · Conformidade — a obra assinada e a distribuição');
 

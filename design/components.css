@@ -969,3 +969,29 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .nucleo-card--frio  { opacity: .82; }
 .nucleo-card--frio:hover { opacity: 1; }
 .nucleo-card__pe { font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); }
+
+
+/* -------------------------------------------------------------------------
+   PAGINAÇÃO
+
+   Sem JavaScript e com URL própria por página — o leitor pode marcar a
+   página 3, mandar no WhatsApp e voltar nela. Rolagem infinita perderia
+   isso, e ainda tiraria o rodapé do alcance de quem quer chegar nele.
+   ------------------------------------------------------------------------- */
+.paginacao {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-s);
+  padding-block: var(--space-l);
+  border-block-start: var(--border-hair);
+  font-family: var(--face-fluxo); font-size: var(--step--1);
+}
+.paginacao__onde { color: var(--ink-faint); font-size: var(--step--2); }
+.paginacao__botoes { display: flex; gap: var(--space-2xs); }
+.paginacao a, .paginacao span[aria-disabled] {
+  display: inline-flex; align-items: center; gap: var(--space-3xs);
+  padding: var(--space-2xs) var(--space-s);
+  border: var(--border-firm); border-radius: var(--radius-s);
+  text-decoration: none; color: var(--marca);
+}
+.paginacao a:hover { border-color: var(--marca); background: var(--marca-clara); }
+.paginacao span[aria-disabled] { color: var(--ink-faint); border-color: var(--rule); }

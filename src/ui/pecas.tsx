@@ -614,3 +614,57 @@ export const CardNucleo = (p: { chave: ChaveNucleo; total: number; ultimo: strin
     </article>
   );
 };
+
+
+/**
+ * Paginação sem JavaScript, com URL própria por página.
+ *
+ * Rolagem infinita seria mais fácil e pior: a página 3 deixaria de ter
+ * endereço, ninguém conseguiria marcá-la nem mandá-la no WhatsApp, e o
+ * rodapé ficaria inalcançável para quem quer chegar nele.
+ */
+export const Paginacao = (p: {
+  base: string;
+  busca: URLSearchParams;
+  pagina: number;
+  porPagina: number;
+  total: number;
+}) => {
+  const ultima = Math.max(1, Math.ceil(p.total / p.porPagina));
+  if (ultima <= 1) return null;
+
+  const href = (n: number) => {
+    const q = new URLSearchParams(p.busca);
+    if (n > 1) q.set('p', String(n));
+    else q.delete('p');
+    const t = q.toString();
+    return t ? `${p.base}?${t}` : p.base;
+  };
+
+  const de = (p.pagina - 1) * p.porPagina + 1;
+  const ate = Math.min(p.pagina * p.porPagina, p.total);
+
+  return (
+    <nav class="paginacao" aria-label="Paginação">
+      <span class="paginacao__onde">
+        {de}–{ate} de {p.total} · página {p.pagina} de {ultima}
+      </span>
+      <span class="paginacao__botoes">
+        {p.pagina > 1 ? (
+          <a href={href(p.pagina - 1)} rel="prev">
+            ← Anteriores
+          </a>
+        ) : (
+          <span aria-disabled="true">← Anteriores</span>
+        )}
+        {p.pagina < ultima ? (
+          <a href={href(p.pagina + 1)} rel="next">
+            Mais antigas →
+          </a>
+        ) : (
+          <span aria-disabled="true">Mais antigas →</span>
+        )}
+      </span>
+    </nav>
+  );
+};

@@ -39,23 +39,37 @@ const CAMPOS = `
   a.atraso_br_dias AS atraso_br_dias
 `;
 
+/**
+ * O radar de um núcleo.
+ *
+ * ⚠️ O filtro de veredito é feito AQUI, no SQL, e não na lista já carregada.
+ * Filtrar em memória parece equivalente e não é: com 63 itens na base, o
+ * recorte "não chega" mostrava 8 de 16 — porque só via a primeira página.
+ * Recorte incompleto que não avisa é pior que recorte nenhum, e este só
+ * apareceu quando o volume foi medido.
+ */
 export async function listarRadar(
   db: D1Database,
   nucleo: ChaveNucleo,
   limite = 30,
   deslocamento = 0,
+  veredito?: string,
 ): Promise<ItemRadar[]> {
+  const cond = veredito ? 'AND i.contexto_veredito = ?4' : '';
+  const args: unknown[] = [nucleo, limite, deslocamento];
+  if (veredito) args.push(veredito);
+
   const { results } = await db
     .prepare(
       `SELECT ${CAMPOS}
          FROM item i
          JOIN fonte f   ON f.id = i.fonte_id
          LEFT JOIN assunto a ON a.id = i.assunto_id
-        WHERE i.nucleo = ?1 AND i.status = 'publicado'
+        WHERE i.nucleo = ?1 AND i.status = 'publicado' ${cond}
         ORDER BY i.publicado_em DESC
         LIMIT ?2 OFFSET ?3`,
     )
-    .bind(nucleo, limite, deslocamento)
+    .bind(...args)
     .all<ItemRadar>();
   return results ?? [];
 }
@@ -425,5 +439,37 @@ export async function assinar(db: D1Database, email: string, origem: string): Pr
 
 export async function contarAssinantes(db: D1Database): Promise<number> {
   const l = await db.prepare(`SELECT COUNT(*) n FROM assinante`).first<{ n: number }>();
+  return l?.n ?? 0;
+}
+
+
+/**
+ * Quantos itens publicados há num núcleo.
+ *
+ * Existe por causa da paginação: sem o total, a última página não sabe que é
+ * a última, e o leitor descobre pelo vazio. Contador separado é uma consulta
+ * a mais — e é mais barata que carregar tudo para saber o tamanho.
+ */
+export async function contarRadar(db: D1Database, nucleo: ChaveNucleo): Promise<number> {
+  const l = await db
+    .prepare(`SELECT COUNT(*) n FROM item WHERE nucleo = ?1 AND status = 'publicado'`)
+    .bind(nucleo)
+    .first<{ n: number }>();
+  return l?.n ?? 0;
+}
+
+/** O mesmo, para um recorte de veredito. */
+export async function contarRadarPorVeredito(
+  db: D1Database,
+  nucleo: ChaveNucleo,
+  veredito: string,
+): Promise<number> {
+  const l = await db
+    .prepare(
+      `SELECT COUNT(*) n FROM item
+        WHERE nucleo = ?1 AND status = 'publicado' AND contexto_veredito = ?2`,
+    )
+    .bind(nucleo, veredito)
+    .first<{ n: number }>();
   return l?.n ?? 0;
 }
