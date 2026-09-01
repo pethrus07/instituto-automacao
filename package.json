@@ -12,7 +12,9 @@
     "db:semente": "wrangler d1 execute instituto --local --file=./seed.sql",
     "db:zerar": "wrangler d1 execute instituto --local --command=\"SELECT 'use db:local para recriar'\"",
     "db:remoto": "wrangler d1 execute instituto --remote --file=./schema.sql",
-    "test": "node --experimental-strip-types scripts/testar-feed.ts",
+    "db:migrar": "wrangler d1 execute instituto --local --file=./migracoes/001-robots.sql && wrangler d1 execute instituto --local --file=./migracoes/002-sitemap.sql && wrangler d1 execute instituto --local --file=./migracoes/003-purga-robots.sql",
+    "db:migrar:remoto": "wrangler d1 execute instituto --remote --file=./migracoes/001-robots.sql && wrangler d1 execute instituto --remote --file=./migracoes/002-sitemap.sql && wrangler d1 execute instituto --remote --file=./migracoes/003-purga-robots.sql",
+    "test": "node --experimental-strip-types scripts/testar-feed.ts && node --experimental-strip-types scripts/testar-robots.ts",
     "qa": "node qa/verificar.mjs",
     "sondar": "node --experimental-strip-types scripts/sondar-fontes.ts",
     "db:fontes": "wrangler d1 execute instituto --local --file=./fontes.sql"

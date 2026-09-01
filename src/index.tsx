@@ -714,6 +714,19 @@ app.get('/glossario', async (c) => {
   );
 });
 
+/**
+ * O veredito do robots.txt em uma palavra, para a coluna do inventário.
+ *
+ * Três estados, e o terceiro importa tanto quanto os outros dois: enquanto o
+ * coletor não conferiu, a tabela diz que não conferiu — não fica em branco
+ * fingindo que está tudo certo.
+ */
+function vereditoRobots(permite: number | null): string {
+  if (permite === 1) return 'permite';
+  if (permite === 0) return 'não permite';
+  return 'não conferido';
+}
+
 /* ---------------------------------------------------------- blueprints
  * O que o The Markup chama de Blueprints: dataset, metodologia e processo
  * publicados como SEÇÃO, não como anexo. Anexo ninguém acha; seção tem
@@ -727,6 +740,7 @@ app.get('/blueprints', async (c) => {
   ]);
   const liberadas = fontes.filter((f) => f.licenca === 'liberada');
   const relogio = fontes.filter((f) => f.marca_relogio);
+  const recusadas = fontes.filter((f) => f.robots_permite === 0);
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
@@ -760,6 +774,7 @@ app.get('/blueprints', async (c) => {
                   <th>Origem</th>
                   <th>O que podemos fazer</th>
                   <th>Autorização</th>
+                  <th>robots.txt</th>
                 </tr>
               </thead>
               <tbody>
@@ -794,6 +809,18 @@ app.get('/blueprints', async (c) => {
                         <span class="u-faint">—</span>
                       )}
                     </td>
+                    {/* O veredito do robô é dado publicado, não nota de rodapé:
+                        é o que separa "a fonte deixou" de "a gente conseguiu". */}
+                    <td data-robots={vereditoRobots(f.robots_permite)}>
+                      <span class="u-dado">{vereditoRobots(f.robots_permite)}</span>
+                      {f.robots_atraso ? (
+                        <span class="u-faint"> · pede {f.robots_atraso}s</span>
+                      ) : null}
+                      <br />
+                      <span class="u-faint" style="font-size: var(--step--2)">
+                        {f.robots_motivo ?? 'ainda não consultado'}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -801,6 +828,12 @@ app.get('/blueprints', async (c) => {
           </div>
           <p class="u-faint" style="font-size: var(--step--2); margin-block-start: var(--space-s)">
             {liberadas.length} de {fontes.length} fontes autorizam tradução integral.{' '}
+            {recusadas.length > 0 && (
+              <>
+                {recusadas.length} {recusadas.length === 1 ? 'está' : 'estão'} fora do radar
+                porque o robots.txt não autoriza — e seguem listadas aqui de propósito.{' '}
+              </>
+            )}
             {relogio.length} são brasileiras e não são publicadas: existem para medir quando o
             assunto chegou aqui.
           </p>
@@ -828,8 +861,11 @@ app.get('/blueprints', async (c) => {
             <p>
               <em>Limitações declaradas:</em> o agrupamento por título erra quando duas notícias
               diferentes usam palavras muito parecidas, e acerta menos entre idiomas distantes.
-              Fonte que bloqueia robô não entra — e duas das principais publicações técnicas do
-              setor bloqueiam.
+              <strong> Fonte que bloqueia robô não entra</strong>, e não tentamos contornar: sem
+              trocar a identificação do nosso robô, sem proxy, sem navegador disfarçado. Se o
+              robots.txt de uma fonte sequer puder ser lido, ela também fica de fora — sem regra
+              legível não há autorização a supor. A coluna <em>robots.txt</em> na tabela acima diz
+              o veredito de cada uma e por quê.
             </p>
           </div>
         </div>
@@ -1281,7 +1317,8 @@ export default {
           const c = await coletar(env);
           console.log(
             `[coletor] ${c.fontes} fontes · ${c.novos} novos · ${c.repetidos} repetidos · ` +
-              `${c.ignorados} ignorados · ${c.adiados} adiados · ${c.erros.length} erros · ${c.ms}ms`,
+              `${c.ignorados} ignorados · ${c.adiados} adiados · ` +
+              `${c.recusados} recusados pelo robots · ${c.erros.length} erros · ${c.ms}ms`,
           );
           for (const e of c.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
         } catch (e) {

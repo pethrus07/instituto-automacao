@@ -45,8 +45,20 @@ CREATE TABLE fonte (
   -- 1 = fonte BR que quase nunca é publicada: existe para medir o atraso
   marca_relogio     INTEGER NOT NULL DEFAULT 0,
   peso              INTEGER NOT NULL DEFAULT 5,
+  -- De onde os itens vem. 'sitemap' e o caminho para fonte que fecha o RSS
+  -- no robots.txt e anuncia o sitemap-news no mesmo arquivo — traz titulo,
+  -- data e URL, que e 100% do que a medicao de atraso precisa.
+  colheita          TEXT NOT NULL DEFAULT 'feed' CHECK (colheita IN ('feed','sitemap')),
   intervalo_min     INTEGER NOT NULL DEFAULT 60,
   ativo             INTEGER NOT NULL DEFAULT 1,
+  -- O veredito do robots.txt da fonte, conferido pelo coletor e publicado no
+  -- inventario. NULL = ainda nao conferido; 1 = permite; 0 = a fonte pede que
+  -- nao coletemos OU o proprio robots.txt esta ilegivel (403) — sem regra
+  -- legivel nao ha consentimento a inferir, e o lado certo de errar e o dela.
+  robots_permite    INTEGER,
+  robots_atraso     REAL,
+  robots_motivo     TEXT,
+  robots_conferido  TEXT,
   ultima_coleta     TEXT,
   ultimo_erro       TEXT,
   criado_em         TEXT NOT NULL DEFAULT (datetime('now'))

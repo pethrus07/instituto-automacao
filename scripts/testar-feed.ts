@@ -8,6 +8,7 @@
  * permanente na base do Panorama, e nada na tela denuncia.
  */
 import { lerFeed, paraISO } from '../src/coletor/feed.ts';
+import { ehIndice, lerIndiceSitemaps, lerSitemapNoticias } from '../src/coletor/sitemap.ts';
 import { canonicalizar, chaveAssunto, slugificar } from '../src/coletor/url.ts';
 import { renderizarObra, minutosDeLeitura } from '../src/ui/markdown.ts';
 
@@ -224,6 +225,60 @@ conferir('o link continua sendo o do post', mast[0]!.link, 'https://floss.social
 conferir(
   'item sem titulo E sem texto continua descartado',
   lerFeed('<rss><item><link>https://x.com/1</link></item></rss>').length,
+  0,
+);
+
+/* -------------------------------------------------- sitemap de notícias */
+/* Recorte do sitemap-news real do Canaltech — a fonte que fecha o RSS no
+   robots.txt e anuncia este endereço no mesmo arquivo. */
+const SITEMAP = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  <url>
+    <loc>https://canaltech.com.br/seguranca/45-milhoes-de-brasileiros</loc>
+    <news:news>
+      <news:publication><news:name>Canaltech</news:name><news:language>pt</news:language></news:publication>
+      <news:publication_date>2026-09-01T10:03:00-03:00</news:publication_date>
+      <news:title><![CDATA[45 milh&#245;es de brasileiros j&#225; sofreram golpes - Canaltech]]></news:title>
+    </news:news>
+  </url>
+  <url>
+    <loc>https://canaltech.com.br/tag/automacao</loc>
+  </url>
+</urlset>`;
+
+console.log('Sitemap de notícias');
+const sm = lerSitemapNoticias(SITEMAP);
+conferir('lê a notícia', sm.length, 1);
+conferir('URL vem do <loc>', sm[0]!.link, 'https://canaltech.com.br/seguranca/45-milhoes-de-brasileiros');
+conferir(
+  'título sai de news:title, sem CDATA e com entidade resolvida',
+  sm[0]!.titulo,
+  '45 milhões de brasileiros já sofreram golpes - Canaltech',
+);
+conferir('a data com fuso -03:00 vira UTC', sm[0]!.publicado, '2026-09-01T13:03:00.000Z');
+conferir('sitemap não inventa resumo', sm[0]!.resumo, null);
+conferir(
+  'URL sem <news:news> (pagina de tag) NAO entra',
+  sm.map((e) => e.link).includes('https://canaltech.com.br/tag/automacao'),
+  false,
+);
+
+const INDICE = `<?xml version="1.0"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://x.com/velho.xml</loc><lastmod>2026-07-01T00:00:00Z</lastmod></sitemap>
+  <sitemap><loc>https://x.com/novo.xml</loc><lastmod>2026-08-30T00:00:00Z</lastmod></sitemap>
+</sitemapindex>`;
+conferir('índice é reconhecido como índice', ehIndice(INDICE), true);
+conferir('urlset NAO e confundido com indice', ehIndice(SITEMAP), false);
+conferir(
+  'o indice devolve o filho mais recente primeiro',
+  lerIndiceSitemaps(INDICE)[0],
+  'https://x.com/novo.xml',
+);
+conferir(
+  'indice nao vira noticia',
+  lerSitemapNoticias(INDICE).length,
   0,
 );
 

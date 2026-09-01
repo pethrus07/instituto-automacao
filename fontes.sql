@@ -27,6 +27,10 @@
 -- existindo e continua contando para o Panorama.
 UPDATE fonte SET ativo = 0 WHERE id LIKE 'f-%exemplo%';
 
+-- ⚠️ O Canaltech aparece abaixo com a URL do RSS e e corrigido no fim do
+-- arquivo. Ficou assim de proposito: a linha registra o que a sondagem de
+-- 01/09 achou, e a correcao registra o que o robots.txt disse depois. Juntas
+-- contam a historia; so a versao final esconderia o motivo.
 INSERT OR REPLACE INTO fonte (id, nome, url_site, url_feed, tipo, idioma, pais, nucleo,
                               licenca, licenca_evidencia, confianca, marca_relogio, intervalo_min, ativo)
 VALUES
@@ -50,3 +54,26 @@ VALUES
   ('f-youtube-automation-direct', 'YouTube · Automation Direct', 'https://www.youtube.com', 'https://www.youtube.com/feeds/videos.xml?user=automationdirect', 'video', 'en', 'US', 'industria', 'resumo', NULL, 'media', 0, 60, 1),
   ('f-github-n8n-releases', 'GitHub · n8n releases', 'https://github.com', 'https://github.com/n8n-io/n8n/releases.atom', 'release', 'en', 'DE', 'operacao', 'resumo', NULL, 'media', 0, 60, 1),
   ('f-github-home-assistant-releases', 'GitHub · Home Assistant releases', 'https://github.com', 'https://github.com/home-assistant/core/releases.atom', 'release', 'en', 'US', 'edificacoes', 'resumo', NULL, 'media', 0, 60, 1);
+
+-- =========================================================================
+-- O que o robots.txt disse, medido em 01/09/2026 pelo proprio coletor
+--
+-- Cinco fontes saem do radar por decisao delas, e ficam listadas em
+-- /blueprints dizendo isso. Nao ha contorno: nao trocamos a identificacao do
+-- robo, nao usamos proxy nem navegador disfarcado.
+--
+--   Canaltech          Disallow: /rss/          → tem sitemap de noticias
+--   Reddit r/PLC       Disallow: /r/PLC/.rss    → so pela API com credencial
+--   YouTube            Disallow: /feeds/        → so pela YouTube Data API
+--   GitHub (2 fontes)  Disallow: /*.atom$       → so pela REST API
+--
+-- As tres ultimas viram pendencia de coletor novo (JSON, com credencial), e
+-- estao no backlog. O Canaltech tem saida hoje: o MESMO robots.txt que fecha
+-- o /rss/ anuncia o sitemap-news, e o /smap/ nao esta proibido. Titulo, data
+-- e URL — que e 100% do que a medicao de atraso precisa.
+-- =========================================================================
+
+UPDATE fonte
+   SET colheita = 'sitemap',
+       url_feed = 'https://canaltech.com.br/smap/sitemap-news.xml'
+ WHERE id = 'f-canaltech';

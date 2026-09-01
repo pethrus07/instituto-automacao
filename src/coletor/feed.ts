@@ -54,7 +54,7 @@ function decodificar(s: string): string {
  * Então: CDATA → decodifica → tira tag → decodifica de novo (entidade
  * duplamente escapada, `&amp;amp;`) → colapsa espaço.
  */
-function limpar(bruto: string | null, maxLen = 1200): string | null {
+export function limpar(bruto: string | null, maxLen = 1200): string | null {
   if (bruto == null) return null;
   let s = bruto.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1');
   s = decodificar(s);
@@ -66,7 +66,7 @@ function limpar(bruto: string | null, maxLen = 1200): string | null {
 }
 
 /** Primeira ocorrência de <tag> em qualquer namespace (dc:date, media:title…). */
-function tag(bloco: string, nome: string): string | null {
+export function tag(bloco: string, nome: string): string | null {
   const re = new RegExp(`<(?:[a-z0-9]+:)?${nome}(?:\\s[^>]*)?>([\\s\\S]*?)</(?:[a-z0-9]+:)?${nome}>`, 'i');
   return re.exec(bloco)?.[1] ?? null;
 }

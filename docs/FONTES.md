@@ -65,6 +65,56 @@ que estava no backlog deixou de ser hipótese.
 no Mastodon trouxe post em coreano. Para tradução isso importa: o idioma tem
 de ser detectado por item, não herdado da fonte.
 
+## O robots.txt manda — medido em 01/09/2026
+
+Depois da primeira coleta, o coletor passou a **ler o `robots.txt` antes de buscar**. A postura
+é a mesma do resto do projeto: **não contornamos bloqueio.** Sem trocar a identificação do
+robô, sem proxy, sem navegador disfarçado. O argumento decisivo é interno ao produto —
+
+> O diferencial do Instituto é publicar em `/blueprints` o link que autoriza cada fonte.
+> Uma fonte obtida furando bloqueio apareceria nessa tabela como o quê?
+
+### Os três 403 eram três casos diferentes
+
+| Fonte | `robots.txt` | Leitura |
+|---|---|---|
+| Control Engineering | **200**, libera o curinga, bloqueia por nome Amazonbot/CCBot/ClaudeBot/Bytespider | o 403 é WAF, não política — vale pedir acesso |
+| Automation World | **403** no próprio `robots.txt` | sem regra legível não há consentimento a inferir |
+| WEG | **403** | idem |
+| The Robot Report | **200**, libera, pede `Crawl-delay: 10` | estava liberado e nós é que não respeitávamos |
+
+### E cinco fontes do radar novo caíram
+
+Todas da expansão de 31/08 — a que descobriu que fórum, vídeo e release também são RSS.
+**Feed existir não é o mesmo que feed poder ser lido**, e a sondagem media a primeira coisa
+achando que media a segunda.
+
+| Fonte | Regra | Saída legítima |
+|---|---|---|
+| **Canaltech** | `Disallow: /rss/` | ✅ **sitemap de notícias** |
+| Reddit · r/PLC | `Disallow: /r/PLC/.rss` | API OAuth (credencial) |
+| YouTube · Automation Direct | `Disallow: /feeds/` | YouTube Data API (chave) |
+| GitHub · n8n e Home Assistant | `Disallow: /*.atom$` | REST API — oferecida no próprio robots |
+
+### A porta que a fonte apontou
+
+O mesmo `robots.txt` do Canaltech que fecha o `/rss/` **anuncia**
+`Sitemap: .../smap/sitemap-news.xml`, e o `/smap/` não está proibido. O sitemap-news traz
+**título, data e URL** — que é **100% do que a medição de atraso precisa.** O Instituto nunca
+precisou do texto de ninguém: precisa saber *quando* o assunto foi publicado, e o resumo é
+escrito por nós.
+
+Por isso `fonte.colheita` agora vale `feed` ou `sitemap`, e o Canaltech — que é
+`marca_relogio`, nunca publicada — passou para sitemap sem perder nada do seu papel.
+
+### Os 50 itens coletados antes de perguntar
+
+O coletor rodou dois dias sem ler `robots.txt` e guardou 50 itens de fontes que dizem não.
+**Apagados** (migração `003`): mantê-los tornaria falsa a frase que o `/blueprints` publica. As
+fontes continuam listadas, com o veredito à vista — sumir com elas esconderia o ponto.
+
+---
+
 ## Como classificar
 
 ⚠️ **Toda fonte nasce `resumo`.** A sondagem mede se o feed responde; **não

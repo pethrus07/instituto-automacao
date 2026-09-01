@@ -790,6 +790,73 @@ checar(
   liberadasDb === 0 || blue.corpo.includes('>termos</a>'),
   'sem o link, o inventário vira "confie em nós" — que é justamente o que ele existe para não ser',
 );
+/* ---- robots.txt: a regra que decide quem entra no radar ---- */
+/* A promessa publicada é "fonte que bloqueia robô não entra". Isso não é
+   frase de página de método, é um invariante do banco — e aqui ele é medido.
+   Se algum dia um item de fonte recusada aparecer, a página fica mentindo e
+   o QA cai antes do deploy. */
+const proibidos = sql(
+  `SELECT COUNT(*) n FROM item i JOIN fonte f ON f.id = i.fonte_id
+    WHERE f.robots_permite = 0`,
+)[0].n;
+checar(
+  'B',
+  'NENHUM item vem de fonte que o robots.txt recusa',
+  proibidos === 0,
+  `${proibidos} itens de fonte que pediu para não ser coletada — o /blueprints promete o contrário`,
+);
+
+const vereditos = (blue.corpo.match(/data-robots="/g) ?? []).length;
+medidas.vereditosNoInventario = vereditos;
+checar(
+  'B',
+  'o inventário publica o veredito do robots de TODA fonte',
+  vereditos === fontesDb,
+  `publicou ${vereditos} vereditos para ${fontesDb} fontes`,
+);
+
+const recusadasDb = sql(`SELECT COUNT(*) n FROM fonte WHERE robots_permite = 0`)[0].n;
+checar(
+  'B',
+  'as fontes recusadas continuam listadas, dizendo que foram recusadas',
+  (blue.corpo.match(/data-robots="não permite"/g) ?? []).length === recusadasDb,
+  'esconder a fonte recusada esconderia exatamente o que o inventário existe para mostrar',
+);
+checar(
+  'B',
+  'e o texto do inventário confere com a contagem do banco',
+  recusadasDb === 0 || blue.corpo.includes(`${recusadasDb} ${recusadasDb === 1 ? 'está' : 'estão'} fora do radar`),
+);
+checar(
+  'B',
+  'o método declara que NÃO contornamos bloqueio',
+  blue.corpo.includes('sem proxy') && blue.corpo.includes('navegador disfarçado'),
+  'a postura tem de estar escrita onde o leitor lê, não só no comentário do código',
+);
+
+const colheitaInvalida = sql(
+  `SELECT COUNT(*) n FROM fonte WHERE colheita NOT IN ('feed','sitemap')`,
+)[0].n;
+checar(
+  'B',
+  'toda fonte tem um modo de colheita conhecido',
+  colheitaInvalida === 0,
+  'a migração 002 não pôde levar o CHECK do schema; esta asserção é a garantia no lugar dele',
+);
+
+/* Nenhuma fonte pode estar sendo coletada mais rápido do que pediu. O
+   Crawl-delay vem em segundos e o nosso intervalo em minutos. */
+const rapidoDemais = sql(
+  `SELECT COUNT(*) n FROM fonte
+    WHERE robots_atraso IS NOT NULL
+      AND intervalo_min * 60 < robots_atraso`,
+)[0].n;
+checar(
+  'B',
+  'nenhuma fonte é coletada mais rápido do que o Crawl-delay dela pede',
+  rapidoDemais === 0,
+);
+
 checar(
   'B',
   'o blueprints declara onde a IA NÃO decide',
@@ -950,9 +1017,22 @@ if (/fonts\.googleapis\.com/.test(radar)) {
 titulo('C · Qualidade — parser e canonicalização');
 try {
   const saida = execFileSync('npm', ['test'], { cwd: RAIZ, encoding: 'utf8', shell: true });
-  const m = /(\d+) ok · (\d+) falha/.exec(saida);
-  checar('C', `suíte do coletor: ${m?.[1] ?? '?'} conferências`, m && m[2] === '0', saida.slice(-400));
-  medidas.testesColetor = m?.[1];
+  /* `matchAll`, não `exec`: `npm test` roda MAIS DE UMA suíte (feed e
+     robots) e cada uma imprime o próprio placar. Com `exec` o QA lia só a
+     primeira e anunciava um número menor do que rodou — medição errada é
+     pior que medição nenhuma, porque parece medição. */
+  const placares = [...saida.matchAll(/(\d+) ok · (\d+) falha/g)];
+  const passaram = placares.reduce((t, m) => t + Number(m[1]), 0);
+  const quebraram = placares.reduce((t, m) => t + Number(m[2]), 0);
+  checar(
+    'C',
+    `suíte do coletor: ${passaram} conferências em ${placares.length} suíte(s)`,
+    placares.length >= 2 && quebraram === 0,
+    placares.length < 2
+      ? `só ${placares.length} suíte(s) reportou placar — alguma parou antes de imprimir`
+      : saida.slice(-400),
+  );
+  medidas.testesColetor = passaram;
 } catch (e) {
   checar('C', 'suíte do coletor', false, String(e.stdout ?? e).slice(-500));
 }

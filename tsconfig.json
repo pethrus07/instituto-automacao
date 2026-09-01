@@ -11,6 +11,10 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
+    // sitemap.ts importa feed.ts com extensao: e o unico jeito de os modulos
+    // de src/ rodarem tambem sob `node --experimental-strip-types`, que e como
+    // os testes exercitam o parser sem subir Worker.
+    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]

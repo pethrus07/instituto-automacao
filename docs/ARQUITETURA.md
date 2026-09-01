@@ -245,7 +245,53 @@ cara de veículo — o que nenhum agregador consegue.
 ⚠️ Consequência de cronograma: com manchete ilustrada na capa, o gerador de OG image sai do
 backlog e entra no **caminho crítico**.
 
-## 11. O que fica de fora, e quando volta
+## 11. Coleta — **o `robots.txt` manda, e não há contorno** ✅
+
+**Decisão:** o coletor lê o `robots.txt` do host antes de buscar, obedece o veredito e o
+`Crawl-delay`, e publica o resultado no inventário. Fonte que recusa **não entra**.
+
+**O que foi descartado**, com nome:
+
+| Alternativa | Por que não |
+|---|---|
+| Trocar o `User-Agent` para parecer navegador | funciona, e é exatamente o que o `robots.txt` existe para pedir que não se faça |
+| Proxy residencial | esconde a origem — um veículo que se esconde não é veículo |
+| Navegador sem cabeça para vencer detecção | mesma coisa, mais caro |
+| Ignorar o `robots.txt` porque "não é lei" | não é. É pedido, e a diferença entre nós e um raspador é honrar pedido |
+
+**O argumento decisivo é interno ao produto**, não moral: o `/blueprints` publica o link que
+autoriza cada fonte. Uma fonte obtida furando bloqueio apareceria naquela tabela como o quê?
+A página que sustenta a credibilidade do projeto seria a primeira a mentir.
+
+**Como o veredito é obtido**
+
+| Situação | Veredito |
+|---|---|
+| 200 e permite o caminho | permite |
+| 200 e proíbe o caminho | não permite |
+| **404** | permite — ausência de regra é resposta legítima |
+| **403, erro, timeout** | **não permite** — sem regra legível não há autorização a supor |
+| ainda não conferido | não conferido, e a tabela diz isso |
+
+Grupo do nosso nome vence o curinga, comparado **por prefixo** (`User-agent: ClaudeBot` não é
+regra sobre nós). Reconferido a cada 7 dias. `Crawl-delay` é esperado de verdade entre o
+`robots.txt` e o feed, e vira piso do intervalo entre coletas.
+
+**Quando o robots diz não, há saída legítima**
+
+`fonte.colheita` vale `feed` ou `sitemap`. O caso que fundou a decisão: o `robots.txt` do
+Canaltech diz `Disallow: /rss/` e, no mesmo arquivo, **anuncia** o `sitemap-news`. A fonte não
+fechou a porta — indicou outra. E o sitemap traz título, data e URL, que é **100% do que a
+medição de atraso precisa**: o Instituto nunca precisou do texto de ninguém.
+
+O índice de sitemaps desce **um** nível, e só um. Descer é necessário; descer sem limite é como
+um coletor vira um rastreador do site inteiro.
+
+**Consequência de escopo:** as fontes que só têm API com credencial (GitHub REST, Reddit OAuth,
+YouTube Data) exigem um coletor de JSON, que não existe. Ficam no backlog, listadas no
+inventário como recusadas — visíveis, não escondidas.
+
+## 12. O que fica de fora, e quando volta
 
 | Item | Quando |
 |---|---|
@@ -255,7 +301,7 @@ backlog e entra no **caminho crítico**.
 | Painel web | 🔮 só se o WhatsApp não der conta |
 | Embeddings para agrupar assunto | 🔮 quando o agrupamento simples errar demais |
 
-## 12. Convenções
+## 13. Convenções
 
 - **Fuso:** tudo em UTC no banco; exibição em `America/Sao_Paulo`. Nunca gravar hora local.
 - **Idiomas de origem no começo:** EN e DE. ES entra depois.
