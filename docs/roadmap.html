@@ -56,6 +56,14 @@ section.bloco > h2 {
   padding-block-end: var(--space-2xs); border-bottom: var(--border-hair);
   margin-block-end: var(--space-m);
 }
+
+/* O h3 dentro do bloco: um degrau abaixo do h2, e sem virar caixa-alta —
+   é subtítulo de conteúdo, não rótulo de seção. */
+section.bloco > h3 {
+  font-size: var(--step-0);
+  font-weight: var(--weight-semibold);
+  margin-block-end: var(--space-2xs);
+}
 .nota { font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); margin-block-end: var(--space-l); }
 
 /* ---- a esteira ---- */
@@ -189,12 +197,55 @@ section.bloco > h2 {
 </div>
 
 <nav class="abas u-fluxo">
+  <a class="pilula n-industria" href="#estado">Onde estamos</a>
   <a class="pilula" href="#funcionamento">Como funciona</a>
   <a class="pilula n-observatorio" href="#p0">Os 15 dias</a>
   <a class="pilula" href="#travas">O que trava</a>
   <a class="pilula" href="#v0">Depois do P0</a>
   <a class="pilula" href="#esforco">Esforço por semana</a>
 </nav>
+
+
+<!-- ==================================================================== -->
+<section class="bloco n-industria" id="estado">
+  <h2>Onde estamos · 01/09/2026</h2>
+  <p class="nota">
+    Tudo aqui é <strong>medido</strong>, não estimado: <code>npm run qa</code>,
+    <code>npm test</code> e <code>npm run cadencia</code>. Refazer quando a lista de fontes
+    mudar.
+  </p>
+
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>O quê</th><th>Quanto</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Fontes cadastradas · ativas</td><td class="u-dado">33 · 30</td><td class="nota">3 são exemplos da semente, desativados</td></tr>
+      <tr><td>Recusadas pelo <code>robots.txt</code></td><td class="u-dado">4</td><td class="nota">Reddit, YouTube e dois feeds do GitHub — continuam listadas em /blueprints dizendo isso</td></tr>
+      <tr><td>Vozes (pessoa pública)</td><td class="u-dado">10</td><td class="nota">só <strong>uma brasileira</strong>, e nenhuma de automação industrial</td></tr>
+      <tr><td>Fontes <code>liberada</code></td><td class="u-dado">0</td><td class="nota"><strong>o site inteiro está limitado a resumo próprio</strong></td></tr>
+      <tr><td>Entrada medida</td><td class="u-dado">~2.950/sem</td><td class="nota">o arXiv sozinho é 54% disso</td></tr>
+      <tr><td>Itens na base</td><td class="u-dado">~500</td><td class="nota">dois dias de coleta</td></tr>
+      <tr><td>QA</td><td class="u-dado">199 · 0 falhas</td><td class="nota">sai com código 1 se falhar — é o portão do deploy</td></tr>
+      <tr><td>Unidade</td><td class="u-dado">94</td><td class="nota">parser, robots, sitemap, semana ISO, auditoria do Giro</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin-block-start: var(--space-l)">O que a sprint 1 acrescentou por cima do P0</h3>
+  <div class="linhas">
+    <div class="linha" data-id="s1-robots" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t"><code>robots.txt</code> lido, obedecido e publicado</div><div class="linha__n">Veredito, motivo e data de cada fonte em /blueprints. Crawl-delay respeitado. <strong>Sem contorno</strong> — e 50 itens coletados antes da regra foram apagados, porque mantê-los tornaria falsa a frase que a página publica.</div></div><span class="selo selo--nucleo">sprint 1</span></div>
+    <div class="linha" data-id="s1-sitemap" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Sitemap de notícias</div><div class="linha__n">O robots do Canaltech fecha o /rss/ e anuncia o sitemap no mesmo arquivo. Título, data e URL são 100% do que a medição de atraso precisa.</div></div><span class="selo selo--nucleo">sprint 1</span></div>
+    <div class="linha" data-id="s1-vozes" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">As vozes — 10 pessoas públicas</div><div class="linha__n"><code>fonte.pessoa</code> é um eixo, não um tipo: o meio e a assinatura são coisas diferentes. Somam 1,3% do volume e são a parte mais densa do Giro.</div></div><span class="selo selo--nucleo">sprint 1</span></div>
+    <div class="linha" data-id="s1-giro" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">O Giro da Semana</div><div class="linha__n">Segunda 08:00. Destaque escolhido por fórmula publicada, com o placar à vista; prosa auditada contra os números; edição que inventa número <strong>não vai ao ar</strong>, e o motivo aparece em /blueprints.</div></div><span class="selo selo--nucleo">sprint 1</span></div>
+  </div>
+
+  <div class="aviso" style="margin-block-start: var(--space-l)">
+    <strong>O que ainda não é real:</strong> a IA roda em <strong>simulação</strong>. Sem a
+    chave da conta do sócio, pipeline e Giro devolvem texto determinístico e custo zero — dá
+    para exercitar a esteira inteira sem gastar da conta de ninguém, mas o site não tem
+    conteúdo de verdade. E nada foi deployado.
+  </div>
+</section>
 
 <!-- ==================================================================== -->
 <section class="bloco" id="funcionamento">
@@ -329,48 +380,48 @@ section.bloco > h2 {
     <article class="cartao">
       <div class="cartao__topo"><span class="cartao__nome">1 · Esqueleto</span><span class="cartao__dias">dias 1–3</span></div>
       <div class="cartao__lista">
-        <div class="tarefa" data-id="p0-1a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Worker + Hono + JSX no ar</span></div></div>
-        <div class="tarefa" data-id="p0-1b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Schema D1 <strong>completo</strong><span class="tarefa__n">Inclusive <code>assunto</code>. Entra inteiro no dia 1 mesmo sem tela — atraso e classificação não são reconstituíveis.</span></span></div></div>
-        <div class="tarefa" data-id="p0-1c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Rota /industria com dado semente<span class="tarefa__n">Vestida com o sistema de design que já está pronto.</span></span></div></div>
+        <div class="tarefa" data-id="p0-1a" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Worker + Hono + JSX no ar</span></div></div>
+        <div class="tarefa" data-id="p0-1b" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Schema D1 <strong>completo</strong><span class="tarefa__n">Inclusive <code>assunto</code>. Entra inteiro no dia 1 mesmo sem tela — atraso e classificação não são reconstituíveis.</span></span></div></div>
+        <div class="tarefa" data-id="p0-1c" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Rota /industria com dado semente<span class="tarefa__n">Vestida com o sistema de design que já está pronto.</span></span></div></div>
       </div>
     </article>
 
     <article class="cartao">
       <div class="cartao__topo"><span class="cartao__nome">2 · Coletor</span><span class="cartao__dias">dias 4–6</span></div>
       <div class="cartao__lista">
-        <div class="tarefa" data-id="p0-2a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Fetch + parse de RSS/Atom</span></div></div>
-        <div class="tarefa" data-id="p0-2b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Dedup por URL canônica</span></div></div>
-        <div class="tarefa" data-id="p0-2c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cron + <code>ctx.waitUntil</code><span class="tarefa__n">Sem isso a coleta morre em produção — e o miniflare local não acusa.</span></span></div></div>
-        <div class="tarefa" data-id="p0-2d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">8–10 fontes liberadas ligadas<span class="tarefa__dep">depende de: classificar fontes</span></span></div></div>
+        <div class="tarefa" data-id="p0-2a" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Fetch + parse de RSS/Atom</span></div></div>
+        <div class="tarefa" data-id="p0-2b" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Dedup por URL canônica</span></div></div>
+        <div class="tarefa" data-id="p0-2c" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cron + <code>ctx.waitUntil</code><span class="tarefa__n">Sem isso a coleta morre em produção — e o miniflare local não acusa.</span></span></div></div>
+        <div class="tarefa" data-id="p0-2d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Fontes classificadas como <code>liberada</code><span class="tarefa__dep">30 fontes ligadas · <strong>nenhuma liberada ainda</strong> — sem isso não há tradução integral</span></span></div></div>
       </div>
     </article>
 
     <article class="cartao">
       <div class="cartao__topo"><span class="cartao__nome">3 · Pipeline</span><span class="cartao__dias">dias 7–9</span></div>
       <div class="cartao__lista">
-        <div class="tarefa" data-id="p0-3a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Triagem + classificação (Haiku)</span></div></div>
-        <div class="tarefa" data-id="p0-3b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Tradução integral (Sonnet)<span class="tarefa__n">Glossário semente direto no código; tabela fica para o v0.</span></span></div></div>
-        <div class="tarefa" data-id="p0-3c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Contexto BR</span></div></div>
-        <div class="tarefa" data-id="p0-3d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Teto de custo que pausa o coletor<span class="tarefa__n">Antes de ligar volume. Conta que estoura é conta que não é sua.</span></span></div></div>
+        <div class="tarefa" data-id="p0-3a" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Triagem + classificação (Haiku)</span></div></div>
+        <div class="tarefa" data-id="p0-3b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Tradução integral (Sonnet)<span class="tarefa__n">Código pronto e testado. <strong>Nunca exercitada:</strong> exige fonte <code>liberada</code>, e não há nenhuma.</span></span></div></div>
+        <div class="tarefa" data-id="p0-3c" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Contexto BR</span></div></div>
+        <div class="tarefa" data-id="p0-3d" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Teto de custo que pausa o coletor<span class="tarefa__n">Antes de ligar volume. Conta que estoura é conta que não é sua.</span></span></div></div>
       </div>
     </article>
 
     <article class="cartao">
       <div class="cartao__topo"><span class="cartao__nome">4 · O atraso</span><span class="cartao__dias">dias 10–12</span></div>
       <div class="cartao__lista">
-        <div class="tarefa" data-id="p0-4a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">3–4 fontes BR com <code>marca_relogio</code><span class="tarefa__n">Não vão ao ar. Existem para medir quando o assunto chegou aqui.</span></span></div></div>
-        <div class="tarefa" data-id="p0-4b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Agrupamento em <code>assunto</code><span class="tarefa__n">Título normalizado + fornecedores em comum + janela de 30 dias.</span></span></div></div>
-        <div class="tarefa" data-id="p0-4c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cálculo de <code>atraso_br_dias</code></span></div></div>
+        <div class="tarefa" data-id="p0-4a" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">3–4 fontes BR com <code>marca_relogio</code><span class="tarefa__n">Não vão ao ar. Existem para medir quando o assunto chegou aqui.</span></span></div></div>
+        <div class="tarefa" data-id="p0-4b" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Agrupamento em <code>assunto</code><span class="tarefa__n">Título normalizado + fornecedores em comum + janela de 30 dias.</span></span></div></div>
+        <div class="tarefa" data-id="p0-4c" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cálculo de <code>atraso_br_dias</code></span></div></div>
       </div>
     </article>
 
     <article class="cartao">
       <div class="cartao__topo"><span class="cartao__nome">5 · Página</span><span class="cartao__dias">dias 13–15</span></div>
       <div class="cartao__lista">
-        <div class="tarefa" data-id="p0-5a"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria com conteúdo real</span></div></div>
-        <div class="tarefa" data-id="p0-5b"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria/&lt;slug&gt;</span></div></div>
-        <div class="tarefa" data-id="p0-5c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cache na borda + deploy</span></div></div>
-        <div class="tarefa" data-id="p0-5d"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Ajustar o design com notícia de verdade<span class="tarefa__n">Tipografia só se julga com conteúdo real na tela.</span></span></div></div>
+        <div class="tarefa" data-id="p0-5a" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria com conteúdo real</span></div></div>
+        <div class="tarefa" data-id="p0-5b" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">/industria/&lt;slug&gt;</span></div></div>
+        <div class="tarefa" data-id="p0-5c"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Cache na borda + deploy<span class="tarefa__dep">cache feito · deploy depende do acesso à Cloudflare</span></span></div></div>
+        <div class="tarefa" data-id="p0-5d" data-pronto="1"><div class="tarefa__caixa"></div><div><span class="tarefa__t">Ajustar o design com notícia de verdade<span class="tarefa__n">Tipografia só se julga com conteúdo real na tela.</span></span></div></div>
       </div>
     </article>
   </div>
@@ -384,20 +435,27 @@ section.bloco > h2 {
 
 <!-- ==================================================================== -->
 <section class="bloco" id="travas">
-  <h2>O que trava o dia 1 — e nenhuma é código</h2>
+  <h2>O que trava agora — e nenhuma é código</h2>
+  <p class="nota">Atualizado em 01/09. O código deixou de ser o gargalo: as três primeiras dependem do sócio, e as três seguintes são decisão do Pedro.</p>
   <div class="travas">
     <div class="trava"><span class="trava__n">1</span>
-      <div><strong>Acesso à conta Cloudflare do sócio.</strong>
-        <div class="nota" style="margin: 2px 0 0">A infra é dele: sem isso não há deploy. É a única dependência externa bloqueante do projeto inteiro.</div></div></div>
+      <div><strong>Chave da API na conta do sócio.</strong>
+        <div class="nota" style="margin: 2px 0 0"><code>ANTHROPIC_API_KEY</code> + <code>IA_CONTA</code>. Sem ela, pipeline e Giro simulam: o site tem estrutura e não tem conteúdo. É a trava que mais dói hoje.</div></div></div>
     <div class="trava"><span class="trava__n">2</span>
-      <div><strong>Domínio exato e onde está o DNS.</strong>
-        <div class="nota" style="margin: 2px 0 0">Qual TLD, e se o DNS já está na Cloudflare.</div></div></div>
+      <div><strong>Acesso à conta Cloudflare do sócio.</strong>
+        <div class="nota" style="margin: 2px 0 0">A infra é dele: sem isso não há deploy. Junto: o domínio exato (TLD) e onde está o DNS.</div></div></div>
     <div class="trava"><span class="trava__n">3</span>
-      <div><strong>Classificar 8–10 salas de imprensa como <code>liberada</code>.</strong>
-        <div class="nota" style="margin: 2px 0 0">Achar o feed, ler os termos, guardar o link que autoriza. Braçal, e destrava o bloco 2.</div></div></div>
-    <div class="trava"><span class="trava__n">4</span>
       <div><strong>Fechar o ACORDO por escrito.</strong>
         <div class="nota" style="margin: 2px 0 0">Escopo de "manter rodando", <strong>quem paga a API</strong>, de quem é o código, cópia do dataset. Não bloqueia o código — bloqueia dormir tranquilo em novembro.</div></div></div>
+    <div class="trava"><span class="trava__n">4</span>
+      <div><strong>O arXiv fica, sai ou vira fluxo separado?</strong>
+        <div class="nota" style="margin: 2px 0 0">54% do volume vem de duas fontes, e sozinhas elas <strong>estouram o teto diário</strong> antes de o site publicar uma linha. Junto sai o <code>ENTRADAS_POR_FONTE</code> por fonte — hoje 178 itens/dia são descartados em silêncio.</div></div></div>
+    <div class="trava"><span class="trava__n">5</span>
+      <div><strong>O teto de R$ 3,00/dia é o certo?</strong>
+        <div class="nota" style="margin: 2px 0 0">Ele define a cadência do site mais que qualquer outra coisa: 10% de aprovação na triagem dá ~180 peças por semana; 30% dá ~440.</div></div></div>
+    <div class="trava"><span class="trava__n">6</span>
+      <div><strong>Classificar salas de imprensa como <code>liberada</code>.</strong>
+        <div class="nota" style="margin: 2px 0 0">Achar o feed, ler os termos, guardar o link que autoriza. Braçal — e enquanto não for feito, <strong>nenhuma tradução integral existe</strong>: o site inteiro fica em resumo próprio.</div></div></div>
   </div>
 </section>
 
@@ -405,14 +463,14 @@ section.bloco > h2 {
 <section class="bloco n-industria" id="v0">
   <h2>Depois do P0 · o que transforma protótipo em veículo</h2>
   <div class="linhas">
-    <div class="linha" data-id="v0-1"><div class="tarefa__caixa"></div><div><div class="linha__t">Agenda nos 4 núcleos + schema.org/Event</div><div class="linha__n">O ativo mais durável: notícia decai em 48 h, calendário não. Traz visita recorrente, inbound de organizador e resultado rico no Google.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-1" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Agenda nos 4 núcleos + schema.org/Event</div><div class="linha__n">O ativo mais durável: notícia decai em 48 h, calendário não. Traz visita recorrente, inbound de organizador e resultado rico no Google.</div></div><span class="selo selo--nucleo">v0</span></div>
     <div class="linha" data-id="v0-2"><div class="tarefa__caixa"></div><div><div class="linha__t">WhatsApp como backoffice</div><div class="linha__n">Sem isso o sócio não publica, e o núcleo Indústria não tem voz própria.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-3"><div class="tarefa__caixa"></div><div><div class="linha__t">Obra assinada — Análise, Leitura, Caso</div><div class="linha__n">É o que constrói autoridade. O radar sozinho não constrói: ninguém cita agregador.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-4"><div class="tarefa__caixa"></div><div><div class="linha__t">Glossário como tabela + página</div><div class="linha__n">A qualidade da tradução para de depender de sorte.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-5"><div class="tarefa__caixa"></div><div><div class="linha__t">OG image + RSS por núcleo + sitemap</div><div class="linha__n">Distribuição. O link precisa circular com cara de veículo.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-6"><div class="tarefa__caixa"></div><div><div class="linha__t">Os outros três núcleos</div><div class="linha__n">Observatório quente; Operação e Edificações em modo Radar declarado, com selo.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-7"><div class="tarefa__caixa"></div><div><div class="linha__t">Política editorial + registro de correções</div><div class="linha__n">O que separa veículo de blog — inclusive declarar o uso de IA.</div></div><span class="selo selo--nucleo">v0</span></div>
-    <div class="linha" data-id="v0-8"><div class="tarefa__caixa"></div><div><div class="linha__t">Captura de e-mail</div><div class="linha__n">Site é aluguel, lista é propriedade. Começar cedo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-3" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Obra assinada — Análise, Leitura, Caso</div><div class="linha__n">É o que constrói autoridade. O radar sozinho não constrói: ninguém cita agregador.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-4" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Glossário como tabela + página</div><div class="linha__n">A qualidade da tradução para de depender de sorte.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-5" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">OG image + RSS por núcleo + sitemap</div><div class="linha__n">Distribuição. O link precisa circular com cara de veículo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-6" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Os outros três núcleos</div><div class="linha__n">Observatório quente; Operação e Edificações em modo Radar declarado, com selo.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-7" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Política editorial + registro de correções</div><div class="linha__n">O que separa veículo de blog — inclusive declarar o uso de IA.</div></div><span class="selo selo--nucleo">v0</span></div>
+    <div class="linha" data-id="v0-8" data-pronto="1"><div class="tarefa__caixa"></div><div><div class="linha__t">Captura de e-mail</div><div class="linha__n">Site é aluguel, lista é propriedade. Começar cedo.</div></div><span class="selo selo--nucleo">v0</span></div>
     <div class="linha" data-id="v0-9"><div class="tarefa__caixa"></div><div><div class="linha__t">Panorama nº 1 · dezembro</div><div class="linha__n">Sai da própria base, sem entrevista nem survey. Chega na renegociação de 31/12 com obra publicada, não com promessa.</div></div><span class="selo selo--radar">dez</span></div>
     <div class="linha" data-id="v0-10"><div class="tarefa__caixa"></div><div><div class="linha__t">Dataset no Zenodo com DOI + CC-BY</div><div class="linha__n">Torna o Instituto citável em TCC, dissertação e artigo. É subir um CSV — e é o atalho acadêmico que quase ninguém usa.</div></div><span class="selo selo--radar">dez</span></div>
   </div>
@@ -484,8 +542,12 @@ section.bloco > h2 {
     var totalP0 = 0, feitosP0 = 0;
     marcaveis.forEach(function (el) {
       var id = el.dataset.id;
-      el.dataset.feito = feitos[id] ? '1' : '0';
-      if (id.indexOf('p0-') === 0) { totalP0++; if (feitos[id]) feitosP0++; }
+      // `data-pronto` é o estado que o repositório declara. O localStorage
+      // vence quando existe — quem marcou à mão mandou. Sem isto o painel
+      // abriria zerado num projeto que já entregou o P0 inteiro.
+      var marcado = id in feitos ? feitos[id] : el.dataset.pronto === '1';
+      el.dataset.feito = marcado ? '1' : '0';
+      if (id.indexOf('p0-') === 0) { totalP0++; if (marcado) feitosP0++; }
     });
     var pct = totalP0 ? Math.round(feitosP0 / totalP0 * 100) : 0;
     document.getElementById('pct').textContent = pct + '%';

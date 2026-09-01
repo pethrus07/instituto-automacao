@@ -12,38 +12,46 @@ Caminho de cada coisa: [FLUXOS.md](FLUXOS.md). Quem faz o quê: [ORGANOGRAMA.md]
 
 ## 0. Visão em uma imagem
 
-Um **único Worker** na Cloudflare faz tudo: serve as páginas, roda o coletor no cron e
-recebe o webhook do WhatsApp. Um `wrangler deploy` e acabou — não há segundo artefato,
-não há pipeline, não há servidor.
+Um **único Worker** na Cloudflare faz tudo: serve as páginas, roda o coletor e o Giro no
+cron e recebe o webhook do WhatsApp. Um `wrangler deploy` e acabou — não há segundo
+artefato, não há pipeline, não há servidor.
 
 ```mermaid
 flowchart TB
     subgraph FORA["Fontes"]
       PR["Salas de imprensa<br/>licenca: liberada"]
       IMP["Imprensa técnica<br/>licenca: resumo"]
+      VOZ["<b>Vozes</b><br/>pessoa pública com nome próprio"]
       BR["Fontes brasileiras<br/><i>não publicam — marcam o relógio</i>"]
       EV["Calendários de evento"]
+      NAO["<i>Fonte que o robots recusa</i><br/><i>fica listada e fora</i>"]
     end
 
     subgraph CF["Cloudflare · UM Worker"]
-      CRON["Cron Trigger<br/>15 min · 60 min · diário"]
-      COL["Coletor<br/>fetch + parse + dedup"]
+      CRON["Cron Trigger<br/>*/15 min · segunda 11h UTC"]
+      ROB{"<b>robots.txt</b><br/>confere antes de buscar"}
+      COL["Coletor<br/>feed ou sitemap → parse → dedup"]
       PIPE["Pipeline de IA<br/>triagem → tradução → contexto BR"]
       CLUST["Agrupador de assunto<br/><b>mede o atraso</b>"]
+      GIRO["<b>Giro da Semana</b><br/>agregar → redigir → <b>auditar</b>"]
       SSR["Páginas · Hono + JSX<br/>SSR, zero JS"]
       HOOK["Webhook do WhatsApp"]
     end
 
     IA["Claude API<br/>Haiku triagem · Sonnet obra"]
-    D1[("D1<br/>fonte · item · assunto<br/>evento · glossário · custo")]
+    D1[("D1<br/>fonte · item · assunto · giro<br/>evento · glossário · custo")]
     R2[("R2<br/>OG images")]
     EDGE["Cache API<br/>na borda"]
     WA(("WhatsApp<br/>via Commagente"))
     LEITOR(("Leitor"))
 
-    CRON --> COL
+    CRON --> ROB
+    ROB -->|permite| COL
+    ROB -->|recusa| NAO
+    CRON -->|segunda| GIRO
     PR --> COL
     IMP --> COL
+    VOZ --> COL
     BR --> COL
     EV --> COL
     COL --> D1
@@ -52,6 +60,9 @@ flowchart TB
     PIPE --> D1
     D1 --> CLUST
     CLUST --> D1
+    D1 --> GIRO
+    GIRO <--> IA
+    GIRO --> D1
     WA <--> HOOK
     HOOK --> D1
     D1 --> SSR

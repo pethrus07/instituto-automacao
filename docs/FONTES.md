@@ -115,6 +115,44 @@ fontes continuam listadas, com o veredito à vista — sumir com elas esconderia
 
 ---
 
+## As vozes — 01/09/2026
+
+Pessoa pública que publica com nome próprio **não é veículo**: veículo tem redação, pauta e
+periodicidade; voz tem opinião e responsabilidade pessoal. Por isso `fonte.pessoa` é um eixo
+separado de `fonte.tipo`, e não mais um valor dele.
+
+`npm run sondar:vozes` busca o feed de verdade, passa pelo nosso parser e lê o `robots.txt`
+antes. **11 de 12 responderam, 10 entraram.**
+
+| Voz | Núcleo |
+|---|---|
+| Rodney Brooks · Chris Anderson | Indústria |
+| Ethan Mollick · Gary Marcus · Benedict Evans · Andrej Karpathy · Sebastian Raschka | Observatório |
+| Simon Willison · Tim Bray | Operação |
+| **Rodrigo Ghedin** | Observatório — voz **brasileira**, marca o relógio |
+
+**Descartadas, e o motivo importa:**
+
+- **Paulo Silveira (Alura)** — o feed respondeu, mas é o blog **institucional da empresa**,
+  não a escrita dele. Cadastrar como voz atribuiria a uma pessoa o que a redação escreveu.
+- **Jeff Lean** — `robots.txt` inacessível.
+
+Duas entram **dormentes** de propósito (Karpathy, ~200 dias sem post; Anderson, ~220).
+Custam um fetch a cada 12 h e valem pelo dia em que voltarem.
+
+⚠️ **O buraco mais visível da lista: só uma voz brasileira, e nenhuma de automação
+industrial.** É a próxima caçada.
+
+---
+
+## Quanto tudo isso publica
+
+Medido com `npm run cadencia`: **~2.950 itens por semana** de 26 fontes que respondem. O
+arXiv sozinho é 54% disso e, sozinho, estouraria o teto diário de custo. A conta inteira, com
+o que ela implica para a cadência do site, está em [`CAPACIDADE.md`](CAPACIDADE.md).
+
+---
+
 ## Como classificar
 
 ⚠️ **Toda fonte nasce `resumo`.** A sondagem mede se o feed responde; **não

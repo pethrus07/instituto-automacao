@@ -109,11 +109,12 @@ Instituto Automação
 │   └── /edificacoes    radar puro
 │
 └── CAMADA INSTITUCIONAL  (o que justifica "Instituto")
+    ├── /giro           o Giro da Semana — balanço semanal, destaque com placar
     ├── /agenda         calendário unificado, schema.org/Event
     ├── /panorama       relatório trimestral, assinado, extraído do dataset
     ├── /glossario      infraestrutura de tradução, não só conteúdo
-    ├── /fornecedores   diretório
-    └── /transparencia  entra no gatilho
+    ├── /blueprints     dataset, método, licenças e o veredito do robots
+    └── /fornecedores   diretório (fase 2)
 ```
 
 O leitor escolhe o núcleo na entrada e nunca mais vê o que não interessa. O Google indexa
@@ -136,9 +137,21 @@ quando ganha análise própria e cadência.
 | Observatório | Pedro | Análise assinada, ângulo brasileiro | quinzenal |
 | Operação | Pedro | **Casos**: problema → o que foi automatizado → **custo** → o que deu errado | conforme o trabalho real |
 | Edificações | pipeline | radar puro | diário, automático |
+| Institucional | máquina | **Giro da Semana** — balanço com o destaque escolhido por conta publicada | semanal, segunda 08:00 |
 | Institucional | Pedro | **Panorama** extraído da base | trimestral |
 
 O formato do sócio é curto de propósito: parceiro ocupado com formato longo some no mês 2.
+
+**O Giro é a peça que sustenta a cadência quando ninguém tem tempo.** Sai toda segunda sem
+depender de humano, e mesmo assim não é agregador: o destaque vem de uma fórmula publicada
+com o placar à vista, a prosa passa por auditoria contra os números, e quando nenhum assunto
+alcança o piso de repercussão ele **diz que não houve destaque e diz por quê**. É o que
+separa "rotina automática" de "conteúdo automático" — e a diferença está na página, não no
+código.
+
+Ele também é o lugar onde as **vozes** aparecem: pessoas públicas que publicam com nome
+próprio. Somam 1,3% do volume coletado e são a parte mais densa da edição, porque *"a IEEE
+Spectrum noticiou"* e *"Rodney Brooks escreveu"* não pesam igual.
 
 **Casos** é o formato mais escasso e mais convertedor do setor — caso real com custo aberto.
 E é subproduto do trabalho que já é feito (retífica, Commagente, Mary House), não trabalho
@@ -175,7 +188,7 @@ modelo grande só para tradução integral e análise.
 
 ---
 
-## 8. As quatro regras que protegem o projeto
+## 8. As cinco regras que protegem o projeto
 
 **1. A licença da fonte decide tudo — e é regra no código, não julgamento caso a caso.**
 Tradução integral de matéria alheia é obra derivada; não é citação nem uso livre.
@@ -204,13 +217,34 @@ paper, o comprador não liga. O Panorama é o objeto raro que serve aos dois.
 `tema`, `tipo_de_item` — armazenados mesmo que a tela não mostre nada disso hoje. Barato
 agora, **impossível depois**: notícia sai do ar e feed não guarda histórico.
 
+**5. O `robots.txt` manda, e não há contorno.** Nada de trocar o User-Agent, sair por proxy
+residencial ou subir navegador sem cabeça para vencer detecção. Existe técnica para tudo
+isso, e o argumento contra não é ético abstrato — é interno ao produto:
+
+> O `/blueprints` publica o link que autoriza cada fonte.
+> **Uma fonte obtida furando bloqueio apareceria naquela tabela como o quê?**
+
+Fonte cujo `robots.txt` sequer pode ser lido também fica de fora: sem regra legível não há
+autorização a supor. Hoje **4 fontes estão fora do radar por decisão delas**, e continuam
+listadas no inventário dizendo isso. Quando a fonte fecha o feed mas o mesmo `robots.txt`
+anuncia um sitemap de notícias, o caminho é o sitemap — é a porta que ela apontou.
+
 ---
 
 ## 9. Modelo de dados
 
 ```
 fonte      (id, nome, veiculo, url_feed, idioma, pais, nucleo,
-            licenca [liberada | resumo | bloqueada], confianca, peso, ativo)
+            licenca [liberada | resumo | bloqueada], confianca, peso, ativo,
+            colheita [feed | sitemap],
+            robots_permite, robots_atraso, robots_motivo, robots_conferido,
+            pessoa, pessoa_papel)          -- a VOZ: eixo separado do tipo
+
+giro       (id, slug [2026-s36], inicio, fim, rotulo,
+            titulo, lead, destaque_texto, por_nucleo,
+            agregado,                       -- JSON congelado na publicação
+            auditoria,                      -- o que foi conferido, e o que reprovou
+            status, motivo_rascunho, publicado_em)
 
 item       (id, fonte_id, nucleo, titulo, titulo_original, url, url_original,
             publicado_em, coletado_em, traduzido_em, tempo_ate_publicar,
@@ -276,8 +310,14 @@ Conflito latente entre 1 e 2: no dia em que um concorrente das empresas dos sóc
 patrocinar, alguém escolhe. Deixar a regra escrita na política editorial **antes** de o
 dinheiro aparecer evita decidir no calor.
 
-**v0 — o que vai ao ar:** Agenda completa nos quatro núcleos + radar rodando + uma Leitura e
-uma Análise publicadas. Promete pouco, entrega inteiro, e começa a acumular a base no dia 1.
+**v0 — o que vai ao ar:** Agenda completa nos quatro núcleos + radar rodando + Giro semanal
++ uma Leitura e uma Análise publicadas. Promete pouco, entrega inteiro, e começa a acumular
+a base no dia 1.
+
+**Onde estamos, em 01/09:** a fase 0 está construída e **não é pública** — falta o acesso à
+Cloudflare para o deploy, e a chave da API da conta do sócio para o conteúdo deixar de ser
+simulado. Nenhuma das duas é código. Estado medido em
+[`docs/ROADMAP.md`](docs/ROADMAP.md) e [`docs/CAPACIDADE.md`](docs/CAPACIDADE.md).
 
 ---
 
@@ -300,6 +340,14 @@ uma Análise publicadas. Promete pouco, entrega inteiro, e começa a acumular a 
 - [x] **P0 · protótipo mínimo funcional em 15 dias — 14/09/2026**
 - [x] Stack: um Worker só · Hono + JSX · D1 + R2 + Cron · WhatsApp como backoffice
 - [x] Tema azul + laranja, paleta curta de duas cores
+- [x] **O `robots.txt` manda, e não há contorno** — nem User-Agent trocado, nem proxy, nem
+      navegador disfarçado. Robots ilegível também fica de fora *(01/09)*
+- [x] **Sitemap de notícias** como caminho legítimo para quem fecha o RSS *(01/09)*
+- [x] **Voz é um eixo (`fonte.pessoa`), não um valor de `tipo`** *(01/09)*
+- [x] **Giro da Semana**, semanal, com o destaque escolhido por fórmula publicada e piso de
+      2 fontes independentes *(01/09)*
+- [x] **A auditoria do Giro aborta**: edição que inventa número não vai ao ar, e o motivo é
+      publicado em `/blueprints` *(01/09)*
 
 A pergunta-assinatura não é só editorial: **ela é requisito de schema.** Medir atraso exige
 agrupar itens de fontes e idiomas diferentes numa tabela `assunto`, e coletar fontes
@@ -311,17 +359,27 @@ fazer retroativamente, então entra no dia 1.
 | Documento | O que tem |
 |---|---|
 | [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | o desenho, e uma decisão por eixo com as alternativas descartadas |
-| [docs/FLUXOS.md](docs/FLUXOS.md) | o caminho do item, do atraso, do evento e da obra |
+| [docs/FLUXOS.md](docs/FLUXOS.md) | o caminho do item, do atraso, do evento, da obra e do Giro |
 | [docs/ORGANOGRAMA.md](docs/ORGANOGRAMA.md) | quem faz o quê — e o contrato de esforço por semana |
 | [docs/MODELO-DADOS.md](docs/MODELO-DADOS.md) | o schema do D1 e o que o Panorama pergunta a ele |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | P0 em 15 dias, v0, fases e próximos passos |
-| [docs/FONTES.md](docs/FONTES.md) | candidatos por núcleo, separados por faixa de licença |
+| [docs/FONTES.md](docs/FONTES.md) | o que foi sondado, o que responde, o que o robots recusa, e as vozes |
+| [docs/CAPACIDADE.md](docs/CAPACIDADE.md) | quanto entra por semana, quanto sai, e onde é o gargalo |
+| [qa/SPRINT-*.md](qa/) | o que cada sprint entregou — e os defeitos que ela revelou |
 | [design/](design/) | tokens, primitivas e o specimen do sistema de design |
 
 ## 14. Em aberto
 
-1. **Domínio exato (TLD) e onde está o DNS** — e o acesso à conta Cloudflare do sócio.
-   É a única dependência **bloqueante** do deploy.
-2. **Lista de fontes e classificação de licença** — primeiro trabalho braçal, destrava o P0.
-3. **Os pontos de acordo interno** com o sócio.
-4. Data-alvo do v0 (proposta: 31/10), provedor de newsletter, marca e logotipo.
+Atualizado em 01/09. **Nada aqui é código** — o código deixou de ser o gargalo.
+
+1. **Chave da API na conta do sócio** (`ANTHROPIC_API_KEY` + `IA_CONTA`). Sem ela, pipeline
+   e Giro **simulam**: o site tem estrutura e não tem conteúdo. É a trava que mais dói.
+2. **Acesso à conta Cloudflare**, domínio exato (TLD) e onde está o DNS — bloqueia o deploy.
+3. **Os pontos de acordo interno** com o sócio, com o custo de API agora medido.
+4. **Classificar salas de imprensa como `liberada`** — nenhuma das 30 fontes é hoje, então
+   **não existe tradução integral**: o site inteiro está limitado a resumo próprio.
+5. **O arXiv fica, sai ou vira fluxo separado?** É 54% do volume e sozinho estoura o teto
+   diário ([CAPACIDADE.md](docs/CAPACIDADE.md)).
+6. **O teto de R$ 3,00/dia é o certo?** Ele define a cadência do site.
+7. **Mais vozes brasileiras** — só uma hoje, e nenhuma de automação industrial.
+8. Data-alvo do v0 (proposta: 31/10), provedor de newsletter, marca e logotipo.

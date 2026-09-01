@@ -30,7 +30,8 @@ CREATE TABLE fonte (
   veiculo           TEXT,                     -- editora/empresa por trás
   url_site          TEXT NOT NULL,
   url_feed          TEXT,                     -- RSS/Atom; NULL = raspagem
-  tipo              TEXT NOT NULL,            -- 'press' | 'imprensa' | 'associacao' | 'academico' | 'calendario'
+  tipo              TEXT NOT NULL,            -- o MEIO: 'press' | 'imprensa' | 'associacao' | 'academico'
+                                              -- | 'calendario' | 'social' | 'forum' | 'video' | 'release'
   idioma            TEXT NOT NULL,            -- 'en' | 'de' | 'pt' | 'es'
   pais              TEXT NOT NULL,
   nucleo            TEXT,                     -- palpite inicial; o item pode ser reclassificado
@@ -41,7 +42,19 @@ CREATE TABLE fonte (
   marca_relogio     INTEGER NOT NULL DEFAULT 0,       -- 1 = fonte BR que serve para medir atraso
   peso              INTEGER NOT NULL DEFAULT 5,
   intervalo_min     INTEGER NOT NULL DEFAULT 60,      -- 15 para liberada de alta confiança
+  colheita          TEXT NOT NULL DEFAULT 'feed',     -- 'feed' | 'sitemap'
   ativo             INTEGER NOT NULL DEFAULT 1,
+
+  -- o veredito do robots.txt, conferido pelo coletor e PUBLICADO no inventário
+  robots_permite    INTEGER,                  -- NULL = não conferido; 0 = a fonte diz não
+  robots_atraso     REAL,                     -- Crawl-delay em segundos, se ela pedir
+  robots_motivo     TEXT,                     -- legível por humano, vai para /blueprints
+  robots_conferido  TEXT,                     -- reconferido a cada 7 dias
+
+  -- a VOZ: pessoa pública que publica com nome próprio
+  pessoa            TEXT,                     -- NULL = é redação, não pessoa
+  pessoa_papel      TEXT,                     -- por que essa pessoa importa
+
   ultima_coleta     TEXT,
   ultimo_erro       TEXT,
   criado_em         TEXT NOT NULL
@@ -54,6 +67,23 @@ só sobe depois que alguém leu os termos e gravou `licenca_evidencia`.
 
 **`marca_relogio`** é a fonte brasileira que entra no radar sem ser publicada: ela existe
 para marcar quando o assunto chegou ao Brasil.
+
+**`robots_*` não é metadado de infraestrutura — é conteúdo.** O veredito aparece em
+`/blueprints` com o motivo e a data em que foi conferido, e o QA garante o invariante:
+nenhum item na base vem de fonte com `robots_permite = 0`. Fonte cujo `robots.txt` sequer
+pode ser lido também fica em 0 — sem regra legível não há autorização a supor.
+
+**`colheita`** é o caminho alternativo para quem fecha o RSS. O `robots.txt` do Canaltech diz
+`Disallow: /rss/` e, no mesmo arquivo, anuncia o `sitemap-news`. A fonte não fechou a porta,
+indicou outra — e o sitemap traz título, data e URL, que é 100% do que a medição de atraso
+precisa.
+
+**`pessoa` é um EIXO, não um valor de `tipo`.** `tipo` diz o MEIO (imprensa, fórum, social);
+`pessoa` diz de QUEM é a assinatura. Um blog pessoal é meio *imprensa* **com** pessoa; a IEEE
+Spectrum é meio *imprensa* **sem** pessoa. Acrescentar `'pessoa'` à lista de `tipo` teria
+continuado misturando meio e papel — que era exatamente o defeito que essa coluna corrige. E
+a distinção é substantiva para o Giro: *"a IEEE Spectrum noticiou"* e *"Rodney Brooks
+escreveu"* não pesam igual.
 
 ---
 
@@ -210,6 +240,50 @@ CREATE TABLE obra (
 
 `assinada = 0` só para a Leitura do Instituto, que sai como voz do núcleo. Análise, Caso e
 Panorama são sempre assinados — é disso que a autoridade pessoal depende.
+
+---
+
+## giro
+
+A edição semanal. **Não é `obra` de propósito:** obra é texto assinado, com responsabilidade
+de quem assina; o giro é montado a partir da base e auditado por máquina. Misturar os dois
+borraria a linha que o projeto inteiro existe para manter.
+
+```sql
+CREATE TABLE giro (
+  id             TEXT PRIMARY KEY,
+  slug           TEXT UNIQUE NOT NULL,     -- '2026-s36': semana ISO
+  inicio         TEXT NOT NULL,            -- segunda 00:00 UTC, inclusivo
+  fim            TEXT NOT NULL,            -- segunda seguinte, exclusivo
+  rotulo         TEXT NOT NULL,            -- '24 a 30 de agosto de 2026'
+
+  titulo         TEXT NOT NULL,
+  lead           TEXT,
+  destaque_texto TEXT,
+  por_nucleo     TEXT,                     -- JSON [{nucleo, frase}]
+
+  agregado       TEXT NOT NULL,            -- JSON do agregado inteiro, CONGELADO
+  auditoria      TEXT,                     -- JSON: o que foi conferido, e o que reprovou
+  simulado       INTEGER NOT NULL DEFAULT 0,
+
+  status         TEXT NOT NULL DEFAULT 'rascunho',   -- 'rascunho' | 'publicado' | 'arquivado'
+  motivo_rascunho TEXT,                    -- por que NÃO saiu
+  publicado_em   TEXT,
+  criado_em      TEXT NOT NULL
+);
+```
+
+**`slug` é a semana ISO, e a fronteira é fixa.** Janela móvel de 7 dias daria um recorte
+diferente a cada execução, e a edição deixaria de ser reproduzível — reprodutível é o mínimo
+para um veículo que publica os próprios dados.
+
+**`agregado` é congelado.** A página lê dali e não refaz a conta: o giro da semana 36 tem de
+continuar dizendo o que dizia na semana 36, mesmo que a base mude depois. Sem isso,
+"publicamos os nossos dados" viraria "publicamos os dados de hoje".
+
+**`auditoria` é gravada inclusive quando passa.** Auditoria que só aparece no erro não dá
+para verificar. E `motivo_rascunho` é publicado em `/blueprints`: auditoria que reprova em
+silêncio é auditoria que ninguém confere.
 
 ---
 

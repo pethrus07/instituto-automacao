@@ -12,8 +12,8 @@ Panorama existir. Essa parte não acelera.
 | Sprint | Semana | Entrega | Marco |
 |---|---|---|---|
 | **0** ✅ | 30/08 | conceito · sistema de design · planning · Worker + schema + rotas · **coletor** | feito |
-| **1** | 31/08 – 06/09 | fontes reais classificadas · **robots.txt obedecido** · sitemap de notícias · **Giro da Semana + vozes** · robustez do coletor | |
-| **2** | 07/09 – 13/09 | pipeline de IA · teto de custo · atraso apurado · página com conteúdo real | 🎯 **P0 · 14/09** |
+| **1** ✅ | 31/08 – 06/09 | 30 fontes reais · **robots.txt obedecido** · sitemap de notícias · **Giro da Semana** · **10 vozes** · robustez do coletor | feito em 01/09 |
+| **2** | 07/09 – 13/09 | ⚠️ **depende da chave do sócio**: ligar a IA de verdade, medir a taxa de triagem, aferir o custo real contra a estimativa | 🎯 **P0 · 14/09** |
 | **3** | 14/09 – 20/09 | agenda nos 4 núcleos · filtro por URL · `schema.org/Event` | |
 | **4** | 21/09 – 27/09 | WhatsApp como backoffice: fila, aprovar/descartar/editar, Leitura | |
 | **5** | 28/09 – 04/10 | obra assinada: Análise, Caso, Leitura | |
@@ -23,7 +23,13 @@ Panorama existir. Essa parte não acelera.
 
 A sprint 0 rendeu mais que o previsto — o coletor, que era da sprint 1, entrou junto. A folga
 foi para a sprint 1, que absorve a parte imprevisível: **fonte real quebra de jeitos que
-fixture nenhuma prevê.**
+fixture nenhuma prevê** — e quebrou, em cinco lugares diferentes (ver
+[qa/SPRINT-1.md](../qa/SPRINT-1.md) e [qa/SPRINT-1B.md](../qa/SPRINT-1B.md)).
+
+A sprint 1 fechou em **dois dias**, e por isso absorveu o Giro da Semana, que não estava no
+plano. **A sprint 2 é a que não acelera:** o pipeline já está construído e testado, mas até
+a chave da conta do sócio chegar ele roda em simulação — e o que falta medir (taxa de
+aprovação da triagem, custo real por item) só existe com chamada de verdade.
 
 ```mermaid
 gantt
@@ -50,9 +56,21 @@ gantt
 
 ## P0 · Protótipo mínimo funcional — **14/09/2026**
 
-**O que é "funcional":** o radar do núcleo Indústria coletando de verdade, traduzindo de
-verdade e publicando numa página de verdade — com o relógio do atraso já rodando por baixo.
-Um núcleo, publicação automática, sem aprovação humana ainda.
+> **Estado em 01/09:** os cinco blocos estão **funcionalmente prontos**, e a sprint 1
+> entregou por cima deles o `robots.txt`, o sitemap de notícias, as vozes e o Giro da Semana.
+> Faltam duas coisas, e **nenhuma é código**: a chave da IA da conta do sócio (hoje tudo
+> roda em simulação) e o acesso à Cloudflare para o deploy.
+
+| Bloco | Estado | Sobrou o quê |
+|---|---|---|
+| 1 · Esqueleto | ✅ | — |
+| 2 · Coletor | ✅ **passou do previsto** | robots.txt obedecido, sitemap-news, 30 fontes ativas |
+| 3 · Pipeline | ⚠️ **em simulação** | a esteira roda inteira; falta a chave para o texto ser real |
+| 4 · O atraso | ✅ | mede; o agrupamento por título é fraco e agora tem número público |
+| 5 · Página | ✅ os quatro núcleos, não só Indústria | falta o deploy |
+
+**O que é "funcional":** o radar coletando de verdade, traduzindo de verdade e publicando
+numa página de verdade — com o relógio do atraso já rodando por baixo.
 
 **O que NÃO entra no P0, de propósito:** WhatsApp, agenda, obra assinada, glossário como
 tabela, OG image, RSS, os outros três núcleos, transparência. Tudo isso é v0.
@@ -138,21 +156,47 @@ O que transforma o protótipo em veículo.
 
 ---
 
-## Próximos passos imediatos
+## Próximos passos — 01/09/2026
 
-Em ordem, e os três primeiros não são código:
+**O código deixou de ser o gargalo.** O que falta agora se divide em três pilhas, e a
+primeira depende de outra pessoa.
 
-1. **Acesso à conta Cloudflare do sócio** — dependência bloqueante do deploy. Confirmar
-   também o domínio exato (TLD) e onde está o DNS.
-2. **Mandar os pontos do acordo interno** e ter um "fechado" por escrito.
-   Principalmente: escopo de "manter rodando", quem paga a API, de quem é o código.
-3. **Classificar 8–10 salas de imprensa** de fabricante como `liberada`, com
-   `licenca_evidencia` preenchida — é o trabalho braçal que destrava tudo
-   ([FONTES.md](FONTES.md)).
-4. Escolher as 3–4 fontes brasileiras que vão **marcar o relógio** — com o sócio, que
-   conhece o circuito.
-5. Criar o projeto Cloudflare (Worker + D1 + R2) e subir o schema.
-6. Bloco 1 do P0.
+### A · Destrava o deploy (com o sócio — nada disso é código)
+
+| # | O quê | Trava o quê |
+|---|---|---|
+| **A1** | **Chave da API na conta do sócio** (`ANTHROPIC_API_KEY` + `IA_CONTA`) | **tudo o que é texto real.** Pipeline e Giro rodam em simulação hoje. Sem isso o site tem estrutura e não tem conteúdo |
+| **A2** | **Acesso à conta Cloudflare** + domínio exato (TLD) e onde está o DNS | o deploy inteiro |
+| **A3** | **Fechar o acordo por escrito** | escopo de "manter rodando", quem paga a API, de quem é o código, cópia do dataset. Não trava código; trava dormir tranquilo em novembro |
+
+### B · Três decisões que são do Pedro ([CAPACIDADE.md](CAPACIDADE.md))
+
+| # | Decisão | Por que agora |
+|---|---|---|
+| **B1** | **O arXiv fica, sai ou vira fluxo separado?** | é 54% do volume (1.596 itens/semana de 2 fontes) e sozinho **estoura o teto diário** antes de o site publicar uma linha |
+| **B2** | **R$ 3,00/dia é o teto certo?** | ele define a cadência do site mais que qualquer outra coisa: 10% de aprovação na triagem → ~180 peças/semana; 30% → ~440. Quem paga é o sócio |
+| **B3** | `ENTRADAS_POR_FONTE = 25` **precisa ser por fonte** | hoje 178 itens/dia do arXiv entram no radar e são **descartados em silêncio**. Sai junto com B1 — as duas se resolvem no mesmo lugar |
+
+### C · O que eu toco assim que B estiver decidido
+
+1. **Corte ou filtro do arXiv** + `ENTRADAS_POR_FONTE` por fonte (B1 + B3).
+2. **Classificar salas de imprensa como `liberada`**, com `licenca_evidencia` — é o trabalho
+   braçal que libera a tradução integral. **Nenhuma das 30 fontes é `liberada` hoje**, então
+   o site inteiro está limitado a resumo próprio ([FONTES.md](FONTES.md)).
+3. **Pedido de acesso** a Control Engineering, Automation World e WEG. O Control Engineering
+   merece segunda medição: o `robots.txt` dele permite e o 403 veio do WAF.
+4. **Mais vozes brasileiras** — hoje só uma (Rodrigo Ghedin) e **nenhuma de automação
+   industrial**. É o buraco mais visível da lista de fontes.
+5. **Embeddings para agrupar assunto.** Deixou de ser dívida técnica: o Giro publica toda
+   semana quantos assuntos ficaram com uma fonte só (49 na primeira edição), e boa parte é a
+   mesma notícia que o título não juntou.
+6. **Deploy** (depende de A2): criar Worker + D1, `npm run db:remoto`, `npm run db:migrar:remoto`.
+
+### Como saber que não quebrou
+
+Antes de qualquer deploy: `npm test` (94 conferências) e `npm run qa` (199 asserções, sai com
+código 1 se falhar). Quando a lista de fontes mudar, `npm run cadencia` refaz a conta de
+capacidade.
 
 ---
 
@@ -174,6 +218,11 @@ Em ordem, e os três primeiros não são código:
 | 12 | **Pergunta-assinatura: o atraso entre a fronteira e o chão de fábrica daqui** | 30/08 |
 | 13 | **P0 em 15 dias — 14/09/2026** | 30/08 |
 | 14 | Analytics sem cookie · nunca republicar imagem de terceiro | 30/08 |
+| 15 | **O `robots.txt` manda, e não há contorno** — sem trocar User-Agent, sem proxy, sem navegador disfarçado. Robots ilegível também fica de fora | 01/09 |
+| 16 | **Sitemap de notícias** é o caminho legítimo para quem fecha o RSS e anuncia o sitemap no mesmo arquivo | 01/09 |
+| 17 | **Voz é um eixo (`fonte.pessoa`), não um valor de `tipo`** — meio e assinatura são coisas diferentes | 01/09 |
+| 18 | **Giro da Semana semanal, com o destaque escolhido por fórmula publicada** e piso de 2 fontes independentes | 01/09 |
+| 19 | **A auditoria do Giro aborta**: edição que inventa número não vai ao ar, e o motivo é publicado em `/blueprints` | 01/09 |
 
 ## Ainda em aberto
 
@@ -184,3 +233,7 @@ Em ordem, e os três primeiros não são código:
 | 3 | Data da 2ª parcela | nada técnico |
 | 4 | Data-alvo do v0 (proposta: 31/10) | planejamento |
 | 5 | Identidade visual além do sistema de design (marca, logotipo) | nada técnico no P0 |
+| 6 | **Chave da API na conta do sócio** | **todo texto real** — pipeline e Giro simulam sem ela |
+| 7 | **O arXiv fica, sai ou vira fluxo separado?** | o teto de custo, e o quanto o radar publica |
+| 8 | **O teto de R$ 3,00/dia é o certo?** | a cadência do site |
+| 9 | Nenhuma fonte é `liberada` ainda | a tradução integral — o "primeira mão" não existe até isso |

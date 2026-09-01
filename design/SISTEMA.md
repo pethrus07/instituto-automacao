@@ -9,7 +9,7 @@
 |---|---|
 | `tokens.css` | **a fonte da verdade**. Cor, tipo, espaço, superfície. Nenhum valor bruto vive fora daqui |
 | `base.css` | reset curto + comportamento padrão dos elementos + os dois modos de leitura (`.obra` e `.fluxo`) |
-| `components.css` | primitivas: kicker, relógio, selos, item, evento, termo, filtro, aviso |
+| `components.css` | primitivas: kicker, relógio, selos, item, evento, termo, filtro, aviso, cabeçalho, capa, veredito, paginação, bloco de núcleo e lista seca |
 | `specimen.html` | a amostra que documenta o sistema e serve de teste visual |
 
 Em produção os três CSS são concatenados e servidos pelo próprio Worker num só arquivo
@@ -67,10 +67,25 @@ não default.
 - Alvo de clique cobre o card inteiro sem quebrar navegação por teclado
 - Nenhuma informação depende só de cor: o selo sempre tem texto
 
+## Peças do Giro da Semana — 01/09/2026
+
+| Classe | Para quê |
+|---|---|
+| `.bloco-nucleo` | o balanço de um núcleo dentro da edição. Barra colorida à esquerda, a mesma convenção do resto do site: o núcleo se identifica por cor, não por rótulo repetido |
+| `.lista-seca` | lista sem marcador e sem enfeite — título, fonte, próxima linha |
+
+As duas existem pela mesma razão: **quem abre um balanço semanal não lê linha a linha.** Passa
+o olho procurando o núcleo que interessa e para ali. A `.lista-seca` serve às manchetes do
+núcleo, às vozes e à agenda — três listas de naturezas diferentes que, na página, têm a mesma
+função de varredura.
+
+O placar do destaque reaproveita a `table` e o `.scroll-x` que já existiam. Não precisou de
+componente novo, e isso é sinal de que o sistema está no tamanho certo.
+
 ## O que ainda não existe
 
-- [ ] Cabeçalho, navegação entre núcleos e rodapé
-- [ ] Paginação e estado vazio ("nenhum item ainda neste núcleo")
+- [x] ~~Cabeçalho, navegação entre núcleos e rodapé~~ — feito na sprint 0
+- [x] ~~Paginação e estado vazio~~ — feito, e o volume revelou três defeitos reais
 - [ ] Página de erro
 - [ ] Template de OG image (gerada no Worker, guardada no R2)
 - [ ] Estilo de impressão para o Panorama

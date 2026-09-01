@@ -1,19 +1,27 @@
 # Instituto Automação — Fluxos
 
-> O caminho de cada coisa, da origem à tela. Quatro fluxos: **o item**, **o atraso**,
-> **o evento** e **a obra**.
+> O caminho de cada coisa, da origem à tela. Cinco fluxos: **o item**, **o atraso**,
+> **o evento**, **a obra** e **o Giro da Semana**.
 
 ---
 
 ## 1. O item — da fonte à página
 
-O caminho principal. Note onde estão os dois portões: a **licença** decide o que pode ser
-feito com o texto, e a **confiança** decide se precisa de gente antes de publicar.
+O caminho principal. Note onde estão os **três** portões, e que o primeiro vem antes de
+qualquer requisição ao conteúdo: o **`robots.txt`** decide se podemos buscar, a **licença**
+decide o que pode ser feito com o texto, e a **confiança** decide se precisa de gente antes
+de publicar.
 
 ```mermaid
 flowchart TD
-    A["Cron dispara<br/>15 min (liberada) · 60 min (resumo)"] --> B["Busca o feed da fonte"]
-    B --> C{"Já existe?<br/>URL canônica + título"}
+    A["Cron dispara<br/>a cada 15 min"] --> A1{"🚦 PORTÃO 0<br/><b>robots.txt</b> da fonte"}
+    A1 -->|"não permite<br/>ou ilegível"| A2["Não coleta<br/>veredito vai para /blueprints"]
+    A1 -->|permite| A3["Respeita o Crawl-delay"]
+    A3 --> B{"fonte.colheita"}
+    B -->|feed| B1["Busca o RSS/Atom"]
+    B -->|sitemap| B2["Busca o sitemap-news<br/>título + data + URL"]
+    B1 --> C{"Já existe?<br/>URL canônica + título"}
+    B2 --> C
     C -->|sim| C1["Descarta<br/>(marca visto_em)"]
     C -->|não| D["Grava como <b>coletado</b>"]
 
@@ -50,7 +58,15 @@ sozinha **com o selo dizendo que ninguém revisou ainda**, e o selo some quando 
 revisa. O leitor sabe o que está lendo.
 
 **Onde o custo é contido.** A triagem barata roda antes de qualquer coisa cara. Item que
-não passa na triagem nunca chega no Sonnet. E `custo_dia` corta o coletor no teto.
+não passa na triagem nunca chega no Sonnet. E `custo_dia` corta o pipeline no teto — o
+coletor continua, porque feed não guarda histórico e dia sem coletar não volta.
+
+**O portão 0 não tem contorno.** Nada de trocar o `User-Agent`, usar proxy ou navegador
+disfarçado. O argumento é interno ao produto, não moral: o `/blueprints` publica o link que
+autoriza cada fonte, e uma fonte obtida furando bloqueio apareceria naquela tabela como o
+quê? Quando o `robots.txt` fecha o feed mas o mesmo arquivo anuncia um sitemap de notícias,
+o caminho é o sitemap — é a porta que a própria fonte apontou. Detalhe em
+[`ARQUITETURA.md` §11](ARQUITETURA.md).
 
 ---
 
@@ -137,7 +153,53 @@ clipping; assina o relatório.
 
 ---
 
-## 5. Estados
+## 5. O Giro da Semana — a rotina que não vira agregador
+
+Segunda-feira, 08:00 de Brasília. Cobre a semana que fechou no domingo, nunca a corrente —
+publicar balanço de dados que ainda vão mudar obriga a mexer no que já saiu.
+
+```mermaid
+flowchart TD
+    A["Cron 0 11 * * 1<br/>segunda 08:00 BRT"] --> B["<b>agregar</b> · SQL puro, zero IA<br/>contagens · mediana · placar"]
+    B --> C{"Semana teve item?"}
+    C -->|não| C1["Não vira edição vazia"]
+    C -->|sim| D{"Teto de custo<br/>já estourou hoje?"}
+    D -->|sim| D1["Rascunho<br/>motivo: teto atingido"]
+    D -->|não| E["<b>redigir</b> · Sonnet<br/>vê SÓ o agregado"]
+
+    E --> F["<b>auditar</b> · máquina<br/>nunca vê o modelo"]
+    F --> F1{"Todo número da prosa<br/>existe no agregado?"}
+    F1 -->|não| G["<b>Rascunho</b> com o motivo<br/>→ aparece em /blueprints"]
+    F1 -->|sim| F2{"4 núcleos? sem URL?<br/>núcleo vazio sem movimento inventado?"}
+    F2 -->|não| G
+    F2 -->|sim| H["Congela o agregado em JSON"]
+    H --> I(("<b>Publicado</b><br/>/giro/2026-s36"))
+```
+
+**Quem redige nunca vê o banco. Quem audita nunca vê o modelo.** É assim que "a IA escreveu"
+deixa de ser desculpa e vira etapa verificável.
+
+**O destaque é uma conta, publicada junto com o resultado:**
+
+| Parcela | Pontos |
+|---|---|
+| repercussão | 10 × fontes independentes |
+| alcance | soma do peso editorial das fontes |
+| **ineditismo** | **25** se nenhuma fonte brasileira mencionou |
+| veredito | não chega 15 · chega 10 · a caminho 5 · sem efeito 0 |
+
+**Piso de 2 fontes independentes.** Sem ele o ineditismo — que é o critério mais pesado —
+elegeria sempre o assunto mais obscuro, porque quem ninguém cobriu tem, por definição, zero
+menção brasileira. E quando ninguém alcança o piso, **o giro diz que não houve destaque e diz
+por quê**. Publicar um destaque fraco seria mais fácil e valeria menos.
+
+**Por que o ineditismo pesa mais que a repercussão.** Quem ordena por repercussão está
+fazendo agregador. A pergunta que este veículo existe para responder é o que *não* chegou
+aqui.
+
+---
+
+## 6. Estados
 
 Um item e um evento vivem no mesmo vocabulário:
 

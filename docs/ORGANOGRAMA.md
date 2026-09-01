@@ -58,7 +58,12 @@ flowchart TB
 | Infraestrutura e custo de API | | ✅ | |
 | Código, deploy e operação do fluxo | ✅ | | |
 | Coleta, tradução, classificação | | | ✅ |
+| **Obedecer o `robots.txt` de cada fonte** | | | ✅ |
 | Medição do atraso BR | | | ✅ |
+| **Giro da Semana — agregar, redigir, auditar** | | | ✅ |
+| **Auditar o Giro e reter o que reprova** | | | ✅ |
+| Decidir o que fica no radar (arXiv, teto de custo) | ✅ | | |
+| Classificar licença de fonte (`liberada`) | ✅ | ✅ | |
 | Agenda — varredura | | | ✅ |
 | Agenda — aprovação | ✅ | ✅ | |
 | Núcleo Indústria — Leitura | | ✅ | |
