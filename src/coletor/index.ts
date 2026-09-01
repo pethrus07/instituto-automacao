@@ -38,6 +38,8 @@ export type RelatorioColeta = {
   novos: number;
   repetidos: number;
   ignorados: number;
+  /** fontes que ficaram para o próximo tick por já haver outra do mesmo host */
+  adiados: number;
   erros: { fonte: string; erro: string }[];
   ms: number;
 };
@@ -63,11 +65,36 @@ async function fontesVencidas(db: D1Database, limite: number): Promise<LinhaFont
 
 export async function coletar(env: Env, limite = FONTES_POR_TICK): Promise<RelatorioColeta> {
   const t0 = Date.now();
-  const rel: RelatorioColeta = { fontes: 0, novos: 0, repetidos: 0, ignorados: 0, erros: [], ms: 0 };
+  const rel: RelatorioColeta = {
+    fontes: 0, novos: 0, repetidos: 0, ignorados: 0, adiados: 0, erros: [], ms: 0,
+  };
 
   const fontes = await fontesVencidas(env.DB, limite);
 
+  /**
+   * No máximo uma fonte por host a cada tick.
+   *
+   * Descoberto medindo: três feeds do Reddit em sequência devolveram 429 no
+   * segundo e no terceiro. Espaçar por host é mais honesto que aumentar o
+   * intervalo de todas as fontes — o cron volta em 15 min e pega as que
+   * ficaram, então nada se perde, e paramos de bater na porta de quem já
+   * respondeu agora.
+   */
+  const hostsDoTick = new Set<string>();
+
   for (const f of fontes) {
+    let host = '';
+    try {
+      host = new URL(f.url_feed!).hostname;
+    } catch {
+      /* URL inválida cai no catch de baixo, com erro registrado */
+    }
+    if (host && hostsDoTick.has(host)) {
+      rel.adiados++;
+      continue;
+    }
+    if (host) hostsDoTick.add(host);
+
     rel.fontes++;
     try {
       const resp = await fetch(f.url_feed!, {

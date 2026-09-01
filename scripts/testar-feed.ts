@@ -197,6 +197,36 @@ conferir(
 );
 conferir('minutos de leitura', minutosDeLeitura('palavra '.repeat(400)), 2);
 
+/* ===================================================================== */
+/* Microblog — item sem <title>                                           */
+/* ===================================================================== */
+console.log('\nMicroblog (Mastodon)');
+
+const MASTODON = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>#Automation</title>
+  <item>
+    <guid isPermaLink="true">https://floss.social/@x/1</guid>
+    <link>https://floss.social/@x/1</link>
+    <pubDate>Tue, 01 Sep 2026 11:46:01 +0000</pubDate>
+    <description>&lt;p&gt;Learn how to self-host n8n on your own server. Full guide inside.&lt;/p&gt;</description>
+  </item>
+</channel></rss>`;
+
+const mast = lerFeed(MASTODON);
+conferir('post sem <title> NAO e descartado', mast.length, 1);
+conferir(
+  'e o titulo vem da primeira frase do texto',
+  mast[0]!.titulo,
+  'Learn how to self-host n8n on your own server.',
+);
+conferir('o link continua sendo o do post', mast[0]!.link, 'https://floss.social/@x/1');
+conferir(
+  'item sem titulo E sem texto continua descartado',
+  lerFeed('<rss><item><link>https://x.com/1</link></item></rss>').length,
+  0,
+);
+
 /* --------------------------------------------------------------- resultado */
 console.log(`
 ${ok} ok · ${falhou} falha(s)`);

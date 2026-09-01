@@ -13,7 +13,9 @@
     "db:zerar": "wrangler d1 execute instituto --local --command=\"SELECT 'use db:local para recriar'\"",
     "db:remoto": "wrangler d1 execute instituto --remote --file=./schema.sql",
     "test": "node --experimental-strip-types scripts/testar-feed.ts",
-    "qa": "node qa/verificar.mjs"
+    "qa": "node qa/verificar.mjs",
+    "sondar": "node --experimental-strip-types scripts/sondar-fontes.ts",
+    "db:fontes": "wrangler d1 execute instituto --local --file=./fontes.sql"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

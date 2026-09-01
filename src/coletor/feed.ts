@@ -124,8 +124,7 @@ export function lerFeed(xml: string): EntradaFeed[] {
   const entradas: EntradaFeed[] = [];
 
   for (const bloco of blocos) {
-    const titulo = limpar(tag(bloco, 'title'), 400);
-    if (!titulo) continue; // sem título não há item
+    let titulo = limpar(tag(bloco, 'title'), 400);
 
     const link = atom
       ? linkDeAtom(bloco)
@@ -144,6 +143,24 @@ export function lerFeed(xml: string): EntradaFeed[] {
       limpar(tag(bloco, 'description')) ??
       limpar(tag(bloco, 'encoded')) ?? // content:encoded
       limpar(tag(bloco, 'content'));
+
+    /**
+     * Item sem título.
+     *
+     * A versão anterior descartava — "sem título não há item". Certo para
+     * notícia, errado para microblog: post de Mastodon não tem <title>,
+     * só <description>, e o post É o conteúdo. Descartando, o Instituto
+     * simplesmente não enxergaria rede social.
+     *
+     * Descoberto sondando feed real, não lendo documentação.
+     */
+    if (!titulo) {
+      const bruto = resumo ?? '';
+      const corte = bruto.search(/[.!?](\s|$)/);
+      const frase = corte > 20 ? bruto.slice(0, corte + 1) : bruto;
+      titulo = frase.length > 160 ? frase.slice(0, 157).trimEnd() + '…' : frase;
+    }
+    if (!titulo) continue; // sem título E sem texto: não há item
 
     entradas.push({
       titulo,

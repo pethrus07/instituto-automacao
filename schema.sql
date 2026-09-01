@@ -26,7 +26,13 @@ CREATE TABLE fonte (
   veiculo           TEXT,
   url_site          TEXT NOT NULL,
   url_feed          TEXT,
-  tipo              TEXT NOT NULL CHECK (tipo IN ('press','imprensa','associacao','academico','calendario')),
+  -- Tipos ampliados em 01/09: a sondagem mostrou que forum, artigo, rede
+  -- social, video e release de produto TAMBEM sao RSS — o coletor ja serve,
+  -- sem uma linha nova. As excecoes medidas: X/Twitter e LinkedIn nao tem
+  -- feed publico.
+  tipo              TEXT NOT NULL CHECK (tipo IN
+                    ('press','imprensa','associacao','academico','calendario',
+                     'social','forum','video','release')),
   idioma            TEXT NOT NULL,
   pais              TEXT NOT NULL,
   nucleo            TEXT,

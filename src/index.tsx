@@ -1281,7 +1281,7 @@ export default {
           const c = await coletar(env);
           console.log(
             `[coletor] ${c.fontes} fontes · ${c.novos} novos · ${c.repetidos} repetidos · ` +
-              `${c.ignorados} ignorados · ${c.erros.length} erros · ${c.ms}ms`,
+              `${c.ignorados} ignorados · ${c.adiados} adiados · ${c.erros.length} erros · ${c.ms}ms`,
           );
           for (const e of c.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
         } catch (e) {
