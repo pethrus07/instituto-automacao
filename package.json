@@ -18,6 +18,7 @@
     "qa": "node qa/verificar.mjs",
     "sondar": "node --experimental-strip-types scripts/sondar-fontes.ts",
     "sondar:vozes": "node --experimental-strip-types scripts/sondar-vozes.ts",
+    "colher": "node --experimental-strip-types scripts/colher.ts",
     "cadencia": "node --experimental-strip-types scripts/medir-cadencia.ts",
     "db:vozes": "wrangler d1 execute instituto --local --file=./vozes.sql",
     "db:fontes": "wrangler d1 execute instituto --local --file=./fontes.sql"
