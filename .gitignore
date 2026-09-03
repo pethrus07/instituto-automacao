@@ -6,7 +6,7 @@ dist/
 *.log
 
 # A colheita e material de leitura de terceiro: fica na maquina, nao no git.
-# O livro de vistos e a excecao — e metadado NOSSO (quais URLs ja foram
-# lidas), e e ele que faz a colheita seguinte mostrar 40 linhas em vez de 500.
+# O livro de lidos e a excecao — e metadado NOSSO (quais URLs ja foram
+# lidas), e e ele que impede um item ja descartado de voltar para a pauta.
 colheita/*
-!colheita/vistos.json
+!colheita/lidos.json

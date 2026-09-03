@@ -1,36 +1,47 @@
 /**
  * A COLHEITA — tempo 1 dos três (ver docs/FUNCIONAMENTO.md).
  *
- *   npm run colher              só o que é novo desde a última vez
- *   npm run colher -- --tudo    ignora o livro de vistos
- *   npm run colher -- --dias 3  só o que a fonte publicou nos últimos N dias
+ *   npm run colher              colhe e atualiza a pauta
+ *   npm run colher -- --dias 7  só o que a fonte publicou nos últimos N dias
  *
  * Máquina, local, sem IA, custo zero. Busca cada fonte, obedece o
  * `robots.txt`, deduplica por URL canônica, tira HTML do resumo e normaliza a
  * data. Não sobe nada para lugar nenhum e não chama modelo nenhum.
  *
- * ⚠️ O ARQUIVO DE SAÍDA É FEITO PARA SER LIDO POR GENTE, e isso não é
- * capricho: o tempo 2 é alguém sentar e ler a colheita inteira. Um despejo de
- * JSON com 500 objetos é tecnicamente correto e ninguém lê — e o que não é
- * lido não vira peça. Por isso: agrupado por fonte, ordenado por data, resumo
- * limpo, e o novo separado do repetido.
+ * ⚠️ O LEDGER MARCA NA LAVRA, NÃO NA COLHEITA — e essa é a decisão que faz o
+ * agendamento ser seguro.
  *
- * O LIVRO DE VISTOS é o que faz a segunda colheita mostrar 40 linhas em vez de
- * 500. Guarda só a URL canônica e a data em que foi vista — metadado nosso,
- * não conteúdo de terceiro, e por isso vai para o git.
+ * A primeira versão marcava o item como visto assim que o colhia. Parecia
+ * óbvio e estava errado: com a colheita rodando por tarefa agendada, um item
+ * colhido às 7h de terça entrava como "visto" e sumia da pauta antes de
+ * qualquer pessoa ter olhado para ele. A automação destruiria em silêncio
+ * exatamente o que ela existe para preservar.
+ *
+ * Então são dois arquivos, e a diferença entre eles é o ponto:
+ *
+ *   pendentes.json  o que foi colhido e AINDA NÃO foi lido. Só cresce.
+ *   lidos.json      o que já passou pelos nossos olhos. Só `npm run lavrado`
+ *                   escreve aqui.
+ *
+ * `pauta.md` é a vista renderizada de `pendentes.json`, refeita a cada
+ * colheita. É o arquivo que se lê, e ele acumula até alguém sentar. Se a
+ * pauta estiver com 800 itens, isso não é um bug — é a informação de que
+ * ficamos duas semanas sem lavrar.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lerFeed, type EntradaFeed } from '../src/coletor/feed.ts';
+import { lerFeed } from '../src/coletor/feed.ts';
 import { lerRobots } from '../src/coletor/robots.ts';
 import { ehIndice, lerIndiceSitemaps, lerSitemapNoticias } from '../src/coletor/sitemap.ts';
 import { canonicalizar } from '../src/coletor/url.ts';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PASTA = join(RAIZ, 'colheita');
-const VISTOS = join(PASTA, 'vistos.json');
+const PENDENTES = join(PASTA, 'pendentes.json');
+const LIDOS = join(PASTA, 'lidos.json');
+const PAUTA = join(PASTA, 'pauta.md');
 
 /** ASCII, sempre. Byte alto em cabeçalho HTTP vira 403 em alguns servidores. */
 const UA =
@@ -38,10 +49,7 @@ const UA =
 
 const TEMPO_LIMITE_MS = 20_000;
 
-/* ------------------------------------------------------------ argumentos */
-
 const args = process.argv.slice(2);
-const TUDO = args.includes('--tudo');
 const DIAS = (() => {
   const i = args.indexOf('--dias');
   const n = i >= 0 ? Number(args[i + 1]) : NaN;
@@ -64,10 +72,7 @@ type Fonte = {
   pessoa_papel: string | null;
 };
 
-/**
- * As fontes vêm do D1 local. É o único uso de banco aqui, e é leitura: a
- * lista de fontes é dado curado, não configuração de script.
- */
+/** A lista de fontes é dado curado, não configuração de script. */
 function carregarFontes(): Fonte[] {
   const wrangler = join(RAIZ, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
   const saida = execFileSync(
@@ -85,34 +90,51 @@ function carregarFontes(): Fonte[] {
   return JSON.parse(saida.slice(saida.indexOf('[')))[0].results as Fonte[];
 }
 
-/* --------------------------------------------------------- livro de vistos */
+/* ---------------------------------------------------------------- ledgers */
 
-type Vistos = Record<string, string>; // url canônica → data ISO em que foi vista
+export type Pendente = {
+  titulo: string;
+  resumo: string | null;
+  publicado: string | null;
+  fonte: string;
+  pessoa: string | null;
+  papel: string | null;
+  pais: string;
+  idioma: string;
+  nucleo: string | null;
+  colhido_em: string;
+};
 
-function lerVistos(): Vistos {
-  if (!existsSync(VISTOS)) return {};
+type Pendentes = Record<string, Pendente>; // url canônica → item
+
+function lerJson<T>(caminho: string, vazio: T, rotulo: string): T {
+  if (!existsSync(caminho)) return vazio;
   try {
-    return JSON.parse(readFileSync(VISTOS, 'utf8')) as Vistos;
+    return JSON.parse(readFileSync(caminho, 'utf8')) as T;
   } catch {
-    // Livro corrompido não pode travar a colheita — no pior caso a gente relê
-    // o que já tinha lido, que é chato e não é perda.
-    console.warn('  aviso: vistos.json ilegível, começando do zero');
-    return {};
+    /* Ledger corrompido não pode travar a colheita. No pior caso a gente relê
+       o que já tinha lido — chato, e não é perda. Perder um item que nunca
+       apareceu para ninguém, sim, seria. */
+    console.warn(`  aviso: ${rotulo} ilegível, começando do zero`);
+    return vazio;
   }
 }
 
 /* ------------------------------------------------------------------ coleta */
 
-type Achado = EntradaFeed & { canonica: string; novo: boolean };
-type Colhido = { fonte: Fonte; achados: Achado[]; erro: string | null; recusado: boolean };
+type Colhido = { fonte: Fonte; novos: number; total: number; erro: string | null; recusado: boolean };
 
-async function colherFonte(f: Fonte, vistos: Vistos): Promise<Colhido> {
-  const base: Colhido = { fonte: f, achados: [], erro: null, recusado: false };
+async function colherFonte(
+  f: Fonte,
+  pendentes: Pendentes,
+  lidos: Record<string, string>,
+): Promise<Colhido> {
+  const base: Colhido = { fonte: f, novos: 0, total: 0, erro: null, recusado: false };
 
   const rb = await lerRobots(f.url_feed, UA);
   if (rb.permite !== true) return { ...base, recusado: true, erro: rb.motivo };
 
-  // O Crawl-delay é pedido da fonte, e vale mesmo numa varredura de leitura.
+  // Crawl-delay é pedido da fonte, e vale mesmo numa varredura de leitura.
   if (rb.atraso) await new Promise((r) => setTimeout(r, Math.min(rb.atraso! * 1000, 15_000)));
 
   const eSitemap = f.colheita === 'sitemap';
@@ -141,22 +163,34 @@ async function colherFonte(f: Fonte, vistos: Vistos): Promise<Colhido> {
 
   const entradas = eSitemap ? lerSitemapNoticias(xml) : lerFeed(xml);
   const corte = DIAS ? Date.now() - DIAS * 86400000 : null;
+  const agora = new Date().toISOString();
 
-  const achados: Achado[] = [];
+  let novos = 0;
   for (const e of entradas) {
     const canonica = canonicalizar(e.link, f.url_site);
     if (!canonica) continue;
     if (corte && e.publicado && Date.parse(e.publicado) < corte) continue;
-    achados.push({ ...e, canonica, novo: !(canonica in vistos) });
+    if (canonica in lidos || canonica in pendentes) continue;
+
+    pendentes[canonica] = {
+      titulo: e.titulo,
+      resumo: e.resumo,
+      publicado: e.publicado,
+      fonte: f.nome,
+      pessoa: f.pessoa,
+      papel: f.pessoa_papel,
+      pais: f.pais,
+      idioma: f.idioma,
+      nucleo: f.nucleo,
+      colhido_em: agora,
+    };
+    novos++;
   }
 
-  // Mais recente primeiro. Item sem data vai para o fim: não dá para ordenar
-  // o que não se sabe quando aconteceu, e fingir uma data estragaria a leitura.
-  achados.sort((a, b) => (b.publicado ?? '').localeCompare(a.publicado ?? ''));
-  return { ...base, achados };
+  return { ...base, novos, total: entradas.length };
 }
 
-/* ------------------------------------------------------------- a escrita */
+/* -------------------------------------------------------------- a escrita */
 
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
@@ -170,65 +204,91 @@ function quando(iso: string | null): string {
   return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]}`;
 }
 
-function escreverColheita(colhidos: Colhido[], soNovos: boolean): string {
+/**
+ * A pauta é feita para ser lida por gente, de cima para baixo — e isso não é
+ * capricho. O tempo 2 é alguém sentar e ler. Um despejo de JSON é tecnicamente
+ * correto e ninguém lê; o que não é lido não vira peça.
+ */
+export function escreverPauta(pendentes: Pendentes, recusadas: Colhido[], erros: Colhido[]): string {
+  const itens = Object.entries(pendentes);
   const l: string[] = [];
-  const agora = new Date();
-  const carimbo = agora.toISOString().slice(0, 16).replace('T', ' ');
 
-  const comAchados = colhidos.filter((c) => c.achados.some((a) => a.novo || !soNovos));
-  const novos = colhidos.reduce((t, c) => t + c.achados.filter((a) => a.novo).length, 0);
-  const recusados = colhidos.filter((c) => c.recusado);
-  const erros = colhidos.filter((c) => c.erro && !c.recusado);
+  const maisAntigo = itens.reduce<string | null>(
+    (m, [, p]) => (m === null || p.colhido_em < m ? p.colhido_em : m),
+    null,
+  );
+  const espera = maisAntigo
+    ? Math.round((Date.now() - Date.parse(maisAntigo)) / 86400000)
+    : 0;
 
-  l.push(`# Colheita · ${carimbo} UTC`);
+  l.push('# Pauta aberta');
   l.push('');
   l.push(
-    `**${novos} itens novos** de ${comAchados.length} fontes` +
-      (DIAS ? ` · janela de ${DIAS} dia(s)` : '') +
-      (soNovos ? '' : ' · mostrando também o que já foi visto'),
+    `**${itens.length} ${itens.length === 1 ? 'item esperando' : 'itens esperando'} leitura**` +
+      (espera > 0 ? ` · o mais antigo há ${espera} ${espera === 1 ? 'dia' : 'dias'}` : '') +
+      ` · atualizado em ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
   );
   l.push('');
-  l.push('> Leia de cima para baixo e marque o que vale virar peça. As vozes vêm');
-  l.push('> primeiro de propósito: uma pessoa escrevendo com o nome dela costuma');
-  l.push('> render mais pauta do que dez manchetes de redação.');
-  l.push('');
-  l.push('---');
+  l.push('> Esta pauta **acumula até alguém sentar**. Ela não se esvazia sozinha:');
+  l.push('> `npm run lavrado` é que marca tudo como lido, e só depois de a gente');
+  l.push('> ter passado o olho. Pauta grande não é defeito — é a informação de');
+  l.push('> quanto tempo faz que não lavramos.');
+  l.push('>');
+  l.push('> As vozes vêm primeiro de propósito: uma pessoa escrevendo com o nome');
+  l.push('> dela costuma render mais pauta do que dez manchetes de redação.');
 
-  for (const c of colhidos) {
-    const lista = soNovos ? c.achados.filter((a) => a.novo) : c.achados;
-    if (lista.length === 0) continue;
+  /* Agrupa por fonte, vozes na frente, e dentro de cada uma o mais recente
+     no topo. Item sem data vai para o fim: fingir uma data para poder ordenar
+     estragaria a leitura. */
+  const porFonte = new Map<string, [string, Pendente][]>();
+  for (const par of itens) {
+    const chave = par[1].pessoa ?? par[1].fonte;
+    if (!porFonte.has(chave)) porFonte.set(chave, []);
+    porFonte.get(chave)!.push(par);
+  }
+
+  const grupos = [...porFonte.entries()].sort((a, b) => {
+    const vozA = a[1][0]![1].pessoa ? 0 : 1;
+    const vozB = b[1][0]![1].pessoa ? 0 : 1;
+    if (vozA !== vozB) return vozA - vozB;
+    return a[1].length - b[1].length; // fonte enxuta antes da barulhenta
+  });
+
+  for (const [chave, lista] of grupos) {
+    lista.sort((a, b) => (b[1].publicado ?? '').localeCompare(a[1].publicado ?? ''));
+    const p = lista[0]![1];
 
     l.push('');
-    const quem = c.fonte.pessoa
-      ? `## ${c.fonte.pessoa} · voz`
-      : `## ${c.fonte.nome}`;
-    l.push(quem);
+    l.push('---');
+    l.push('');
+    l.push(p.pessoa ? `## ${p.pessoa} · voz` : `## ${chave}`);
     const meta = [
-      c.fonte.pessoa_papel,
-      `${c.fonte.pais} · ${c.fonte.idioma}`,
-      c.fonte.nucleo ?? 'sem núcleo',
+      p.papel,
+      `${p.pais} · ${p.idioma}`,
+      p.nucleo ?? 'sem núcleo',
       `${lista.length} ${lista.length === 1 ? 'item' : 'itens'}`,
     ].filter(Boolean);
     l.push(`*${meta.join(' — ')}*`);
     l.push('');
 
-    for (const a of lista) {
-      l.push(`### ${a.titulo}`);
-      l.push(`\`${quando(a.publicado)}\` · <${a.canonica}>`);
-      if (a.resumo) {
+    for (const [url, it] of lista) {
+      l.push(`### ${it.titulo}`);
+      l.push(`\`${quando(it.publicado)}\` · <${url}>`);
+      if (it.resumo) {
         l.push('');
-        l.push(a.resumo);
+        l.push(it.resumo);
       }
       l.push('');
     }
-    l.push('---');
   }
 
-  if (recusados.length || erros.length) {
+  if (recusadas.length || erros.length) {
     l.push('');
-    l.push('## O que não entrou');
+    l.push('---');
     l.push('');
-    for (const c of recusados) l.push(`- **${c.fonte.nome}** — ${c.erro}`);
+    l.push('## O que não entrou nesta colheita');
+    l.push('');
+    for (const c of recusadas) l.push(`- **${c.fonte.nome}** — ${c.erro}`);
     for (const c of erros) l.push(`- ${c.fonte.nome} — ${c.erro}`);
     l.push('');
   }
@@ -239,46 +299,41 @@ function escreverColheita(colhidos: Colhido[], soNovos: boolean): string {
 /* -------------------------------------------------------------------- main */
 
 const fontes = carregarFontes();
-const vistos = TUDO ? {} : lerVistos();
-console.log(`Colhendo ${fontes.length} fontes${DIAS ? ` · últimos ${DIAS} dia(s)` : ''}…\n`);
+const pendentes = lerJson<Pendentes>(PENDENTES, {}, 'pendentes.json');
+const lidos = lerJson<Record<string, string>>(LIDOS, {}, 'lidos.json');
+const antes = Object.keys(pendentes).length;
+
+console.log(
+  `Colhendo ${fontes.length} fontes${DIAS ? ` · últimos ${DIAS} dia(s)` : ''}` +
+    ` · ${antes} já na pauta\n`,
+);
 
 const colhidos: Colhido[] = [];
 for (const f of fontes) {
   try {
-    const c = await colherFonte(f, vistos);
+    const c = await colherFonte(f, pendentes, lidos);
     colhidos.push(c);
-    const n = c.achados.filter((a) => a.novo).length;
-    const marca = c.recusado ? 'robots' : c.erro ? c.erro : n > 0 ? `${n} novos` : '—';
+    const marca = c.recusado ? 'robots' : c.erro ?? (c.novos > 0 ? `+${c.novos}` : '—');
     console.log(`  ${c.erro ? '✗' : '✓'} ${f.nome.slice(0, 40).padEnd(42)} ${marca}`);
   } catch (e) {
     const erro = e instanceof Error ? e.message : String(e);
-    colhidos.push({ fonte: f, achados: [], erro, recusado: false });
+    colhidos.push({ fonte: f, novos: 0, total: 0, erro, recusado: false });
     console.log(`  ✗ ${f.nome.slice(0, 40).padEnd(42)} ${erro}`);
   }
 }
 
 mkdirSync(PASTA, { recursive: true });
+writeFileSync(PENDENTES, JSON.stringify(pendentes, null, 0), 'utf8');
+writeFileSync(
+  PAUTA,
+  escreverPauta(
+    pendentes,
+    colhidos.filter((c) => c.recusado),
+    colhidos.filter((c) => c.erro && !c.recusado),
+  ),
+  'utf8',
+);
 
-const texto = escreverColheita(colhidos, !TUDO);
-const arquivo = join(PASTA, `${new Date().toISOString().slice(0, 10)}.md`);
-writeFileSync(arquivo, texto, 'utf8');
-
-/* O livro de vistos só é atualizado DEPOIS de a colheita ser escrita. Se o
-   processo morrer no meio, o pior caso é reler — nunca perder um item que
-   ficou marcado como visto sem nunca ter aparecido para ninguém. */
-const novosVistos: Vistos = TUDO ? lerVistos() : vistos;
-const hoje = new Date().toISOString();
-let marcados = 0;
-for (const c of colhidos) {
-  for (const a of c.achados) {
-    if (!(a.canonica in novosVistos)) {
-      novosVistos[a.canonica] = hoje;
-      marcados++;
-    }
-  }
-}
-writeFileSync(VISTOS, JSON.stringify(novosVistos, null, 0), 'utf8');
-
-const novos = colhidos.reduce((t, c) => t + c.achados.filter((a) => a.novo).length, 0);
-console.log(`\n${novos} novos · ${marcados} entraram no livro de vistos`);
-console.log(`\n→ ${arquivo.replace(RAIZ, '.')}`);
+const depois = Object.keys(pendentes).length;
+console.log(`\n${depois - antes} novos · ${depois} na pauta · ${Object.keys(lidos).length} já lidos`);
+console.log(`\n→ ${PAUTA.replace(RAIZ, '.')}`);
