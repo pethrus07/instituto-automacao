@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dois braços robóticos idênticos lado a lado; o da direita é só contorno pontilhado, com um ponto laranja na junta">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <g class="a-malha">
+    <path d="M0 640 H1200"/>
+    <path d="M600 60 V740"/>
+  </g>
+
+  <!-- o original: braço de seis eixos, traço cheio -->
+  <g class="a-traco">
+    <rect x="200" y="560" width="200" height="60" rx="10"/>
+    <circle cx="300" cy="540" r="36"/>
+    <path d="M300 504 L260 330"/>
+    <circle cx="260" cy="330" r="30"/>
+    <path d="M260 300 L420 190"/>
+    <circle cx="420" cy="190" r="26"/>
+    <path d="M446 190 L520 210"/>
+    <rect x="520" y="186" width="40" height="48" rx="6"/>
+    <path d="M560 194 L590 180 M560 226 L590 240"/>
+  </g>
+  <g class="a-claro">
+    <circle cx="300" cy="540" r="8"/><circle cx="260" cy="330" r="8"/><circle cx="420" cy="190" r="7"/>
+  </g>
+
+  <!-- a cópia: mesma geometria, deslocada, só contorno pontilhado -->
+  <g class="a-traco-pontilhado">
+    <rect x="720" y="560" width="200" height="60" rx="10"/>
+    <circle cx="820" cy="540" r="36"/>
+    <path d="M820 504 L780 330"/>
+    <circle cx="780" cy="330" r="30"/>
+    <path d="M780 300 L940 190"/>
+    <circle cx="940" cy="190" r="26"/>
+    <path d="M966 190 L1040 210"/>
+    <rect x="1040" y="186" width="40" height="48" rx="6"/>
+    <path d="M1080 194 L1110 180 M1080 226 L1110 240"/>
+  </g>
+  <!-- a marca da disputa: a junta que "parece demais" -->
+  <g class="a-acao-t">
+    <circle cx="780" cy="330" r="46"/>
+  </g>
+  <circle cx="780" cy="330" r="10" class="a-acao"/>
+</svg>

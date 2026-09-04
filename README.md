@@ -116,6 +116,11 @@ documento antes do código descreve intenção, e esse era o defeito.
   datas chutadas estavam erradas.
 - **Saída do `wrangler d1` filtrada por `tail` esconde erro.** Um DELETE barrado por FK passou
   em silêncio; filtre por `error`.
+- **`urllib.robotparser` lê o robots.txt com o User-Agent do Python.** Site que devolve 403 a
+  esse UA faz o parser responder "não pode" para TUDO. Buscar o robots com o nosso UA e passar o
+  texto a `parse()` — três artigos do CIMM quase ficaram de fora por um 403 que não era nosso.
+- **Foto sem crédito na página da fonte fica de fora**, mesmo quando o nome do arquivo diz
+  "Divulgação". A regra é o que está escrito para o leitor, não o que dá para deduzir.
 - **Edição por script sem asserção na âncora é edição não feita.**
 - **O QA mede o que dá para medir; a tela ainda precisa de olho.** O botão da navegação
   vazando texto passou por 213 asserções.

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Uma planta vista de cima, com máquinas em fila e um ponto laranja percorrendo o corredor entre elas">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- a planta: malha do piso -->
+  <g class="a-malha">
+    <path d="M0 200 H1200 M0 600 H1200"/>
+    <path d="M200 0 V800 M500 0 V800 M800 0 V800 M1100 0 V800"/>
+  </g>
+
+  <!-- as máquinas: blocos em duas fileiras -->
+  <g class="a-traco">
+    <rect x="120" y="120" width="160" height="150" rx="10"/>
+    <rect x="420" y="120" width="160" height="150" rx="10"/>
+    <rect x="720" y="120" width="160" height="150" rx="10"/>
+    <rect x="1020" y="120" width="120" height="150" rx="10"/>
+    <rect x="120" y="530" width="160" height="150" rx="10"/>
+    <rect x="420" y="530" width="160" height="150" rx="10"/>
+    <rect x="720" y="530" width="160" height="150" rx="10"/>
+    <rect x="1020" y="530" width="120" height="150" rx="10"/>
+  </g>
+  <!-- os sensores fixos: um ponto aceso por máquina, só nas máquinas grandes -->
+  <g class="a-claro">
+    <circle cx="200" cy="195" r="7"/><circle cx="500" cy="195" r="7"/><circle cx="800" cy="195" r="7"/>
+    <circle cx="200" cy="605" r="7"/><circle cx="500" cy="605" r="7"/><circle cx="800" cy="605" r="7"/>
+  </g>
+  <!-- as máquinas sem sensor: só o contorno pontilhado do que ninguém mede -->
+  <g class="a-traco-pontilhado">
+    <rect x="1035" y="135" width="90" height="120" rx="8"/>
+    <rect x="1035" y="545" width="90" height="120" rx="8"/>
+  </g>
+
+  <!-- o corredor e a ronda: o percurso do inspetor, com a posição atual acesa -->
+  <g class="a-gesto-acao">
+    <path d="M80 400 H1120"/>
+    <path d="M300 400 V330 M600 400 V330 M900 400 V330 M1080 400 V330"/>
+    <path d="M300 400 V470 M600 400 V470 M900 400 V470 M1080 400 V470"/>
+  </g>
+  <g class="a-acao-t">
+    <circle cx="1080" cy="400" r="30"/>
+  </g>
+  <circle cx="1080" cy="400" r="12" class="a-acao"/>
+  <circle cx="1080" cy="330" r="7" class="a-acao"/>
+  <circle cx="1080" cy="470" r="7" class="a-acao"/>
+</svg>

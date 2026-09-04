@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Três módulos separados à esquerda convergindo para um único bloco à direita, ligado a uma fileira de eixos">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- trilho do painel ao fundo -->
+  <g class="a-malha">
+    <path d="M0 140 H1200 M0 660 H1200"/>
+    <path d="M60 0 V800 M1140 0 V800"/>
+  </g>
+
+  <!-- antes: três módulos, cada um com sua função -->
+  <g class="a-traco">
+    <rect x="140" y="200" width="150" height="110" rx="10"/>
+    <rect x="140" y="345" width="150" height="110" rx="10"/>
+    <rect x="140" y="490" width="150" height="110" rx="10"/>
+    <!-- as ligações que somem -->
+    <path d="M290 255 H400 M290 400 H400 M290 545 H400"/>
+  </g>
+  <g class="a-claro">
+    <circle cx="170" cy="230" r="6"/><circle cx="170" cy="375" r="6"/><circle cx="170" cy="520" r="6"/>
+  </g>
+  <!-- convergência -->
+  <g class="a-traco-pontilhado">
+    <path d="M400 255 C 470 255, 480 400, 560 400"/>
+    <path d="M400 400 H560"/>
+    <path d="M400 545 C 470 545, 480 400, 560 400"/>
+  </g>
+
+  <!-- depois: um bloco só -->
+  <g class="a-acao-t">
+    <rect x="560" y="300" width="220" height="200" rx="14"/>
+    <line x1="560" y1="367" x2="780" y2="367"/>
+    <line x1="560" y1="433" x2="780" y2="433"/>
+  </g>
+  <circle cx="590" cy="333" r="8" class="a-acao"/>
+  <circle cx="590" cy="400" r="8" class="a-acao"/>
+  <circle cx="590" cy="467" r="8" class="a-acao"/>
+
+  <!-- um cabo só, para uma fileira de eixos -->
+  <g class="a-traco">
+    <path d="M780 400 H900"/>
+    <path d="M900 240 V560"/>
+    <path d="M900 260 H1000 M900 330 H1000 M900 400 H1000 M900 470 H1000 M900 540 H1000"/>
+    <circle cx="1030" cy="260" r="22"/><circle cx="1030" cy="330" r="22"/><circle cx="1030" cy="400" r="22"/><circle cx="1030" cy="470" r="22"/><circle cx="1030" cy="540" r="22"/>
+  </g>
+  <g class="a-claro">
+    <circle cx="1030" cy="260" r="6"/><circle cx="1030" cy="330" r="6"/><circle cx="1030" cy="400" r="6"/><circle cx="1030" cy="470" r="6"/><circle cx="1030" cy="540" r="6"/>
+  </g>
+</svg>

@@ -173,3 +173,70 @@ arte gerada mantém unidade porque a moldura é a mesma.
    data; procurar direto nas associações (ABINEE, ABIMAQ, CIMM).
 4. **Docs v1** — a lista da seção 7; última etapa.
 5. **Fontes self-hosted.**
+
+---
+
+## 9. Sessão 3 (04/09, noite) — "nada de exemplo, só o real e oficial"
+
+> 04/09/2026 · `npm run qa` · **536 asserções · 0 falhas · 1 aviso** · +89 do `npm test`
+>
+> O pedido: *"continue povoando mais, nn quero nada de exemplo quero os reais oficiais."*
+
+### O que entrou
+
+| | antes | agora |
+|---|---|---|
+| peças | 11 | **21** — 20 notícias (13 de fora, **7 lidas em fonte brasileira**) e 1 Análise |
+| imagens reais | 7 | **11**, todas com crédito escrito na página da fonte |
+| artes desenhadas | 5 | 8 |
+| eventos publicados | 4 | **20** — 11 no Brasil; 9 com data conferida no site oficial, 7 pela agenda do CIMM (fonte acompanhada, `fonte_id` e link do evento), 4 anteriores |
+| glossário | 22 | 33 termos |
+| fixtures "(exemplo)" | 2 no banco | **0** — no banco, no seed, no HTML |
+
+### As fontes brasileiras entraram nas Notícias
+
+Sete peças saíram de fontes do relógio (Automação Industrial ×6, CIMM ×1): Tractian/BNDES,
+Vale×ABB, ISA/OTCC, MELSEC MX, ABB Sorocaba, Siemens Automation, Gefran×NOVUS. A tagline diz
+"o que o setor publica lá fora"; seis das sete têm dimensão internacional direta (fabricante ou
+comprador estrangeiro), e a do BNDES é o maior financiamento público a robótica do ano. **É uma
+decisão editorial para o Pedro confirmar**: Notícias inclui a fonte brasileira especializada, ou
+fica só com o exterior e a BR vai para outro lugar?
+
+### O que ficou de fora, e por quê
+
+- **Siemens** (press release sem texto sem JavaScript), **HVAC/Engerey** no CIMM ("com
+  Engenharia de Comunicação", imagem de banco de imagem: assessoria, não notícia),
+  **ArcelorMittal** (siderurgia, não automação), **grippers/OnRobot** no TRR (artigo assinado
+  pelo diretor comercial do fabricante).
+- Fotos: a da Tractian tem "Divulgação" no nome do arquivo, mas nenhum crédito na página →
+  fora; a da JAKA/UR, da NSF (crédito composto de quatro instituições) e do MELSEC → fora.
+  Regra aplicada igual para todas: **crédito escrito na página ou nada**.
+
+### O que a rodada revelou
+
+1. **`urllib.robotparser` lia o robots.txt do CIMM com o User-Agent do Python, levava 403 e
+   respondia "não pode" para todo caminho.** Três artigos foram descartados como "robots não
+   permite" sem ser verdade. Corrigido buscando o robots com o nosso UA e passando o texto a
+   `parse()`. O `ler.ts` do projeto já fazia certo; o script avulso não.
+2. O CIMM declara `Content-Signal: search=yes,ai-train=no`. Respeitado (não treinamos nada);
+   fica a pendência de o coletor registrar o sinal por fonte, ao lado do robots.
+3. **Eventos em site com JavaScript não expõem data** (Mercopar, IROS, CoRL, Humanoids Summit).
+   Ficaram com a fonte da data escrita na descrição — CIMM ou IEEE Spectrum — em vez de
+   inventar uma conferência que não houve.
+4. **O destaque da capa é a primeira peça por data e, no empate, por ordem alfabética do slug.**
+   Com 20 peças no mesmo dia, "Austrália" ganha por começar com A. Precisa de `destaque:` no
+   frontmatter, decidido por gente.
+
+### Pelo olho
+
+Capa, Notícias, Agenda com 20 linhas, Glossário e as quatro peças novas com arte ou foto —
+conferidos em screenshot a 1440 px. Nenhum defeito visual.
+
+### Em aberto (atualizado)
+
+1. **Deploy** — acesso à Cloudflare; liga o cron e o P13.
+2. **Primeiro Giro** — segunda-feira 07/09, sobre a s36.
+3. **Decisão editorial**: fonte brasileira especializada dentro de Notícias (ver acima).
+4. **`destaque:` no frontmatter** para a capa não depender do alfabeto.
+5. **Coletor registrar `Content-Signal`** por fonte.
+6. Docs v1 · fontes self-hosted.
