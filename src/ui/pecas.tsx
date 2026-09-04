@@ -16,6 +16,7 @@ import {
   ROTULO_TEMA,
   type Peca,
 } from '../conteudo';
+import { ROTULO_LICENCA } from '../conteudo/tipos';
 
 /* ================================================================== texto */
 
@@ -125,7 +126,23 @@ export const Veredito = (p: { valor: string | null | undefined }) =>
  * sinal) para a página nunca ficar com buraco, e a arte desenhada entra
  * onde há gente para desenhá-la — que é o que 3 peças por semana permitem.
  */
-export const Arte = (p: { peca: Peca; classe?: string; destaque?: boolean }) => {
+export const Arte = (p: { peca: Peca; classe?: string; destaque?: boolean; comCredito?: boolean }) => {
+  const im = p.peca.imagem;
+  if (im) {
+    /* Imagem real: só entra com crédito e licença, e o crédito vai na tela —
+       não em atributo que ninguém lê. É a regra do texto valendo para a
+       imagem: a licença governa, e quem deu a licença aparece. */
+    return (
+      <figure class={`arte arte--foto ${p.classe ?? ''}`} data-arte="foto" data-licenca={im.licenca}>
+        <img src={`/imagens/${im.arquivo}`} alt={im.alt} loading={p.destaque ? 'eager' : 'lazy'} decoding="async" />
+        {p.comCredito !== false && (
+          <figcaption class="arte__credito">
+            Imagem: {im.credito} · {ROTULO_LICENCA[im.licenca]}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
   const svg = arteDe(p.peca.arte);
   return (
     <div class={`arte ${svg ? 'arte--desenhada' : 'arte--gerada'} ${p.classe ?? ''}`} data-arte={svg ? 'desenhada' : 'gerada'}>

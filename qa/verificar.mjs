@@ -12,7 +12,7 @@
  * Os treze critérios de "perfeito" (P1–P13) estão marcados onde são medidos.
  * Regra da casa: toda afirmação escrita em documento vira asserção aqui.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -251,7 +251,7 @@ for (const p of pecas) {
 for (const p of pecas) {
   const html = respostas[`/${p.secao}/${p.slug}`].corpo;
   checar('B', `/${p.secao}/${p.slug} mostra o autor`, html.includes(p.meta.autor));
-  checar('B', `/${p.secao}/${p.slug} tem arte (desenhada ou gerada)`, /data-arte="(desenhada|gerada)"/.test(html));
+  checar('B', `/${p.secao}/${p.slug} tem arte (foto licenciada, desenhada ou gerada)`, /data-arte="(foto|desenhada|gerada)"/.test(html));
   checar('B', `/${p.secao}/${p.slug} declara como foi feita`, html.includes('Como esta peça foi feita'));
   checar('B', `/${p.secao}/${p.slug} nega máquina na redação`, html.includes('por máquina'));
   if (p.secao === 'noticias') {
@@ -260,7 +260,9 @@ for (const p of pecas) {
     checar('B', `/${p.secao}/${p.slug} link da fonte tem noopener`, ancorasFonte.every((t) => /rel\s*=\s*"[^"]*noopener/.test(t)));
     checar('B', `/${p.secao}/${p.slug} mostra o veredito com critério`, html.includes(`veredito v-${p.meta.veredito}`) && html.includes('O que isso muda aqui'));
   }
-  if (p.meta.arte) checar('B', `/${p.secao}/${p.slug} usa a arte desenhada`, html.includes('data-arte="desenhada"'));
+  /* imagem real, quando existe, vence a arte desenhada — e é o que deve estar no HTML */
+  if (p.meta.imagem) checar('B', `/${p.secao}/${p.slug} mostra a imagem real (vence a arte)`, html.includes('data-arte="foto"'));
+  else if (p.meta.arte) checar('B', `/${p.secao}/${p.slug} usa a arte desenhada`, html.includes('data-arte="desenhada"'));
 }
 
 /* ------------------------------------------------------------ B. P5 · P6 */
@@ -353,7 +355,7 @@ checar('B', 'as fontes recusadas continuam listadas, dizendo que foram recusadas
 checar('B', 'o método declara que NÃO contornamos bloqueio', blue.includes('sem proxy') && blue.includes('navegador disfarçado'));
 checar('B', 'o método declara que não há IA em produção', blue.includes('Não há inteligência artificial em produção'));
 checar('B', 'o método publica as quatro categorias do veredito', ['v-chega', 'v-a_caminho', 'v-nao_chega', 'v-sem_efeito'].every((v) => blue.includes(v)));
-checar('B', 'e diz que o dataset ainda não foi publicado', blue.includes('Ainda não publicado'));
+checar('B', 'linka o dataset publicado e diz que a base completa ainda não saiu', /href="\/dados\/[^"]+\.csv"/.test(blue) && blue.includes('A base completa ainda não'));
 checar('B', 'o inventário conta itens por fonte', /<th>Itens<\/th>/.test(blue));
 
 /* --------------------------------------------------------- B. P12 · PAUTA */
@@ -469,6 +471,41 @@ checar('C', 'P10 · HTML da capa abaixo de 60 KB', medidas.htmlCapa < 60000, `${
 checar('C', 'P10 · CSS abaixo de 40 KB', medidas.css < 40000, `${(medidas.css / 1024).toFixed(1)} KB`);
 checar('C', 'P10 · capa responde em menos de 300 ms local', medidas.msCapa < 300, `${medidas.msCapa} ms`);
 if (/fonts\.googleapis\.com/.test(capa)) avisar('fontes vindas do Google', 'pendência conhecida: self-hosting antes do deploy');
+
+titulo('C · Qualidade — imagem real: a licença governa, o crédito aparece');
+/* A regra do texto vale para a imagem: só entra o que tem licença declarada,
+   e quem deu a licença aparece na tela. O compilador exige; aqui se mede o
+   que chegou ao HTML. */
+const LICENCAS = ['press', 'cc-by', 'cedida', 'propria'];
+const comImagem = pecas.filter((p) => p.meta.imagem && typeof p.meta.imagem === 'object');
+medidas.imagensReais = comImagem.length;
+for (const p of comImagem) {
+  const im = p.meta.imagem;
+  const arquivo = join(RAIZ, 'publico', 'imagens', im.arquivo ?? '');
+  const existe = existsSync(arquivo);
+  checar('C', `imagem existe e pesa até 600 KB · ${p.slug}`, existe && statSync(arquivo).size <= 600_000, existe ? `${(statSync(arquivo).size / 1024).toFixed(0)} KB` : 'arquivo ausente');
+  checar('B', `imagem com crédito, licença conhecida e alt · ${p.slug}`, Boolean(im.credito) && LICENCAS.includes(im.licenca) && Boolean(im.alt), JSON.stringify(im));
+  const r = await pegar(`/imagens/${im.arquivo}`);
+  checar('A', `imagem servida como asset estático · ${im.arquivo}`, r.status === 200 && /^image\//.test(r.cab['content-type'] ?? ''), `${r.status} ${r.cab['content-type'] ?? ''}`);
+  const pagina = await pegar(`/${p.secao}/${p.slug}`);
+  checar('C', `crédito visível e licença no HTML da peça · ${p.slug}`, pagina.corpo.includes(`Imagem: ${im.credito}`) && pagina.corpo.includes(`data-licenca="${im.licenca}"`));
+  const src = `/imagens/${im.arquivo}`.replace(/[.]/g, '\\.');
+  checar('C', `<img> da peça tem alt · ${p.slug}`, new RegExp(`<img[^>]+src="${src}"[^>]*\\balt="[^"]+"`).test(pagina.corpo));
+}
+checar('C', 'nenhum hotlink: toda <img> das páginas é servida deste domínio', todasAsPaginas.every(([, r]) => !/<img[^>]+src="https?:\/\//i.test(r.corpo)));
+checar('C', 'toda <img> de toda página tem alt', todasAsPaginas.every(([, r]) => !/<img(?![^>]*\balt=)/.test(r.corpo)));
+
+titulo('C · Qualidade — dataset público');
+const pastaDados = join(RAIZ, 'publico', 'dados');
+const datasets = existsSync(pastaDados) ? readdirSync(pastaDados).filter((n) => n.endsWith('.csv')) : [];
+medidas.datasets = datasets.length;
+for (const nome of datasets) {
+  const r = await pegar(`/dados/${nome}`);
+  const linhas = r.corpo.trim().split(/\r?\n/);
+  checar('A', `dataset servido com cabeçalho e linhas · ${nome}`, r.status === 200 && linhas.length > 1 && /^pais,fonte,publicado,titulo,url$/.test(linhas[0]), `${r.status} · ${linhas.length} linha(s)`);
+}
+const relatorios = pecas.filter((p) => p.secao === 'relatorios');
+checar('B', 'todo relatório que cita dataset aponta para um arquivo que existe', relatorios.every((p) => [...p.corpo.matchAll(/\]\(\/dados\/([^)]+)\)/g)].every((m) => datasets.includes(m[1]))));
 
 titulo('C · Qualidade — as suítes de unidade');
 try {

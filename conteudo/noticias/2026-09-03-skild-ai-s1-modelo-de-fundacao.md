@@ -12,6 +12,11 @@ fonte:
   url:       https://therobotreport.com/skild-ai-unveils-s1-flagship-robot-foundation-model
   idioma:    en
   publicado: 2026-08-31
+imagem:
+  arquivo:   2026-09-03-skild-ai-s1.jpg
+  credito:   Skild AI
+  licenca:   press
+  alt:       Garra de um braço robótico segurando o caule de uma planta, com a inscrição 'Introducing S1' ao lado
 arte:      2026-09-03-skild-ai-s1.svg
 ---
 

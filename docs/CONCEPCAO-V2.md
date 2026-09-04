@@ -78,14 +78,25 @@ peça. As peças dão profundidade; o Giro dá cobertura.
 
 | Onde | Antes (volume) | Agora (peça) |
 |---|---|---|
-| **Capa** | listagem paginada, itens pequenos | **uma peça em destaque com arte própria**, 3-4 abaixo, a agenda, o relógio. Sem paginação |
+| **Capa** | listagem paginada, itens pequenos | **uma peça em destaque com imagem licenciada ou arte própria**, 3-4 abaixo, a agenda, o relógio. Sem paginação |
 | **Seção** | radar com filtro e paginação | as peças daquela seção, inteiras, com espaço |
-| **Peça** | item com selo de revisão pendente | **texto assinado**, largura de leitura, arte no topo, autor e data |
+| **Peça** | item com selo de revisão pendente | **texto assinado**, largura de leitura, imagem ou arte no topo, autor e data |
 | **Espaço** | apertado, havia muito para caber | **generoso** — é o que separa "curado" de "abandonado" |
 
 **Some:** paginação, listagem infinita, selo "tradução automática · revisão
 pendente" (não existe mais tradução automática), filtro por veredito na
 listagem (filtrar 3 peças é enfeite).
+
+**Imagem real (decisão de 04/09/2026).** O Pedro pediu as imagens reais das
+notícias. A regra da imagem é a mesma do texto — *a licença governa, não o
+formato* — então entra **material de imprensa do fabricante** (existe para ser
+republicado, com crédito), CC BY, imagem cedida ou nossa; **não entra foto ou
+ilustração do veículo** que noticiou, porque é obra dele. No arquivo, um bloco
+`imagem:` com `arquivo · credito · licenca · alt`; o compilador aborta sem
+qualquer um dos quatro; o crédito fica visível sobre a imagem e a licença no
+HTML. A arte desenhada continua para o que não tem imagem licenciada — e a
+tela mistura as duas sem perder unidade, porque a moldura e o crédito são os
+mesmos.
 
 ## O que entra nesta primeira volta — os quatro
 

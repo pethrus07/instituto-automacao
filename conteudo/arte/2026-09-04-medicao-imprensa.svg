@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Uma contagem por traços: muitos traços à esquerda, um traço só à direita, marcado em laranja">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- papel quadriculado ao fundo: a folha de contagem -->
+  <g class="a-malha">
+    <path d="M0 200 H1200 M0 300 H1200 M0 500 H1200 M0 600 H1200"/>
+    <path d="M150 80 V720 M300 80 V720 M450 80 V720 M750 80 V720 M900 80 V720 M1050 80 V720"/>
+  </g>
+
+  <!-- a linha de base e a divisória entre os dois lados -->
+  <g class="a-traco">
+    <line x1="60" y1="640" x2="1140" y2="640"/>
+  </g>
+  <g class="a-traco-pontilhado">
+    <line x1="720" y1="120" x2="720" y2="680"/>
+  </g>
+
+  <!-- o lado de fora: cinco fileiras de traços de contagem, em grupos de cinco -->
+  <g class="a-traco">
+    <!-- fileira 1 -->
+    <path d="M100 180 V260 M124 180 V260 M148 180 V260 M172 180 V260 M92 260 L180 180"/>
+    <path d="M230 180 V260 M254 180 V260 M278 180 V260 M302 180 V260 M222 260 L310 180"/>
+    <path d="M360 180 V260 M384 180 V260 M408 180 V260 M432 180 V260 M352 260 L440 180"/>
+    <path d="M490 180 V260 M514 180 V260 M538 180 V260 M562 180 V260 M482 260 L570 180"/>
+    <!-- fileira 2 -->
+    <path d="M100 300 V380 M124 300 V380 M148 300 V380 M172 300 V380 M92 380 L180 300"/>
+    <path d="M230 300 V380 M254 300 V380 M278 300 V380 M302 300 V380 M222 380 L310 300"/>
+    <path d="M360 300 V380 M384 300 V380 M408 300 V380 M432 300 V380 M352 380 L440 300"/>
+    <path d="M490 300 V380 M514 300 V380 M538 300 V380 M562 300 V380 M482 380 L570 300"/>
+    <!-- fileira 3 -->
+    <path d="M100 420 V500 M124 420 V500 M148 420 V500 M172 420 V500 M92 500 L180 420"/>
+    <path d="M230 420 V500 M254 420 V500 M278 420 V500 M302 420 V500 M222 500 L310 420"/>
+    <path d="M360 420 V500 M384 420 V500 M408 420 V500 M432 420 V500 M352 500 L440 420"/>
+    <path d="M490 420 V500 M514 420 V500 M538 420 V500 M562 420 V500 M482 500 L570 420"/>
+    <!-- fileira 4, incompleta: a contagem continua -->
+    <path d="M100 540 V620 M124 540 V620 M148 540 V620 M172 540 V620 M92 620 L180 540"/>
+    <path d="M230 540 V620 M254 540 V620 M278 540 V620 M302 540 V620 M222 620 L310 540"/>
+    <path d="M360 540 V620 M384 540 V620 M408 540 V620"/>
+  </g>
+  <!-- os pontos de referência de cada grupo, acesos -->
+  <g class="a-claro">
+    <circle cx="136" cy="160" r="5"/><circle cx="266" cy="160" r="5"/><circle cx="396" cy="160" r="5"/><circle cx="526" cy="160" r="5"/>
+  </g>
+
+  <!-- o lado de dentro: um traço só -->
+  <g class="a-acao-t">
+    <line x1="930" y1="180" x2="930" y2="620"/>
+  </g>
+  <circle cx="930" cy="640" r="14" class="a-acao"/>
+</svg>

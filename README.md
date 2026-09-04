@@ -42,6 +42,12 @@ npm run qa            # 213 asserções contra o site rodando — sai com códig
 O conteúdo mora em `conteudo/**.md` com frontmatter. O compilador **aborta** sem autor, sem
 fonte em notícia, sem veredito na categoria ou com arte que não existe.
 
+Imagem real só entra pelo bloco `imagem:` — `arquivo` (em `publico/imagens/`), `credito`,
+`licenca` (`press | cc-by | cedida | propria`) e `alt`. Sem qualquer um dos quatro, ou com mais
+de 600 KB, o compilador aborta. O crédito aparece sobre a imagem; a licença vai no HTML; o QA
+mede os dois na página. **Foto de veículo é obra dele e não entra** — só material de imprensa
+do fabricante, CC BY, cedida ou nossa. Quem não tem imagem licenciada leva arte desenhada.
+
 ## Rotas
 
 | Rota | O que é |
@@ -68,6 +74,7 @@ src/conteudo/        tipos e o índice do conteúdo compilado
 src/coletor/         feed · robots · sitemap · canonicalização
 src/giro/            semana ISO e a auditoria de números
 src/ui/              Documento, primitivas, marca, capa gerada, JSON-LD
+publico/             assets estáticos do Worker (fora do bundle): imagens/ com licença · dados/ (CSV)
 design/              tokens, base, componentes — o sistema de design
 scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
 qa/verificar.mjs     o QA por medição; qa/SPRINT-*.md o que cada rodada revelou
@@ -102,6 +109,13 @@ documento antes do código descreve intenção, e esse era o defeito.
 - **`npm run compilar` antes de tudo.** `dev` e `deploy` fazem sozinhos; editar um `.md` com
   o dev rodando exige rodar de novo.
 - **Nada em `conteudo/arte/` com cor crua.** As artes vestem os tokens, e o QA confere.
+- **Imagem sem licença declarada não existe.** A regra do texto vale para a imagem: a licença
+  governa, não o formato. "Peguei da matéria" não é licença.
+- **Mudou `wrangler.toml`? Reinicie o `dev`.** `[assets]` não recarrega a quente.
+- **`publicado` da fonte vem de `colheita/pendentes.json`, nunca de memória.** Seis de sete
+  datas chutadas estavam erradas.
+- **Saída do `wrangler d1` filtrada por `tail` esconde erro.** Um DELETE barrado por FK passou
+  em silêncio; filtre por `error`.
 - **Edição por script sem asserção na âncora é edição não feita.**
 - **O QA mede o que dá para medir; a tela ainda precisa de olho.** O botão da navegação
   vazando texto passou por 213 asserções.

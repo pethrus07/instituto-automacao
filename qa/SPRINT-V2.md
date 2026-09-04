@@ -98,3 +98,78 @@ em 600 e 820 px é a que vale.
    `ROADMAP.md`, `CAPACIDADE.md`, `roadmap.html` descrevem a v1. O README já diz isso; a
    reescrita é a última etapa da execução, de propósito.
 5. **Fontes self-hosted** — as três famílias ainda vêm do Google em dev.
+
+---
+
+## 8. Sessão 2 (04/09) — a povoada, e a imagem real
+
+> 04/09/2026 · `npm run qa` · **368 asserções · 0 falhas · 1 aviso** · +89 do `npm test`
+>
+> O pedido: *"dê uma boa povoada no site e ponha as imagens reais das notícias."*
+
+### O que entrou
+
+| | manhã | agora |
+|---|---|---|
+| peças | 3 | **11** — 10 notícias (3 curtas, 7 com contexto) e **1 Análise com dado próprio** |
+| imagens reais | 0 | **7**, todas material de imprensa, com crédito e licença no frontmatter |
+| artes desenhadas | 3 | 5 |
+| eventos na agenda | 4 fictícios | **4 reais** — RoboBusiness conferido no site oficial; IROS, CoRL e Humanoids Summit pelo calendário da IEEE Spectrum, e a descrição diz isso |
+| dataset público | 0 | 1 CSV, **274 linhas** (a janela da Análise), servido em `/dados/` |
+| fontes BR do relógio com itens | 0 | 3 — a primeira coleta trouxe 45 |
+
+### A decisão da imagem
+
+Regra do projeto desde 30/08: *a licença governa, não o formato.* Implementação: bloco
+`imagem:` com `arquivo · credito · licenca · alt`; licença é categoria fechada
+(`press | cc-by | cedida | propria`); o compilador aborta sem qualquer dos quatro, com arquivo
+ausente ou acima de 600 KB; o crédito vai sobre a imagem em `figcaption`, a licença em
+`data-licenca`, e o QA mede os dois na página. Servida como **asset estático** do Worker
+(`[assets] directory = "./publico"`), fora do bundle. Nenhuma `<img>` de nenhuma página aponta
+para fora — o QA confere.
+
+O que a regra deixou de fora, de propósito: a foto do trator 8R na matéria da Deere (sem
+crédito na página → não sabemos de quem é → fora; entrou a ilustração do FurrowVision, *Credit:
+John Deere*); a ilustração da IEEE Spectrum no artigo do portão manual (editorial deles); os
+cabeçalhos do blog do n8n (blog da empresa não é press kit → arte desenhada e gerada).
+
+### O que caiu antes de virar peça
+
+- **Siemens, "sets new standards in training".** A página de imprensa da Siemens não entrega o
+  texto sem JavaScript — só título e quatro bullets. Ler a fonte inteira é regra; sem texto,
+  sem peça.
+- **Giro da s35.** O dossiê saiu (52 itens), mas 43 eram de fontes desativadas na v2 e 3 de
+  fontes "(exemplo)". Seria um Giro da v1. O primeiro Giro fica para segunda, sobre a s36 —
+  e o dossiê agora só conta fonte ativa.
+
+### O que o povoamento revelou
+
+1. **Fontes "(exemplo)" no inventário público** de `/blueprints`, inativas, e itens delas no
+   dossiê. Apagadas — com as FKs soltas antes (`assunto.fonte_original`, `assunto.fonte_br`,
+   `evento.fonte_id`). A primeira tentativa de DELETE falhou na FK e o `tail -2` escondeu o
+   erro.
+2. **`ev-005` fictício sobrevivia no banco** sem estar em nenhum `.sql`. Apagado; a lista de
+   DELETE do seed inclui.
+3. **As 3 fontes BR do relógio tinham zero itens** — o coletor só roda no cron, e o cron só
+   existe em deploy. Uma rodada via `/__scheduled`: 62 itens novos.
+4. **Datas de publicação chutadas.** As 7 peças novas saíram com `publicado` estimado e foram
+   conferidas na pauta depois: **6 de 7 estavam erradas.** Regra: `publicado` vem de
+   `pendentes.json`.
+5. **Texto vs. dado.** A Análise dizia 192 itens de 18 fontes; o CSV exportado depois da coleta
+   tinha 195 de 16. O texto foi corrigido para bater com o arquivo publicado — o arquivo é a
+   verdade, o texto segue.
+
+### Pelo olho
+
+Capa, Notícias, peça com foto, Análise, Agenda e a capa a 700 px — conferidos em screenshot.
+Crédito legível sobre a foto em todos os tamanhos de card; a mistura de foto, arte desenhada e
+arte gerada mantém unidade porque a moldura é a mesma.
+
+### Em aberto (atualizado)
+
+1. **Deploy** — acesso à Cloudflare; liga o cron e o P13.
+2. **Primeiro Giro** — segunda-feira 07/09, sobre a s36, com o Pedro.
+3. **Agenda sem evento brasileiro** — nenhum dos 45 itens BR colhidos anunciava evento com
+   data; procurar direto nas associações (ABINEE, ABIMAQ, CIMM).
+4. **Docs v1** — a lista da seção 7; última etapa.
+5. **Fontes self-hosted.**

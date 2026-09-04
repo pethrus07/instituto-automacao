@@ -8,32 +8,31 @@
  * que entra no bundle. Publicar é: escrever o arquivo, rodar isto, deploy.
  *
  * ⚠️ ELE ABORTA. Peça sem autor, notícia sem fonte, veredito fora da
- * categoria, arte que não existe — qualquer uma dessas para o build com o
- * arquivo e o motivo na tela. Isso é o critério P2 e P3 da execução: se o
- * compilador deixasse passar, o QA teria de pegar depois, e "depois" é com a
- * página já no ar.
- *
- * Roda antes de `dev` e de `deploy`, então esquecer de rodar não é um estado
- * possível.
+ * categoria, arte que não existe, imagem sem crédito ou sem licença, Giro
+ * com número que não está no dossiê — qualquer uma dessas para o build com o
+ * arquivo e o motivo na tela. Se o compilador deixasse passar, o QA teria de
+ * pegar depois, e "depois" é com a página já no ar.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { auditarNumeros } from '../src/giro/auditar.ts';
 import {
   FORMATOS_POR_SECAO,
+  LICENCAS_IMAGEM,
   SECOES,
   TEMAS,
   VEREDITOS,
-  type Formato,
+  type LicencaImagem,
   type Peca,
   type Secao,
-  type Tema,
   type Veredito,
 } from '../src/conteudo/tipos.ts';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTEUDO = join(RAIZ, 'conteudo');
 const ARTE = join(CONTEUDO, 'arte');
+const IMAGENS = join(RAIZ, 'publico', 'imagens');
 const SAIDA = join(RAIZ, 'src', 'conteudo.gerado.ts');
 
 /* ------------------------------------------------------------ frontmatter */
@@ -41,9 +40,9 @@ const SAIDA = join(RAIZ, 'src', 'conteudo.gerado.ts');
 type Bruto = Record<string, string | Record<string, string>>;
 
 /**
- * YAML mínimo, de propósito: `chave: valor` e UM nível de aninhamento
- * (`fonte:` com os campos recuados). Não é um parser de YAML — é o
- * suficiente para peça, e recusa o resto em vez de adivinhar.
+ * YAML mínimo, de propósito: `chave: valor` e UM nível de aninhamento. Não é
+ * um parser de YAML — é o suficiente para peça, e recusa o resto em vez de
+ * adivinhar.
  */
 function lerFrontmatter(texto: string, arquivo: string): { meta: Bruto; corpo: string } {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(texto);
@@ -54,12 +53,10 @@ function lerFrontmatter(texto: string, arquivo: string): { meta: Bruto; corpo: s
 
   for (const linhaBruta of m![1]!.split(/\r?\n/)) {
     if (!linhaBruta.trim() || linhaBruta.trim().startsWith('#')) continue;
-
     const recuada = /^\s+/.test(linhaBruta);
     const linha = linhaBruta.trim();
     const i = linha.indexOf(':');
     if (i < 0) falhar(arquivo, `linha sem "chave: valor" no frontmatter: "${linha}"`);
-
     const chave = linha.slice(0, i).trim();
     const valor = desaspar(linha.slice(i + 1).trim());
 
@@ -76,13 +73,10 @@ function lerFrontmatter(texto: string, arquivo: string): { meta: Bruto; corpo: s
     aninhado = null;
     meta[chave] = valor;
   }
-
   return { meta, corpo: m![2]!.trim() };
 }
 
-function desaspar(v: string): string {
-  return /^(['"]).*\1$/.test(v) ? v.slice(1, -1) : v;
-}
+const desaspar = (v: string) => (/^(['"]).*\1$/.test(v) ? v.slice(1, -1) : v);
 
 function falhar(arquivo: string, motivo: string): never {
   console.error(`\n✗ ${arquivo.replace(RAIZ, '.')}\n  ${motivo}\n`);
@@ -104,6 +98,13 @@ function entre<T extends string>(valor: string, permitidos: readonly T[], chave:
   return valor as T;
 }
 
+function bloco(meta: Bruto, chave: string, campos: string[], arquivo: string): Record<string, string> {
+  const b = meta[chave];
+  if (!b || typeof b !== 'object') falhar(arquivo, `falta o bloco "${chave}:" (${campos.join(', ')})`);
+  for (const k of campos) if (!(b as Record<string, string>)[k]) falhar(arquivo, `falta "${chave}.${k}"`);
+  return b as Record<string, string>;
+}
+
 function compilarPeca(caminho: string, secao: Secao): Peca {
   const nome = basename(caminho);
   const mNome = /^(\d{4}-\d{2}-\d{2})-([a-z0-9-]+)\.md$/.exec(nome);
@@ -112,16 +113,13 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
   const { meta, corpo } = lerFrontmatter(readFileSync(caminho, 'utf8'), caminho);
 
   const secaoDeclarada = entre(texto(meta, 'secao', caminho), SECOES, 'secao', caminho);
-  if (secaoDeclarada !== secao) {
-    falhar(caminho, `está na pasta "${secao}" mas declara "secao: ${secaoDeclarada}"`);
-  }
+  if (secaoDeclarada !== secao) falhar(caminho, `está na pasta "${secao}" mas declara "secao: ${secaoDeclarada}"`);
 
   const formato = entre(texto(meta, 'formato', caminho), FORMATOS_POR_SECAO[secao], 'formato', caminho);
   const tema = entre(texto(meta, 'tema', caminho), TEMAS, 'tema', caminho);
   const data = texto(meta, 'data', caminho);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || Number.isNaN(Date.parse(data))) {
-    falhar(caminho, `"data: ${data}" não é uma data AAAA-MM-DD válida`);
-  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || Number.isNaN(Date.parse(data))) falhar(caminho, `"data: ${data}" não é AAAA-MM-DD`);
+  if (data !== mNome![1]) falhar(caminho, `a data do nome do arquivo (${mNome![1]}) não bate com "data: ${data}"`);
 
   const peca: Peca = {
     slug: mNome![2]!,
@@ -138,31 +136,55 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
 
   if (peca.corpo.length < 80) falhar(caminho, 'o corpo tem menos de 80 caracteres — isso não é uma peça');
 
-  /* Notícia é sobre terceiro: credita, linka, e diz o que muda aqui. As
-     três coisas são obrigatórias, e nenhuma é "quando der". */
+  /* Notícia é sobre terceiro: credita, linka, e diz o que muda aqui. */
   if (secao === 'noticias') {
     peca.veredito = entre(texto(meta, 'veredito', caminho), VEREDITOS, 'veredito', caminho) as Veredito;
-    const f = meta['fonte'];
-    if (!f || typeof f !== 'object') falhar(caminho, 'notícia sem "fonte:" (nome, url, idioma)');
-    const fonte = f as Record<string, string>;
-    for (const k of ['nome', 'url', 'idioma']) {
-      if (!fonte[k]) falhar(caminho, `falta "fonte.${k}"`);
+    const f = bloco(meta, 'fonte', ['nome', 'url', 'idioma'], caminho);
+    if (!/^https?:\/\//.test(f['url']!)) falhar(caminho, `"fonte.url" precisa ser http(s): ${f['url']}`);
+    peca.fonte = { nome: f['nome']!, url: f['url']!, idioma: f['idioma']!, publicado: f['publicado'] };
+    if (!/^##\s*O que isso muda aqui/m.test(corpo)) {
+      falhar(caminho, 'notícia sem a seção "## O que isso muda aqui" — é a camada que separa leitura de tradução');
     }
-    if (!/^https?:\/\//.test(fonte['url']!)) falhar(caminho, `"fonte.url" precisa ser http(s): ${fonte['url']}`);
-    peca.fonte = {
-      nome: fonte['nome']!,
-      url: fonte['url']!,
-      idioma: fonte['idioma']!,
-      publicado: fonte['publicado'],
-    };
   } else if (typeof meta['veredito'] === 'string') {
     falhar(caminho, `"${secao}" não leva veredito — ele é categoria da notícia`);
+  }
+
+  /* Imagem real só entra com crédito e licença. "Peguei da matéria" não é
+     licença, e o compilador não tem como saber se é — então exige que
+     alguém declare, e a declaração vai para a tela junto com a imagem. */
+  if (meta['imagem'] !== undefined) {
+    const im = bloco(meta, 'imagem', ['arquivo', 'credito', 'licenca', 'alt'], caminho);
+    if (!existsSync(join(IMAGENS, im['arquivo']!))) falhar(caminho, `"imagem.arquivo: ${im['arquivo']}" não existe em publico/imagens/`);
+    if (!/\.(jpe?g|png|webp|avif)$/i.test(im['arquivo']!)) falhar(caminho, `"imagem.arquivo" tem de ser jpg, png, webp ou avif`);
+    const tamanho = statSync(join(IMAGENS, im['arquivo']!)).size;
+    if (tamanho > 600_000) falhar(caminho, `imagem com ${(tamanho / 1024).toFixed(0)} KB — o teto é 600 KB; redimensione`);
+    peca.imagem = {
+      arquivo: im['arquivo']!,
+      credito: im['credito']!,
+      licenca: entre(im['licenca']!, LICENCAS_IMAGEM, 'imagem.licenca', caminho) as LicencaImagem,
+      alt: im['alt']!,
+    };
   }
 
   if (typeof meta['arte'] === 'string') {
     const arte = meta['arte'] as string;
     if (!existsSync(join(ARTE, arte))) falhar(caminho, `"arte: ${arte}" não existe em conteudo/arte/`);
     peca.arte = arte;
+  }
+
+  /* O Giro: cada número da prosa tem de existir no dossiê. `numeros:` é a
+     lista de permitidos, copiada do dossiê — e a auditoria roda aqui, antes
+     de a edição virar bundle. */
+  if (secao === 'giro') {
+    const permitidos = texto(meta, 'numeros', caminho)
+      .split(/[,\s]+/)
+      .filter(Boolean)
+      .map(Number);
+    if (permitidos.some((n) => !Number.isFinite(n))) falhar(caminho, '"numeros:" tem de ser inteiros separados por vírgula');
+    const auditoria = auditarNumeros(`${peca.titulo}\n${peca.lead}\n${corpo}`, permitidos);
+    if (!auditoria.passou) {
+      falhar(caminho, `números na prosa que não estão no dossiê: ${auditoria.inventados.join(', ')} — confira em "numeros:"`);
+    }
   }
 
   return peca;
@@ -180,11 +202,8 @@ function listar(pasta: string): string[] {
 }
 
 const pecas: Peca[] = [];
-for (const secao of SECOES) {
-  for (const caminho of listar(join(CONTEUDO, secao))) pecas.push(compilarPeca(caminho, secao));
-}
+for (const secao of SECOES) for (const caminho of listar(join(CONTEUDO, secao))) pecas.push(compilarPeca(caminho, secao));
 
-/* Duas peças com o mesmo slug na mesma seção teriam a mesma URL. */
 for (const secao of SECOES) {
   const vistos = new Set<string>();
   for (const p of pecas.filter((x) => x.secao === secao)) {
@@ -193,14 +212,13 @@ for (const secao of SECOES) {
   }
 }
 
-/* As artes entram inline — são SVG, e três ou trinta cabem no bundle. Só as
-   referenciadas por alguma peça: arte solta é lixo, não ativo. */
 const artes: Record<string, string> = {};
 for (const p of pecas) {
   if (p.arte && !(p.arte in artes)) {
     const svg = readFileSync(join(ARTE, p.arte), 'utf8');
     if (!/^\s*<svg[\s>]/.test(svg)) falhar(join(ARTE, p.arte), 'arte tem de ser SVG');
     if (/<script/i.test(svg)) falhar(join(ARTE, p.arte), 'SVG com <script> não entra');
+    if (/(fill|stroke)\s*=\s*"#/.test(svg)) falhar(join(ARTE, p.arte), 'arte com cor crua — as artes vestem os tokens (classes .a-*)');
     artes[p.arte] = svg.trim();
   }
 }
@@ -214,7 +232,7 @@ const modulo = `/* eslint-disable */
  * O conteúdo mora em conteudo/**.md. Este arquivo é a versão compilada que
  * entra no bundle do Worker. Editar aqui é perder a edição no próximo build.
  *
- * ${pecas.length} peça(s) · ${Object.keys(artes).length} arte(s) · gerado em ${new Date().toISOString()}
+ * ${pecas.length} peça(s) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · gerado em ${new Date().toISOString()}
  */
 import type { Peca } from './conteudo/tipos';
 
@@ -227,5 +245,5 @@ mkdirSync(dirname(SAIDA), { recursive: true });
 writeFileSync(SAIDA, modulo, 'utf8');
 
 const porSecao = SECOES.map((s) => `${s} ${pecas.filter((p) => p.secao === s).length}`).join(' · ');
-console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${Object.keys(artes).length} arte(s)`);
+console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns)`);
 console.log(`→ ${SAIDA.replace(RAIZ, '.')}`);

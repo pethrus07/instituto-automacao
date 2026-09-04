@@ -833,9 +833,16 @@ app.get('/blueprints', async (c) => {
 
         <section class="bloco">
           <Secao titulo="O dataset" />
+          <p>
+            O primeiro recorte já está público: os <strong>274 itens</strong> colhidos entre 25 de agosto e
+            1º de setembro de 2026, com fonte, país, data, título e endereço, em{' '}
+            <a href="/dados/2026-09-04-itens-colhidos-25ago-01set.csv">um arquivo CSV</a>. É a base do
+            relatório <a href="/relatorios/oito-dias-de-medicao-imprensa-brasileira-e-automacao">Oito dias de medição</a>,
+            e serve para conferir a contagem ou refazê-la com outro critério.
+          </p>
           <Aviso>
-            <strong>Ainda não publicado.</strong> O conjunto de dados sai com DOI e licença CC-BY quando
-            houver o primeiro trimestre de coleta — publicar uma base vazia seria a única forma de
+            <strong>A base completa ainda não.</strong> O conjunto de dados inteiro sai com DOI e licença CC-BY
+            quando houver o primeiro trimestre de coleta — publicar uma base vazia seria a única forma de
             estragá-la.
           </Aviso>
         </section>

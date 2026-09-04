@@ -42,29 +42,30 @@ const q = (s: string) => `'${s}'`;
 
 /* ---------------------------------------------------------------- o banco */
 const totais = sql<{ itens: number; fontes: number; assuntos: number }>(
-  `SELECT COUNT(*) itens, COUNT(DISTINCT fonte_id) fontes, COUNT(DISTINCT assunto_id) assuntos
-     FROM item WHERE publicado_fonte >= ${q(inicio)} AND publicado_fonte < ${q(fim)}`,
+  `SELECT COUNT(*) itens, COUNT(DISTINCT i.fonte_id) fontes, COUNT(DISTINCT i.assunto_id) assuntos
+     FROM item i JOIN fonte f ON f.id = i.fonte_id
+    WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}`,
 )[0]!;
 
 const porFonte = sql<{ nome: string; pessoa: string | null; pais: string; n: number }>(
   `SELECT f.nome, f.pessoa, f.pais, COUNT(*) n
      FROM item i JOIN fonte f ON f.id = i.fonte_id
-    WHERE i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
+    WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
     GROUP BY f.id ORDER BY n DESC`,
 );
 
 const repercutidos = sql<{ rotulo: string; fontes: number; chegou: number }>(
   `SELECT a.rotulo, COUNT(DISTINCT i.fonte_id) fontes,
           CASE WHEN a.primeira_mencao_br IS NULL THEN 0 ELSE 1 END chegou
-     FROM assunto a JOIN item i ON i.assunto_id = a.id
-    WHERE i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
+     FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
+    WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
     GROUP BY a.id HAVING fontes >= 2 ORDER BY fontes DESC LIMIT 10`,
 );
 
 const sozinhos = sql<{ n: number }>(
   `SELECT COUNT(*) n FROM (
-     SELECT a.id FROM assunto a JOIN item i ON i.assunto_id = a.id
-      WHERE i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
+     SELECT a.id FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
+      WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
       GROUP BY a.id HAVING COUNT(DISTINCT i.fonte_id) = 1)`,
 )[0]!.n;
 

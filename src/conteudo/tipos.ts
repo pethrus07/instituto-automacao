@@ -12,6 +12,30 @@ export type Tema = 'industria' | 'processos';
 export type Formato = 'curta' | 'contexto' | 'caso' | 'analise' | 'panorama' | 'giro';
 export type Veredito = 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito';
 
+/**
+ * De onde veio o direito de mostrar a imagem. Fechado de propósito.
+ *
+ *   press    material de imprensa do fabricante ou da instituição — existe
+ *            para ser republicado com crédito
+ *   cc-by    licença Creative Commons com atribuição
+ *   cedida   o autor ou dono cedeu por escrito
+ *   propria  fotografia ou desenho nosso
+ *
+ * Não existe "peguei da matéria". Imagem de veículo é obra dele, e a regra do
+ * projeto é a mesma para texto e para imagem: a licença governa, não o formato.
+ */
+export type LicencaImagem = 'press' | 'cc-by' | 'cedida' | 'propria';
+
+export type Imagem = {
+  /** nome do arquivo em publico/imagens/ */
+  arquivo: string;
+  /** quem aparece no crédito visível: "Skild AI", "John Deere" */
+  credito: string;
+  licenca: LicencaImagem;
+  /** o que há na imagem, para quem não a vê */
+  alt: string;
+};
+
 export type Fonte = {
   nome: string;
   url: string;
@@ -35,7 +59,9 @@ export type Peca = {
   veredito?: Veredito;
   /** obrigatório em notícia: toda peça sobre terceiro credita e linka */
   fonte?: Fonte;
-  /** nome do arquivo em conteudo/arte/, sem caminho */
+  /** imagem real, com licença — vence a arte quando existe */
+  imagem?: Imagem;
+  /** nome do arquivo em conteudo/arte/, sem caminho — o desenho nosso */
   arte?: string;
   /** o markdown, sem o frontmatter */
   corpo: string;
@@ -46,10 +72,18 @@ export type Peca = {
 export const SECOES: readonly Secao[] = ['noticias', 'relatorios', 'giro'];
 export const TEMAS: readonly Tema[] = ['industria', 'processos'];
 export const VEREDITOS: readonly Veredito[] = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
+export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria'];
 
 /** Que formatos cabem em cada seção. Notícia não vira caso; giro não vira nota. */
 export const FORMATOS_POR_SECAO: Record<Secao, readonly Formato[]> = {
   noticias: ['curta', 'contexto'],
   relatorios: ['caso', 'analise', 'panorama'],
   giro: ['giro'],
+};
+
+export const ROTULO_LICENCA: Record<LicencaImagem, string> = {
+  press: 'divulgação',
+  'cc-by': 'CC BY',
+  cedida: 'imagem cedida',
+  propria: 'Instituto Automação',
 };

@@ -40,32 +40,38 @@ INSERT OR REPLACE INTO glossario (termo_origem, idioma, termo_pt, nota, travado,
   ('omni-bodied', 'en', 'omni-bodied', 'modelo que roda em corpos de robô diferentes: braço, quadrúpede, humanoide', 1, 1, 'industria'),
   ('agente', 'en', 'agente', 'programa que decide e age em sequência para cumprir um objetivo; em português já se usa assim', 1, 1, 'processos');
 
--- Eventos de exemplo — FICTÍCIOS ------------------------------------------
+-- Eventos ---------------------------------------------------------------
+-- Os quatro fictícios da v1 saem (e saem de qualquer banco que rode este
+-- arquivo). Entram eventos reais; `descricao` diz ONDE a data foi conferida,
+-- porque a regra da agenda é data conferida na fonte, e quando a fonte oficial
+-- não expõe a data sem JavaScript, isso fica escrito para o leitor.
+DELETE FROM evento WHERE id IN ('ev-001','ev-002','ev-003','ev-004','ev-005');
+
 INSERT OR REPLACE INTO evento (id, slug, nucleo, nome, descricao, inicio, fim, cidade, uf, pais,
                                formato, organizador, url, preco, origem, status) VALUES
-  ('ev-001','encontro-de-automacao-de-processos-exemplo','processos',
-   'Encontro de automação de processos e agentes de IA (exemplo)',
-   'Evento fictício de desenvolvimento. Serve para exercitar a agenda, os filtros e os dados estruturados.',
-   '2026-11-12','2026-11-12','São Paulo','SP','BR','presencial','Organização Exemplo',
-   'https://exemplo.com.br/encontro','gratuito','manual','publicado'),
+  ('ev-robobusiness-2026','robobusiness-2026','industria',
+   'RoboBusiness 2026',
+   'Conferência e feira de negócios em robótica comercial. Entre os temas anunciados para esta edição: IA física, tecnologias habilitadoras e reindustrialização com automação e robótica de campo. Datas conferidas no site oficial em 04/09/2026.',
+   '2026-10-20','2026-10-21','Santa Clara','CA','US','presencial','WTWH Media',
+   'https://www.robobusiness.com/','pago','manual','publicado'),
 
-  ('ev-002','feira-internacional-de-maquinas-exemplo','industria',
-   'Feira internacional de máquinas e automação industrial (exemplo)',
-   'Evento fictício de desenvolvimento, com vários dias, para exercitar a exibição de período.',
-   '2027-03-03','2027-03-06','Hannover',NULL,'DE','presencial','Feira Exemplo',
-   'https://exemplo.de/feira','pago','manual','publicado'),
+  ('ev-humanoids-summit-seoul-2026','humanoids-summit-seoul-2026','industria',
+   'Humanoids Summit Seoul 2026',
+   'Encontro dedicado a robôs humanoides, edição asiática. Datas conforme o calendário de eventos da IEEE Spectrum (Video Friday de 28/08/2026); o site oficial não expõe a data sem JavaScript e ela não foi conferida lá.',
+   '2026-09-22','2026-09-23','Seul',NULL,'KR','presencial',NULL,
+   'https://humanoidssummit.com/',NULL,'manual','publicado'),
 
-  ('ev-003','seminario-online-de-manutencao-preditiva-exemplo','industria',
-   'Seminário online de manutenção preditiva (exemplo)',
-   'Evento fictício de desenvolvimento, no formato online.',
-   '2026-09-24',NULL,NULL,NULL,'BR','online','Associação Exemplo',
-   'https://exemplo.org/seminario','gratuito','manual','publicado'),
+  ('ev-iros-2026','iros-2026','industria',
+   'IROS 2026 · IEEE/RSJ International Conference on Intelligent Robots and Systems',
+   'Uma das duas maiores conferências acadêmicas de robótica do mundo. Datas conforme o calendário de eventos da IEEE Spectrum (Video Friday de 28/08/2026); o site oficial não expõe a data sem JavaScript e ela não foi conferida lá.',
+   '2026-09-27','2026-10-01','Pittsburgh','PA','US','presencial','IEEE RAS e RSJ',
+   'https://iros2026.org/',NULL,'manual','publicado'),
 
-  ('ev-004','congresso-brasileiro-de-automacao-exemplo','processos',
-   'Congresso brasileiro de automação e trabalho (exemplo)',
-   'Evento fictício de desenvolvimento, formato híbrido.',
-   '2026-10-08','2026-10-10','Campinas','SP','BR','hibrido','Universidade Exemplo',
-   'https://exemplo.edu.br/congresso','pago','manual','publicado'),
+  ('ev-corl-2026','corl-2026','industria',
+   'CoRL 2026 · Conference on Robot Learning',
+   'Conferência acadêmica sobre aprendizado de máquina aplicado a robôs; é onde modelos de fundação para robótica, como o S1 da Skild AI, costumam ser apresentados e discutidos. Datas conforme o calendário de eventos da IEEE Spectrum (Video Friday de 28/08/2026); não conferidas no site oficial.',
+   '2026-11-09','2026-11-12','Austin','TX','US','presencial',NULL,
+   'https://www.corl.org/',NULL,'manual','publicado'),
 
   -- passado de propósito: NÃO pode aparecer na agenda
   ('ev-006','evento-que-ja-passou-exemplo','industria',

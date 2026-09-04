@@ -12,6 +12,11 @@ fonte:
   url:       https://therobotreport.com/from-spreadsheets-ai-john-deeres-new-jd-operations-center-features
   idioma:    en
   publicado: 2026-09-01
+imagem:
+  arquivo:   2026-09-03-john-deere-furrowvision.jpg
+  credito:   John Deere
+  licenca:   press
+  alt:       Ilustração de uma linha de plantio da John Deere com o campo de visão da câmera e a linha de laser projetados sobre o sulco no solo
 arte:      2026-09-03-john-deere-jd.svg
 ---
 

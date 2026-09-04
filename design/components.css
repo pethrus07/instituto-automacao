@@ -189,6 +189,20 @@
   aspect-ratio: 16 / 9;
 }
 .arte svg { display: block; inline-size: 100%; block-size: 100%; }
+/* A imagem real preenche a moldura sem distorcer; o crédito fica sobre ela,
+   no canto, legível e discreto — é atribuição, não legenda. */
+.arte--foto { position: relative; margin: 0; }
+.arte--foto img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.arte__credito {
+  position: absolute; inset-inline-end: var(--space-2xs); inset-block-end: var(--space-2xs);
+  padding: 0.15rem var(--space-2xs);
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--capa-fundo) 78%, transparent);
+  color: var(--capa-texto-suave);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  line-height: 1.3;
+}
 /* a paleta das artes desenhadas: uma família só, com as capas geradas */
 .a-fundo  { fill: var(--capa-fundo); }
 .a-malha  { stroke: var(--capa-traco); stroke-width: 1; fill: none; opacity: .35; }

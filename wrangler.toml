@@ -29,6 +29,13 @@ database_id = "PREENCHER-APOS-CRIAR"
 [triggers]
 crons = ["*/15 * * * *"]
 
+# Imagens reais das peças — material de imprensa com crédito e licença
+# declarados no frontmatter (o compilador exige). Servidas como asset
+# estático: não entram no bundle do script, não contam no teto dele, e vão
+# para a borda com cache longo. Caminho que não casa com asset cai no Worker.
+[assets]
+directory = "./publico"
+
 # CSS como texto, sem etapa de build.
 [[rules]]
 type = "Text"

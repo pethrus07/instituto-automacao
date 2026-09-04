@@ -107,3 +107,13 @@ VALUES
 -- para quem roda por cima de um banco antigo — e idempotente.
 UPDATE fonte SET nucleo = 'industria' WHERE nucleo IN ('industria','edificacoes');
 UPDATE fonte SET nucleo = 'processos' WHERE nucleo IN ('observatorio','operacao');
+
+-- v2 (04/09/2026): as fontes de exemplo da v1 saem de vez. Elas apareciam no
+-- inventário público de /blueprints como fontes inativas chamadas "(exemplo)",
+-- e seus itens-semente contavam no dossiê do Giro. Itens primeiro (FK).
+DELETE FROM item  WHERE fonte_id LIKE 'f-%exemplo%';
+UPDATE assunto SET fonte_original = NULL WHERE fonte_original LIKE 'f-%exemplo%';
+UPDATE assunto SET fonte_br = NULL WHERE fonte_br LIKE 'f-%exemplo%';
+UPDATE evento  SET fonte_id = NULL WHERE fonte_id LIKE 'f-%exemplo%';
+DELETE FROM fonte WHERE id LIKE 'f-%exemplo%';
+DELETE FROM assunto WHERE id NOT IN (SELECT DISTINCT assunto_id FROM item WHERE assunto_id IS NOT NULL);

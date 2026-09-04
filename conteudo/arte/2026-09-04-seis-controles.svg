@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Um cofre estilizado com seis chaves alinhadas embaixo; duas delas em laranja">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- trilhas de dado ao fundo: o fluxo passando -->
+  <g class="a-malha">
+    <path d="M0 120 H260 V90 H520 V120 H1200"/>
+    <path d="M0 700 H340 V670 H640 V700 H1200"/>
+    <path d="M60 0 V800 M1140 0 V800"/>
+  </g>
+
+  <!-- o cofre: porta com moldura dupla e a maçaneta -->
+  <g class="a-traco">
+    <rect x="330" y="150" width="540" height="380" rx="18"/>
+    <rect x="370" y="190" width="460" height="300" rx="12"/>
+    <circle cx="600" cy="340" r="78"/>
+    <circle cx="600" cy="340" r="52"/>
+    <line x1="600" y1="262" x2="600" y2="288"/>
+    <line x1="600" y1="392" x2="600" y2="418"/>
+    <line x1="522" y1="340" x2="548" y2="340"/>
+    <line x1="652" y1="340" x2="678" y2="340"/>
+    <!-- dobradiças -->
+    <rect x="300" y="210" width="30" height="60" rx="6"/>
+    <rect x="300" y="410" width="30" height="60" rx="6"/>
+  </g>
+  <!-- a fechadura -->
+  <g class="a-claro">
+    <circle cx="600" cy="332" r="12"/>
+    <rect x="594" y="336" width="12" height="30" rx="3"/>
+  </g>
+
+  <!-- as seis chaves, alinhadas: quatro abertas, duas fechadas -->
+  <g class="a-traco">
+    <line x1="200" y1="600" x2="1000" y2="600"/>
+    <rect x="240" y="580" width="60" height="40" rx="6"/>
+    <rect x="380" y="580" width="60" height="40" rx="6"/>
+    <rect x="520" y="580" width="60" height="40" rx="6"/>
+    <rect x="660" y="580" width="60" height="40" rx="6"/>
+  </g>
+  <g class="a-claro">
+    <circle cx="270" cy="600" r="7"/><circle cx="410" cy="600" r="7"/><circle cx="550" cy="600" r="7"/><circle cx="690" cy="600" r="7"/>
+  </g>
+  <!-- as duas que custam -->
+  <g class="a-acao-t">
+    <rect x="800" y="580" width="60" height="40" rx="6"/>
+    <rect x="940" y="580" width="60" height="40" rx="6"/>
+  </g>
+  <circle cx="830" cy="600" r="9" class="a-acao"/>
+  <circle cx="970" cy="600" r="9" class="a-acao"/>
+</svg>
