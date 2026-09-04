@@ -1,140 +1,107 @@
 # Instituto Automação
 
-> O que o setor publicou lá fora hoje, em português, hoje.
+> O que o setor de automação publica lá fora, lido daqui.
 
-Veículo semi-institucional que traduz notícia internacional de automação para o português
-no mesmo dia — e que, ao fazer isso todo dia por uma máquina, acumula a base longitudinal
-que responde a pergunta que o Instituto persegue: **quanto tempo a automação leva para sair
-da fronteira lá fora e chegar ao chão de fábrica daqui.**
+Veículo semi-institucional. Lê o que o setor de automação publica no mundo, escolhe o que
+importa para quem opera no Brasil, escreve em português com crédito e link para a fonte em
+toda peça — e mede quanto tempo cada assunto leva para chegar aqui.
 
-Um único Worker na Cloudflare serve as páginas, roda o coletor e o Giro no cron e (a partir
-do v0) recebe o webhook do WhatsApp que faz as vezes de backoffice.
+**A máquina colhe. Uma pessoa decide. Alguém escreve. O git publica.** Não há inteligência
+artificial em produção: nenhuma peça é traduzida ou redigida por modelo, e o QA confere isso
+no bundle compilado.
 
 ## Rodar local
-
-Não precisa de acesso à Cloudflare: o D1 roda em disco local.
 
 ```bash
 npm install
 npm run db:local      # aplica o schema
-npm run db:semente    # dado fictício, só para ter o que renderizar
-npm run db:fontes     # as fontes reais sondadas
+npm run db:semente    # glossário e eventos de exemplo
+npm run db:fontes     # as fontes reais
 npm run db:vozes      # as pessoas públicas
-npm run dev           # http://localhost:8787
+npm run dev           # compila o conteúdo e sobe em http://localhost:8787
 ```
 
-Se o banco já existir e o schema tiver mudado, use `npm run db:migrar` em vez de recriar:
-`schema.sql` começa com `DROP TABLE`, e **item não coletado não volta** — feed guarda só as
-últimas dezenas de entradas.
+Banco que já tem dado: `npm run db:migrar` em vez de recriar — `schema.sql` começa com
+`DROP TABLE`, e item colhido não volta.
 
 ```bash
-npm test              # 94 conferências de unidade: parser, robots, sitemap, semana, auditoria
-npm run qa            # 199 asserções contra o site rodando (precisa do dev em outra aba)
-npm run cadencia      # quanto cada fonte publica por semana, medido no feed
-npm run sondar        # sonda candidatos a fonte
-npm run sondar:vozes  # sonda candidatos a voz
+npm test              # 89 conferências de unidade: parser, robots, sitemap, semana ISO, auditoria
+npm run qa            # 213 asserções contra o site rodando — sai com código 1 se falhar
 ```
 
-`npm run qa` sai com código 1 se algo falhar. É o portão antes de qualquer deploy.
-Conferir rápido: `curl localhost:8787/saude`
+## O ciclo de trabalho
+
+| Tempo | Quem | Comando |
+|---|---|---|
+| **1 · Colher** | máquina | `npm run colher` — obedece o `robots.txt`, deduplica, escreve `colheita/pauta.md` |
+| **2 · Decidir** | Pedro | lê a pauta e marca o que vira peça; `npm run lavrado` esvazia |
+| **3 · Escrever** | — | `npm run ler -- <url>` traz o artigo; `npm run nova -- noticias <slug> --url <url>` cria o arquivo |
+| **4 · Publicar** | git | `npm run compilar` → `npm run qa` → commit → `npm run deploy` |
+| **semanal** | — | `npm run dossie` traz os números; o Giro é escrito em cima |
+
+O conteúdo mora em `conteudo/**.md` com frontmatter. O compilador **aborta** sem autor, sem
+fonte em notícia, sem veredito na categoria ou com arte que não existe.
 
 ## Rotas
 
 | Rota | O que é |
 |---|---|
-| `/` | capa institucional: núcleos, destaque, atraso medido |
-| `/industria`, `/observatorio`, `/operacao`, `/edificacoes` | radar do núcleo, com filtro por veredito e paginação |
-| `/<nucleo>/<slug>` | o item |
-| `/giro` · `/giro/<ano>-s<NN>` | **o Giro da Semana** — balanço semanal com o placar do destaque |
+| `/` | capa: uma peça manda, as seguintes, o relógio, agenda, lista |
+| `/noticias` · `/noticias/<slug>` | o que o setor publicou lá fora, lido e escrito em português |
+| `/relatorios` · `/relatorios/<slug>` | o que apuramos com dado próprio |
+| `/giro` · `/giro/<ano>-s<NN>` | o balanço da semana |
 | `/agenda` · `/agenda/<slug>` | eventos, com filtro por URL e `schema.org/Event` |
-| `/panorama` · `/analise/<slug>` · `/caso/<slug>` | a obra assinada |
-| `/blueprints` | dataset, método, licenças e **o veredito do robots de cada fonte** |
-| `/glossario` | os termos travados na tradução |
-| `/feed/<nucleo>.xml` · `/sitemap.xml` · `/robots.txt` | — |
-| `/a/app-<hash>.css` | o sistema de design, com cache imutável |
-| `/saude` | healthcheck |
+| `/blueprints` | método, veredito, fontes e o robots de cada uma |
+| `/glossario` | como escrevemos os termos |
+| `/feed.xml` · `/feed/<secao>.xml` · `/sitemap.xml` · `/robots.txt` · `/favicon.svg` | — |
+| `/saude` | healthcheck: banco, peças, última coleta |
+
+Todo caminho da v1 (`/industria`, `/panorama`, `/analise/...`) redireciona com 301.
 
 ## Estrutura
 
 ```
-CONCEITO.md          por que existe, e as decisões editoriais
-acordo interno            o que está combinado com o sócio — e o que ainda não
-
-docs/ARQUITETURA.md  uma decisão por eixo, com as alternativas descartadas
-docs/FLUXOS.md       o caminho de cada coisa, da origem à tela
-docs/MODELO-DADOS.md as tabelas, e por que cada coluna existe
-docs/FONTES.md       o que foi sondado, o que responde, o que o robots recusa
-docs/CAPACIDADE.md   quanto entra por semana, quanto sai, e onde é o gargalo
-docs/ORGANOGRAMA.md  quem faz o quê
-docs/ROADMAP.md      sprints, marcos e próximos passos
-docs/roadmap.html    painel visual do projeto
-
-design/              o sistema de design (tokens, primitivas, specimen, referências)
-qa/verificar.mjs     o QA por medição
-qa/SPRINT-*.md       o que cada sprint entregou, e os defeitos que ela revelou
-
-schema.sql           o D1 inteiro, para banco novo
-migracoes/           ALTER TABLE para banco que já tem dado
-seed.sql             dado fictício de desenvolvimento
-fontes.sql           as fontes reais
-vozes.sql            as pessoas públicas
-
-src/index.tsx        as rotas e o handler do cron
-src/config.ts        núcleos, cache, o cron do Giro
-src/db.ts            as consultas das páginas
+conteudo/            AS PEÇAS. noticias/ relatorios/ giro/ arte/ — markdown + SVG
+colheita/            a pauta e os ledgers (fora do git, exceto lidos.json)
+src/index.tsx        as rotas e o cron
+src/conteudo/        tipos e o índice do conteúdo compilado
 src/coletor/         feed · robots · sitemap · canonicalização
-src/pipeline/        triagem → tradução → contexto
-src/giro/            agregar → redigir → auditar → publicar
-src/ia/              cliente, preços, teto de custo, as etapas
-src/ui/              Documento, primitivas, capa gerada, JSON-LD
+src/giro/            semana ISO e a auditoria de números
+src/ui/              Documento, primitivas, marca, capa gerada, JSON-LD
+design/              tokens, base, componentes — o sistema de design
+scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
+qa/verificar.mjs     o QA por medição; qa/SPRINT-*.md o que cada rodada revelou
+schema.sql           o D1 (fonte, item, assunto, evento, glossário, correção, assinante)
+migracoes/           ALTER TABLE para banco que já tem dado
 ```
 
-Comece por [`docs/roadmap.html`](docs/roadmap.html) — é a vista de como a máquina funciona
-e do que falta.
+## Documentação — o que vale e o que está velho
 
-## Estado — 01/09/2026
+| Vale | |
+|---|---|
+| [docs/CONCEPCAO-V2.md](docs/CONCEPCAO-V2.md) | **a concepção vigente**: princípio, três eixos, todas as decisões |
+| [docs/EXECUCAO-V2.md](docs/EXECUCAO-V2.md) | o plano de obra e os treze critérios de "perfeito" |
+| [qa/SPRINT-V2.md](qa/SPRINT-V2.md) | o que esta construção entregou e os defeitos que revelou |
+| acordo interno | o combinado com o sócio |
 
-**O P0 está funcionalmente completo, e a sprint 1 entregou mais que o previsto.** Rodando
-localmente: coleta real com `robots.txt` obedecido, pipeline com teto de custo, os quatro
-núcleos, agenda, obra, blueprints, glossário e o Giro da Semana.
-
-| | |
-|---|---:|
-| fontes cadastradas · ativas | 33 · 30 |
-| fontes que o `robots.txt` recusa | 4 |
-| vozes (pessoa pública com nome próprio) | 10 |
-| itens na base | ~500 |
-| entrada medida | ~2.950 itens/semana |
-| QA | 199 asserções · 0 falhas |
-| unidade | 94 conferências |
-
-**O que ainda não é real, e é bom dizer:** a IA roda em **simulação**. Sem a chave da conta
-do sócio (`ANTHROPIC_API_KEY` + `IA_CONTA`), o pipeline e o Giro devolvem texto
-determinístico e custo zero — dá para exercitar a esteira inteira sem gastar da conta de
-ninguém. E **nada foi deployado**: falta o acesso à Cloudflare.
-
-Marco do P0: **14/09/2026**. Detalhe e próximos passos em [`docs/ROADMAP.md`](docs/ROADMAP.md).
+⚠️ **Descrevem a v1 e ainda não foram reescritos:** `CONCEITO.md`, `docs/ARQUITETURA.md`,
+`docs/FLUXOS.md`, `docs/MODELO-DADOS.md`, `docs/ORGANOGRAMA.md`, `docs/ROADMAP.md`,
+`docs/CAPACIDADE.md`, `docs/roadmap.html`. O que sobreviveu neles (robots, canonicalização,
+sistema de design, método do QA) continua certo; o resto — pipeline de IA, quatro núcleos,
+teto de custo — morreu em 03/09/2026. A reescrita é a última etapa da execução, de propósito:
+documento antes do código descreve intenção, e esse era o defeito.
 
 ## Coisas que quebram se esquecidas
 
 - **`ctx.waitUntil` em todo trabalho assíncrono do cron.** Promessa não esperada é cancelada
-  quando a resposta sai — e o miniflare local deixa terminar, então o defeito só aparece em
-  produção.
-- **Rota de caminho fixo antes de `/:nucleo`.** O curinga casa primeiro e devolve 404.
-- **`fonte.licenca` nega por padrão.** Só `liberada` permite tradução integral. Fonte nova
-  nasce `resumo` até alguém ler os termos e gravar `licenca_evidencia`.
-- **O `robots.txt` manda, e não há contorno.** Sem trocar o User-Agent, sem proxy, sem
-  navegador disfarçado. Fonte com robots ilegível também fica de fora: sem regra legível não
-  há autorização a supor.
-- **Cabeçalho HTTP é ASCII.** O `ç` de "automação" no nosso User-Agent fazia o workerd avisar
-  a cada requisição, e servidor que rejeita byte alto devolve 403 — um bloqueio que pareceria
-  decisão da fonte e era nosso.
-- **O cron do Giro mora em dois arquivos que não se leem** (`src/config.ts` e
-  `wrangler.toml`). Mudar só um faz o Giro **parar de sair sem erro nenhum**. O QA confere.
-- **Edição do Giro publicada não é reescrita**, e o agregado dela fica congelado em JSON.
-  Balanço que se reescreve não é balanço.
-- **Classificação e atraso entram desde o primeiro item**, mesmo sem tela que mostre.
-  Notícia sai do ar e feed não guarda histórico: o que não for gravado agora está perdido.
-- **Nunca republicar imagem de terceiro.** Capa é sempre OG própria gerada.
-- **Edição por script sem asserção na âncora é edição não feita.** Vale para qualquer
-  alteração em lote nestes arquivos.
+  quando a resposta sai — e o miniflare local deixa terminar.
+- **Rota de caminho fixo antes de qualquer curinga.**
+- **O `robots.txt` manda, e não há contorno.** Robots ilegível também fica de fora.
+- **Cabeçalho HTTP é ASCII.** O `ç` no User-Agent virava 403 em servidor estrito.
+- **O ledger da pauta marca na lavra, não na colheita.** Senão a rotina apaga o que ninguém leu.
+- **`npm run compilar` antes de tudo.** `dev` e `deploy` fazem sozinhos; editar um `.md` com
+  o dev rodando exige rodar de novo.
+- **Nada em `conteudo/arte/` com cor crua.** As artes vestem os tokens, e o QA confere.
+- **Edição por script sem asserção na âncora é edição não feita.**
+- **O QA mede o que dá para medir; a tela ainda precisa de olho.** O botão da navegação
+  vazando texto passou por 213 asserções.

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Uma sequência de etapas automáticas, com uma etapa manual no meio, marcada em laranja">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- traços de sinal ao fundo, como os de uma sala de controle -->
+  <g class="a-malha">
+    <path d="M0 150 H180 V120 H320 V150 H520 V110 H700 V150 H900 V130 H1200"/>
+    <path d="M0 690 H140 V660 H380 V690 H540 V650 H760 V690 H980 V670 H1200"/>
+  </g>
+
+  <!-- a sequência: sete etapas ligadas -->
+  <g class="a-traco">
+    <line x1="80" y1="400" x2="1120" y2="400"/>
+    <rect x="100" y="360" width="80" height="80" rx="8"/>
+    <rect x="250" y="360" width="80" height="80" rx="8"/>
+    <rect x="400" y="360" width="80" height="80" rx="8"/>
+    <rect x="720" y="360" width="80" height="80" rx="8"/>
+    <rect x="870" y="360" width="80" height="80" rx="8"/>
+    <rect x="1020" y="360" width="80" height="80" rx="8"/>
+  </g>
+  <!-- as etapas automáticas: pequenos indicadores acesos, azul-claro -->
+  <g class="a-claro">
+    <circle cx="140" cy="400" r="7"/><circle cx="290" cy="400" r="7"/><circle cx="440" cy="400" r="7"/>
+    <circle cx="760" cy="400" r="7"/><circle cx="910" cy="400" r="7"/><circle cx="1060" cy="400" r="7"/>
+  </g>
+
+  <!-- o portão manual: a etapa que quebra a linha e sobe -->
+  <g class="a-acao-t">
+    <line x1="480" y1="400" x2="540" y2="400"/>
+    <line x1="660" y1="400" x2="720" y2="400"/>
+    <!-- a chave, levantada -->
+    <line x1="540" y1="400" x2="640" y2="300"/>
+    <!-- a mão estilizada: a alavanca -->
+    <rect x="555" y="440" width="90" height="120" rx="12"/>
+    <line x1="580" y1="440" x2="580" y2="400"/>
+    <line x1="620" y1="440" x2="620" y2="400"/>
+  </g>
+  <circle cx="540" cy="400" r="14" class="a-acao"/>
+  <circle cx="640" cy="300" r="14" class="a-acao"/>
+</svg>

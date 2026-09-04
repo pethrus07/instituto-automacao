@@ -1,102 +1,60 @@
 /**
  * Configuração viva do site. O que muda com decisão editorial mora aqui,
  * não espalhado pelas rotas.
+ *
+ * v2, 03/09/2026: saíram os campos de IA (`ANTHROPIC_API_KEY`, `IA_CONTA`,
+ * `IA_SIMULAR`, teto de custo) e o cron do Giro. Não há IA em produção, e o
+ * Giro é escrito, não gerado. Saíram também os quatro núcleos — o site tem
+ * três seções e dois temas.
  */
 
 export type Env = {
   DB: D1Database;
   SITE_NOME: string;
   SITE_URL: string;
-
-  /** Segredo (`wrangler secret put`). Ausente = pipeline roda em simulação. */
-  ANTHROPIC_API_KEY?: string;
-  /**
-   * De quem é a conta que paga a API — declarado, não presumido.
-   * Sem isto o pipeline SIMULA, mesmo que exista uma chave no ambiente.
-   * A conta é do sócio (acordo interno ponto 2); chave que aparece por engano
-   * gasta dinheiro de outra pessoa e só aparece na fatura dela.
-   */
-  IA_CONTA?: string;
-  /** '1' força simulação mesmo com chave e conta presentes. */
-  IA_SIMULAR?: string;
-  /** Teto de gasto por dia, em reais. Ao bater, o pipeline para. */
-  TETO_DIARIO_BRL?: string;
-  /** Cotação usada para converter o custo da API. Estimativa declarada. */
-  USD_BRL?: string;
-};
-
-export type ChaveNucleo = 'industria' | 'observatorio' | 'operacao' | 'edificacoes';
-
-export type Nucleo = {
-  chave: ChaveNucleo;
-  nome: string;
-  /** classe do sistema de design que define --accent-* no container */
-  classe: string;
-  /** quente = tem gente escrevendo. Radar = só agregação, e o site declara isso. */
-  quente: boolean;
-  resumo: string;
 };
 
 /**
- * Operação e Edificações nascem em modo Radar, e o site diz isso com todas as
- * letras. É a diferença entre "seção abandonada" e "seção que promete o que
- * entrega" — e é por isso que os dois estão em neutro no sistema de design.
+ * TEMA é etiqueta no dado, não seção do site.
+ *
+ * O recorte da v2 é híbrido: o que se escreve sai de automação de processos
+ * para PME (onde há dado próprio), o que se colhe é automação industrial
+ * internacional. Uma peça é de um ou de outro — e isso fica no frontmatter,
+ * no filtro da agenda e na etiqueta da fonte, sem virar quatro seções vazias.
  */
-export const NUCLEOS: Record<ChaveNucleo, Nucleo> = {
+export type Tema = 'industria' | 'processos';
+
+export const TEMAS: Record<Tema, { nome: string; descricao: string }> = {
   industria: {
-    chave: 'industria',
     nome: 'Indústria',
-    classe: 'n-industria',
-    quente: true,
-    resumo:
-      'CLP, SCADA, robótica, Indústria 4.0 e o que os fabricantes lançam lá fora — em português, no mesmo dia.',
+    descricao: 'CLP, robótica, segurança de máquina e o que os fabricantes lançam lá fora.',
   },
-  observatorio: {
-    chave: 'observatorio',
-    nome: 'Observatório',
-    classe: 'n-observatorio',
-    quente: true,
-    resumo: 'Inteligência artificial, trabalho e o que a automação faz com a operação das empresas.',
-  },
-  operacao: {
-    chave: 'operacao',
-    nome: 'Operação',
-    classe: 'n-operacao',
-    quente: false,
-    resumo: 'Automação de processos, agentes e no-code aplicados à rotina de quem opera.',
-  },
-  edificacoes: {
-    chave: 'edificacoes',
-    nome: 'Edificações',
-    classe: 'n-edificacoes',
-    quente: false,
-    resumo: 'Automação predial e residencial, IoT e energia em edificações.',
+  processos: {
+    nome: 'Processos',
+    descricao: 'Automação de rotina, agentes e no-code aplicados a quem opera uma empresa.',
   },
 };
 
-export const ORDEM_NUCLEOS: ChaveNucleo[] = [
-  'industria',
-  'observatorio',
-  'operacao',
-  'edificacoes',
-];
+export const ORDEM_TEMAS: Tema[] = ['industria', 'processos'];
 
-export function ehNucleo(v: string): v is ChaveNucleo {
-  return Object.prototype.hasOwnProperty.call(NUCLEOS, v);
+export function ehTema(v: string): v is Tema {
+  return Object.prototype.hasOwnProperty.call(TEMAS, v);
 }
 
 /**
- * O cron do Giro da Semana — segunda 11:00 UTC = 08:00 em Brasília.
- *
- * Declarado AQUI e repetido em `wrangler.toml`, porque não há como um ler o
- * outro. Um QA confere que os dois batem: se alguém mudar o horário só no
- * TOML, o cron dispara e cai no ramo do coletor — o giro simplesmente para
- * de sair, sem erro nenhum em lugar nenhum. Silêncio é o pior modo de
- * falhar, e este par de strings é onde ele moraria.
+ * Os caminhos da v1 que continuam chegando por link antigo, e para onde vão.
+ * 301 em todos: link que alguém guardou é contrato, e 404 quebra o contrato
+ * de todo mundo de uma vez.
  */
-export const CRON_GIRO = '0 11 * * 1';
+export const REDIRECTS_V1: Record<string, string> = {
+  '/industria': '/noticias',
+  '/observatorio': '/noticias',
+  '/operacao': '/noticias',
+  '/edificacoes': '/noticias',
+  '/panorama': '/relatorios',
+};
 
-/** Cache na borda. Listagem muda a cada coleta; item publicado quase não muda. */
+/** Cache na borda. Listagem muda a cada deploy; peça quase não muda. */
 export const CACHE = {
   listagem: 'public, max-age=0, s-maxage=300',
   item: 'public, max-age=0, s-maxage=3600',

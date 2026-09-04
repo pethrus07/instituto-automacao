@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Linhas de plantio vistas de cima, uma grade de dados por cima, e uma pergunta apontando para um ponto do talhão">
+  <rect width="1200" height="800" class="a-fundo"/>
+
+  <!-- os sulcos: linhas curvas paralelas, como um talhão visto de cima -->
+  <g class="a-traco">
+    <path d="M-40 140 C 300 100, 600 180, 1240 120"/>
+    <path d="M-40 230 C 300 190, 600 270, 1240 210"/>
+    <path d="M-40 320 C 300 280, 600 360, 1240 300"/>
+    <path d="M-40 410 C 300 370, 600 450, 1240 390"/>
+    <path d="M-40 500 C 300 460, 600 540, 1240 480"/>
+    <path d="M-40 590 C 300 550, 600 630, 1240 570"/>
+    <path d="M-40 680 C 300 640, 600 720, 1240 660"/>
+  </g>
+
+  <!-- a grade de dados por cima do campo -->
+  <g class="a-malha">
+    <line x1="200" y1="0" x2="200" y2="800"/><line x1="400" y1="0" x2="400" y2="800"/>
+    <line x1="600" y1="0" x2="600" y2="800"/><line x1="800" y1="0" x2="800" y2="800"/>
+    <line x1="1000" y1="0" x2="1000" y2="800"/>
+  </g>
+  <!-- pontos medidos ao longo dos sulcos -->
+  <g class="a-claro">
+    <circle cx="200" cy="121" r="5"/><circle cx="400" cy="128" r="5"/><circle cx="600" cy="143" r="5"/><circle cx="800" cy="147" r="5"/><circle cx="1000" cy="139" r="5"/>
+    <circle cx="200" cy="301" r="5"/><circle cx="400" cy="308" r="5"/><circle cx="800" cy="327" r="5"/><circle cx="1000" cy="319" r="5"/>
+    <circle cx="200" cy="481" r="5"/><circle cx="400" cy="488" r="5"/><circle cx="600" cy="503" r="5"/><circle cx="800" cy="507" r="5"/><circle cx="1000" cy="499" r="5"/>
+    <circle cx="200" cy="661" r="5"/><circle cx="600" cy="683" r="5"/><circle cx="800" cy="687" r="5"/><circle cx="1000" cy="679" r="5"/>
+  </g>
+
+  <!-- a pergunta: um balão apontando para UM ponto do talhão -->
+  <g class="a-acao-t">
+    <path d="M660 210 h 300 a 18 18 0 0 1 18 18 v 96 a 18 18 0 0 1 -18 18 h -230 l -52 44 v -44 h -18 a 18 18 0 0 1 -18 -18 v -96 a 18 18 0 0 1 18 -18 z"/>
+  </g>
+  <g class="a-acao">
+    <circle cx="740" cy="276" r="7"/><circle cx="810" cy="276" r="7"/><circle cx="880" cy="276" r="7"/>
+  </g>
+  <!-- o ponto do talhão que a pergunta alcança -->
+  <circle cx="600" cy="323" r="16" class="a-acao"/>
+  <circle cx="600" cy="323" r="28" class="a-acao-t" opacity=".45"/>
+</svg>

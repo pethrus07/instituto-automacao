@@ -1,58 +1,46 @@
 /**
  * Instituto Automação — um Worker só.
  *
- * Este mesmo artefato serve as páginas, roda o coletor no cron e (a partir do
- * v0) recebe o webhook do WhatsApp. Um `wrangler deploy` e acabou.
+ * Serve as páginas a partir do conteúdo compilado (conteudo/**.md →
+ * src/conteudo.gerado.ts) e roda o coletor no cron. É tudo. Não há IA em
+ * produção, não há pipeline, não há banco de conteúdo — o git é o CMS.
  *
- * Bloco 1 do P0: rotas de leitura sobre o D1. Coletor entra no bloco 2.
+ * ⚠️ Rota de caminho fixo antes de qualquer curinga. O roteador casa na
+ * ordem, e um `/:x` cedo demais engole tudo o que vem depois.
  */
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
+import { raw } from 'hono/html';
 import { Documento } from './ui/Documento';
 import {
-  ItemDoRadar, Secao, Aviso, EmRadar, Relogio, Selo, dataBR, Kicker,
-  EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento,
-  AssinaturaObra, ObraNaLista, LeituraNoItem, ROTULO_OBRA,
-  Veredito, Destaque, Numero, ROTULO_VEREDITO,
-  ItemSecundario, ItemLinha, CardNucleo, Paginacao,
+  Kicker, Selo, Secao, Aviso, Vazio, Numero, dataBR, dataPeca,
+  EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento, nomeTema,
+  Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha,
+  FonteCaixa, VereditoCaixa, Veredito, ROTULO_VEREDITO, EXPLICA_VEREDITO,
 } from './ui/pecas';
 import { ldJson, eventoLd, agendaLd } from './ui/jsonld';
-import { renderizarObra, minutosDeLeitura } from './ui/markdown';
-import {
-  FORMULA,
-  PISO_FONTES,
-  girosBarrados,
-  listarGiros,
-  montarGiro,
-  obterGiro,
-} from './giro';
-import { gerarCapa } from './ui/capa';
-import { feedDoNucleo, sitemap, robots } from './feed';
-import { raw } from 'hono/html';
+import { renderizarObra } from './ui/markdown';
+import { favicon } from './ui/marca';
+import { feed, sitemap, robots } from './feed';
 import { CSS, CSS_ROTA, CSS_HASH } from './estilo';
-import { CACHE, CRON_GIRO, NUCLEOS, ORDEM_NUCLEOS, ehNucleo, type Env } from './config';
+import { CACHE, REDIRECTS_V1, TEMAS, ORDEM_TEMAS, ehTema, type Env } from './config';
 import {
-  listarRadar, obterItem, contarPorNucleo, medirAtraso,
+  relogio as medirRelogio, saudeColeta,
   listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda,
-  listarObras, obterObra, leituraDoItem, type FormatoObra,
-  placar, destaque as itemDestaque,
-  listarGlossario, inventarioFontes, listarCorrecoes, assinar, contarAssinantes,
-  contarRadar, contarRadarPorVeredito,
+  listarGlossario, inventarioFontes, listarCorrecoes, assinar,
 } from './db';
+import {
+  todas, porSecao, obter, destaque, recentes, ultimoGiro, caminho,
+  ROTULO_SECAO, ROTULO_TEMA, SECOES, type Secao as ChaveSecao, type Peca,
+} from './conteudo';
 import { coletar } from './coletor';
-import { processar } from './pipeline';
-import { estadoIA } from './ia/cliente';
 
 const app = new Hono<{ Bindings: Env }>();
-
-/** Renderiza um documento JSX como HTML completo. */
 const pagina = (no: unknown) => `<!doctype html>${String(no)}`;
 
-/* ------------------------------------------------------------------ estilo */
-/**
- * O nome do arquivo carrega o hash só para invalidar cache — o conteúdo é
- * sempre o CSS atual. Qualquer /a/*.css serve, então folha antiga em cache
- * de terceiro nunca devolve 404.
- */
+const ehSecao = (v: string): v is ChaveSecao => (SECOES as readonly string[]).includes(v);
+
+/* ================================================================ estático */
+
 app.get('/a/:arquivo', (c) => {
   if (!c.req.param('arquivo').endsWith('.css')) return c.notFound();
   c.header('Content-Type', 'text/css; charset=utf-8');
@@ -60,38 +48,52 @@ app.get('/a/:arquivo', (c) => {
   return c.body(CSS);
 });
 
-/* ------------------------------------------------------------------ saúde
- * ⚠️ Toda rota de caminho fixo precisa vir ANTES de /:nucleo — senão o
- * curinga casa primeiro e devolve 404.
- */
+app.get('/favicon.svg', (c) => {
+  c.header('Content-Type', 'image/svg+xml; charset=utf-8');
+  c.header('Cache-Control', CACHE.estatico);
+  return c.body(favicon());
+});
+
 app.get('/saude', async (c) => {
   const t0 = Date.now();
   let db = 'ok';
+  let coleta: { ultima: string | null; horas: number | null } = { ultima: null, horas: null };
   try {
-    await c.env.DB.prepare('SELECT 1').first();
+    coleta = await saudeColeta(c.env.DB);
   } catch (e) {
     db = `erro: ${(e as Error).message}`;
   }
   return c.json({
     ok: db === 'ok',
     db,
-    ia: estadoIA(c.env),
+    pecas: todas().length,
+    coleta,
     css: CSS_HASH,
     rota_css: CSS_ROTA,
     ms: Date.now() - t0,
   });
 });
 
-/* ----------------------------------------------------- feeds e indexação
- * O <head> anuncia estes quatro feeds desde a primeira sprint. Até aqui era
- * promessa sem lastro — apontada pelo próprio QA na sprint 0.
- */
-app.get('/feed/:arquivo', async (c) => {
-  const nome = c.req.param('arquivo').replace(/\.xml$/, '');
-  if (!ehNucleo(nome)) return c.notFound();
+/* =========================================================== distribuição */
+
+app.get('/feed.xml', (c) => {
   c.header('Content-Type', 'application/rss+xml; charset=utf-8');
   c.header('Cache-Control', CACHE.listagem);
-  return c.body(await feedDoNucleo(c.env, nome));
+  return c.body(feed(c.env));
+});
+
+app.get('/feed/:arquivo', (c) => {
+  const nome = c.req.param('arquivo').replace(/\.xml$/, '');
+  if (!ehSecao(nome)) {
+    // os quatro feeds de núcleo da v1 continuam sendo pedidos por leitor de feed
+    if (['industria', 'observatorio', 'operacao', 'edificacoes'].includes(nome)) {
+      return c.redirect('/feed.xml', 301);
+    }
+    return c.notFound();
+  }
+  c.header('Content-Type', 'application/rss+xml; charset=utf-8');
+  c.header('Cache-Control', CACHE.listagem);
+  return c.body(feed(c.env, nome));
 });
 
 app.get('/sitemap.xml', async (c) => {
@@ -106,58 +108,291 @@ app.get('/robots.txt', (c) => {
   return c.body(robots(c.env));
 });
 
-/* -------------------------------------------------------------- panorama
- * Índice do que é institucional e assinado.
+/* ================================================================== a capa
+ * Uma peça manda. Depois as seguintes, o relógio, a agenda, o giro e a
+ * lista. Com pouco conteúdo, cada bloco tem de ter razão de existir — e o
+ * espaço entre eles é o que separa "curado" de "abandonado".
  */
-app.get('/panorama', async (c) => {
-  const obras = await listarObras(c.env.DB, { formato: 'panorama' }, 30);
+app.get('/', async (c) => {
+  const q = c.req.query();
+  const principal = destaque();
+  const seguintes = recentes(3, principal);
+  const giro = ultimoGiro();
+  const relatorios = porSecao('relatorios');
+  const [rel, eventos] = await Promise.all([medirRelogio(c.env.DB), listarAgenda(c.env.DB, {}, 3)]);
+
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
       <Documento
-        titulo="Panorama"
-        descricao="Relatórios do Instituto Automação, extraídos da própria base do radar."
-        url={c.env.SITE_URL + '/panorama'}
+        titulo="Instituto Automação"
+        descricao="O que o setor de automação publica lá fora, lido daqui: notícias escolhidas e escritas em português, relatórios com dado próprio, e a medição de quanto tempo cada assunto leva para chegar ao Brasil."
+        url={c.env.SITE_URL + '/'}
       >
-        <h1>Panorama</h1>
-        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
-          O que a nossa própria base responde: quanto tempo a automação leva para sair da
-          fronteira lá fora e chegar ao chão de fábrica daqui.
-        </p>
-        <div style="margin-block-start: var(--space-xl)">
-          {obras.length === 0 ? (
-            <Aviso>
-              <strong>O primeiro Panorama sai quando houver base para ele.</strong> Ele não vem
-              de entrevista nem de pesquisa de campo: sai do que o radar coletou. Por isso
-              depende de tempo de coleta, e não de esforço.
-            </Aviso>
-          ) : (
-            obras.map((o) => <ObraNaLista obra={o} />)
-          )}
+        {principal ? (
+          <PecaDestaque peca={principal} principal />
+        ) : (
+          <Vazio titulo="A primeira peça está a caminho.">
+            O Instituto publica pouco e escolhido: notícias lidas na fonte e escritas em
+            português, e relatórios com dado que só nós temos. Enquanto a primeira não sai, a{' '}
+            <a href="/agenda">agenda</a> e o <a href="/blueprints">método</a> já estão aqui.
+          </Vazio>
+        )}
+
+        {seguintes.length > 0 && (
+          <section class="bloco">
+            <Secao titulo="Também nesta semana" acao={{ texto: 'todas as notícias', href: '/noticias' }} />
+            <div class="grade">
+              {seguintes.map((p) => (
+                <PecaCard peca={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* O relógio — a pergunta-assinatura, medida. Faixa escura de ponta
+            a ponta: é o único bloco com massa da página, e é o que o
+            Instituto tem que ninguém tem. */}
+        <section class="faixa-relogio sangra">
+          <div class="wrap faixa-relogio__miolo" style="padding-inline: 0">
+            <div class="faixa-relogio__texto">
+              <span class="faixa-relogio__kicker">O que medimos</span>
+              <h2 class="faixa-relogio__titulo">Quanto tempo a automação leva para chegar ao Brasil?</h2>
+              <p class="faixa-relogio__lead">
+                Todo assunto que o setor publica lá fora entra numa base própria, com a data em que
+                saiu e a data da primeira menção em fonte brasileira. Ninguém mede esse intervalo — e
+                sem medida, toda conversa sobre o atraso do parque industrial daqui é opinião.
+              </p>
+              <a href="/blueprints" class="faixa-relogio__link">Como medimos, e o que ainda não conseguimos medir</a>
+            </div>
+            <div class="faixa-relogio__numeros">
+              <Numero valor={rel.acompanhados} rotulo="assuntos acompanhados" />
+              <Numero valor={rel.fontes} rotulo="fontes lidas todo dia" />
+              <Numero
+                valor={rel.mediana_dias !== null ? `${rel.mediana_dias} d` : '—'}
+                rotulo={rel.mediana_dias !== null ? 'atraso mediano até a primeira menção aqui' : 'atraso mediano: ainda sem par medido'}
+              />
+              <Numero valor={rel.sem_mencao} rotulo="publicados lá fora há mais de 90 dias e nunca mencionados aqui" />
+            </div>
+          </div>
+        </section>
+
+        <div class="duas-colunas">
+          <section class="bloco">
+            <Secao titulo="Relatórios" acao={relatorios.length ? { texto: 'todos', href: '/relatorios' } : undefined} />
+            {relatorios.length > 0 ? (
+              relatorios.slice(0, 3).map((p) => <PecaLinha peca={p} />)
+            ) : (
+              <Vazio titulo="O primeiro relatório sai com dado próprio, não com opinião.">
+                Caso com custo aberto de uma automação real; análise a partir da nossa base; o
+                Panorama trimestral do relógio. Nenhum deles se escreve antes de haver o que medir —
+                e o primeiro está em apuração.
+              </Vazio>
+            )}
+          </section>
+
+          <section class="bloco">
+            <Secao titulo="Agenda" acao={{ texto: 'calendário completo', href: '/agenda' }} />
+            {eventos.length > 0 ? (
+              eventos.map((e) => <EventoNaAgenda evento={e} />)
+            ) : (
+              <Vazio titulo="A agenda está aberta.">
+                Organiza um evento de automação? <a href="/agenda#enviar">Mande para cá</a> — listar
+                é de graça, e todo envio passa por conferência antes de aparecer.
+              </Vazio>
+            )}
+          </section>
         </div>
+
+        {giro && (
+          <section class="bloco">
+            <Secao titulo="Giro da Semana" acao={{ texto: 'edições anteriores', href: '/giro' }} />
+            <PecaLinha peca={giro} />
+          </section>
+        )}
+
+        {/* A lista. Site é aluguel, lista é propriedade. */}
+        <section class="bloco">
+          <div class="lista">
+            <div>
+              <p class="lista__titulo">O Giro da Semana na sua caixa, quando ele nascer.</p>
+              <p class="lista__nota">
+                Um e-mail por semana com o que o setor publicou e o que muda por aqui. Ainda não
+                enviamos nada — a lista começa agora, e o primeiro envio sai quando houver o que
+                mandar. Sem repassar seu e-mail a ninguém.
+              </p>
+            </div>
+            <form class="lista__form" method="post" action="/assinar">
+              <div aria-hidden="true" style="position:absolute; left:-9999px">
+                <label>
+                  Não preencha
+                  <input type="text" name="sitio" tabindex={-1} autocomplete="off" />
+                </label>
+              </div>
+              <label class="u-visually-hidden" for="email-lista">Seu e-mail</label>
+              <input class="campo" id="email-lista" type="email" name="email" required placeholder="seu@email.com.br" />
+              <button type="submit" class="botao-acao" style="border:0; cursor:pointer">Quero receber</button>
+              {q.assinado === '1' ? (
+                <p class="lista__rodape"><strong>Anotado.</strong> Você vai saber quando o primeiro sair.</p>
+              ) : q.assinado === 'erro' ? (
+                <p class="lista__rodape">Esse e-mail não parece válido. Confere e tenta de novo?</p>
+              ) : null}
+            </form>
+          </div>
+        </section>
       </Documento>,
     ),
   );
 });
 
-/* ------------------------------------------------------------------ agenda
- * O ativo mais durável do projeto: notícia decai em 48 h, calendário não.
- * Cada combinação de filtro vira URL própria — indexável, linkável, e
- * mandável no WhatsApp para o organizador da feira.
- */
+/* ================================================================= seções */
+
+const DESCRICAO_SECAO: Record<ChaveSecao, string> = {
+  noticias:
+    'O que o setor de automação publicou lá fora, lido na fonte e escrito em português — com o que cada coisa muda para quem opera no Brasil.',
+  relatorios:
+    'O que apuramos com dado próprio: casos com custo aberto, análises a partir da nossa base, e o Panorama do relógio.',
+  giro: 'O balanço da semana: o que aconteceu, o que importou, o que ficou de fora e por quê.',
+};
+
+const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: string }> = {
+  noticias: {
+    titulo: 'A primeira notícia está a caminho.',
+    texto: 'Lemos as fontes todo dia. A peça só sai depois de escolhida, escrita e lida — e a primeira está nessa fila.',
+  },
+  relatorios: {
+    titulo: 'O primeiro relatório sai com dado próprio, não com opinião.',
+    texto: 'Caso com custo aberto, análise da nossa base, o Panorama do relógio. Nenhum se escreve antes de haver o que medir.',
+  },
+  giro: {
+    titulo: 'O primeiro Giro sai na segunda-feira seguinte à primeira semana cheia.',
+    texto: 'Ele cobre a semana que fechou no domingo — o que aconteceu, o que virou peça, o que ficou de fora e por quê.',
+  },
+};
+
+app.get('/noticias', (c) => secao(c, 'noticias'));
+app.get('/relatorios', (c) => secao(c, 'relatorios'));
+app.get('/giro', (c) => secao(c, 'giro'));
+
+function secao(c: Context<{ Bindings: Env }>, s: ChaveSecao) {
+  const pecas = porSecao(s);
+  const [primeira, ...resto] = pecas;
+
+  c.header('Cache-Control', CACHE.listagem);
+  return c.html(
+    pagina(
+      <Documento titulo={ROTULO_SECAO[s]} secao={s} descricao={DESCRICAO_SECAO[s]} url={`${c.env.SITE_URL}/${s}`}>
+        <header class="cabeca-secao">
+          <h1>{ROTULO_SECAO[s]}</h1>
+          <p class="cabeca-secao__lead">{DESCRICAO_SECAO[s]}</p>
+        </header>
+
+        {!primeira ? (
+          <Vazio titulo={VAZIO_SECAO[s].titulo}>{VAZIO_SECAO[s].texto}</Vazio>
+        ) : (
+          <>
+            <PecaDestaque peca={primeira} />
+            {resto.length > 0 && (
+              <section class="bloco">
+                <div class="grade">
+                  {resto.slice(0, 6).map((p) => (
+                    <PecaCard peca={p} />
+                  ))}
+                </div>
+                {resto.length > 6 && (
+                  <div class="bloco">
+                    {resto.slice(6).map((p) => (
+                      <PecaLinha peca={p} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+          </>
+        )}
+      </Documento>,
+    ),
+  );
+}
+
+/* ================================================================== a peça */
+
+for (const s of SECOES) {
+  app.get(`/${s}/:slug`, (c) => {
+    const p = obter(s, c.req.param('slug'));
+    if (!p) return c.notFound();
+    return c.html(pagina(paginaDaPeca(p, c.env)));
+  });
+}
+
+function paginaDaPeca(p: Peca, env: Env) {
+  const html = renderizarObra(p.corpo);
+  const outras = porSecao(p.secao).filter((x) => x.slug !== p.slug).slice(0, 3);
+
+  return (
+    <Documento
+      titulo={p.titulo}
+      secao={p.secao}
+      descricao={p.lead}
+      url={env.SITE_URL + caminho(p)}
+      tipoOg="article"
+    >
+      <article class="peca" data-peca={p.slug} data-formato={p.formato}>
+        <header class="peca__cabeca">
+          <Etiquetas peca={p} />
+          <h1 class="peca__titulo">{p.titulo}</h1>
+          <p class="peca__lead">{p.lead}</p>
+          <AssinaturaPeca peca={p} completa />
+        </header>
+
+        <Arte peca={p} classe="peca__arte" destaque />
+
+        <div class="peca__corpo">
+          <div class="obra">{raw(html)}</div>
+
+          <div class="peca__lateral">
+            {p.secao === 'noticias' && <VereditoCaixa valor={p.veredito} />}
+            <FonteCaixa peca={p} />
+          </div>
+        </div>
+
+        <footer class="peca__pe">
+          <Aviso>
+            <strong>Como esta peça foi feita.</strong>{' '}
+            {p.fonte
+              ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
+              : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
+          </Aviso>
+        </footer>
+      </article>
+
+      {outras.length > 0 && (
+        <section class="bloco">
+          <Secao titulo={`Mais em ${ROTULO_SECAO[p.secao]}`} acao={{ texto: 'ver todas', href: `/${p.secao}` }} />
+          <div class="grade">
+            {outras.map((o) => (
+              <PecaCard peca={o} />
+            ))}
+          </div>
+        </section>
+      )}
+    </Documento>
+  );
+}
+
+/* ================================================================== agenda */
+
 app.get('/agenda', async (c) => {
   const q = c.req.query();
   const filtro: TipoFiltroAgenda = {};
-  if (q.n && ehNucleo(q.n)) filtro.nucleo = q.n;
+  if (q.t && ehTema(q.t)) filtro.tema = q.t;
   if (q.f === 'presencial' || q.f === 'online' || q.f === 'hibrido') filtro.formato = q.f;
   if (q.o === 'br' || q.o === 'fora') filtro.onde = q.o;
 
-  const eventos = await listarAgenda(c.env.DB, filtro);
-  const contagem = await contarAgenda(c.env.DB);
+  const [eventos, contagem] = await Promise.all([listarAgenda(c.env.DB, filtro), contarAgenda(c.env.DB)]);
 
-  // Base dos links de filtro: preserva os outros parâmetros ao trocar um.
   const base = new URLSearchParams();
-  if (filtro.nucleo) base.set('n', filtro.nucleo);
+  if (filtro.tema) base.set('t', filtro.tema);
   if (filtro.formato) base.set('f', filtro.formato);
   if (filtro.onde) base.set('o', filtro.onde);
   const filtrando = base.toString().length > 0;
@@ -167,100 +402,68 @@ app.get('/agenda', async (c) => {
     pagina(
       <Documento
         titulo="Agenda"
+        secao="agenda"
         descricao="Feiras, congressos e encontros de automação no Brasil e no exterior, em um calendário só."
         url={`${c.env.SITE_URL}/agenda${filtrando ? `?${base}` : ''}`}
         ld={eventos.length ? ldJson(agendaLd(eventos, c.env.SITE_URL)) : undefined}
       >
-        <h1>Agenda</h1>
-        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
-          Feiras, congressos e encontros de automação — no Brasil e lá fora. {contagem.total} evento
-          {contagem.total === 1 ? '' : 's'} à frente, {contagem.brasil} no Brasil.
-        </p>
+        <header class="cabeca-secao">
+          <h1>Agenda</h1>
+          <p class="cabeca-secao__lead">
+            Feiras, congressos e encontros de automação — no Brasil e lá fora. {contagem.total} evento
+            {contagem.total === 1 ? '' : 's'} à frente, {contagem.brasil} no Brasil.
+          </p>
+        </header>
 
         {q.enviado === '1' && (
-          <div style="margin-block-start: var(--space-m)">
+          <div class="bloco--curto">
             <Aviso>
-              <strong>Recebido.</strong> O evento entra na agenda depois da conferência de data e
-              local.
+              <strong>Recebido.</strong> O evento entra na agenda depois da conferência de data e local.
             </Aviso>
           </div>
         )}
 
-        <div style="margin-block-start: var(--space-l)">
-          <FiltroAgenda
-            rotulo="Núcleo"
-            parametro="n"
-            atual={filtro.nucleo}
-            base={base}
-            opcoes={ORDEM_NUCLEOS.map((k) => ({
-              valor: k,
-              texto: NUCLEOS[k].nome,
-              classe: NUCLEOS[k].classe,
-            }))}
-          />
-          <FiltroAgenda
-            rotulo="Formato"
-            parametro="f"
-            atual={filtro.formato}
-            base={base}
-            opcoes={[
-              { valor: 'presencial', texto: 'Presencial' },
-              { valor: 'online', texto: 'Online' },
-              { valor: 'hibrido', texto: 'Híbrido' },
-            ]}
-          />
-          <FiltroAgenda
-            rotulo="Onde"
-            parametro="o"
-            atual={filtro.onde}
-            base={base}
-            opcoes={[
-              { valor: 'br', texto: 'Brasil' },
-              { valor: 'fora', texto: 'Exterior' },
-            ]}
-          />
+        <div class="bloco--curto">
+          <FiltroAgenda rotulo="Tema" parametro="t" atual={filtro.tema} base={base}
+            opcoes={ORDEM_TEMAS.map((k) => ({ valor: k, texto: TEMAS[k].nome }))} />
+          <FiltroAgenda rotulo="Formato" parametro="f" atual={filtro.formato} base={base}
+            opcoes={[{ valor: 'presencial', texto: 'Presencial' }, { valor: 'online', texto: 'Online' }, { valor: 'hibrido', texto: 'Híbrido' }]} />
+          <FiltroAgenda rotulo="Onde" parametro="o" atual={filtro.onde} base={base}
+            opcoes={[{ valor: 'br', texto: 'Brasil' }, { valor: 'fora', texto: 'Exterior' }]} />
         </div>
 
-        <div style="margin-block-start: var(--space-xl)">
+        <div class="bloco">
           {eventos.length === 0 ? (
-            <Aviso>
-              {filtrando ? (
-                <>
-                  <strong>Nenhum evento com esses filtros.</strong>{' '}
-                  <a href="/agenda">Ver a agenda inteira</a>.
-                </>
-              ) : (
-                <>
-                  <strong>A agenda ainda está vazia.</strong> Organiza um evento de automação?{' '}
-                  <a href="#enviar">Mande para cá</a> — listar é de graça.
-                </>
-              )}
-            </Aviso>
+            filtrando ? (
+              <Vazio titulo="Nenhum evento com esses filtros."><a href="/agenda">Ver a agenda inteira</a>.</Vazio>
+            ) : (
+              <Vazio titulo="A agenda está aberta.">
+                Organiza um evento de automação? <a href="#enviar">Mande para cá</a> — listar é de graça.
+              </Vazio>
+            )
           ) : (
             eventos.map((e) => <EventoNaAgenda evento={e} />)
           )}
         </div>
 
-        <div id="enviar" style="margin-block-start: var(--space-3xl); scroll-margin-top: var(--space-l)">
+        <section id="enviar" class="bloco" style="scroll-margin-top: var(--space-l)">
           <Secao titulo="Enviar um evento" />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            Listar é gratuito. Todo envio passa por conferência antes de aparecer — data errada em
-            agenda destrói a confiança na agenda inteira.
+            Listar é gratuito. Todo envio passa por conferência antes de aparecer — data errada em agenda
+            destrói a confiança na agenda inteira.
           </p>
           <FormularioEvento />
-        </div>
+        </section>
       </Documento>,
     ),
   );
 });
 
-/* -------------------------------------------------------- envio de evento */
 app.post('/agenda/enviar', async (c) => {
   const f = await c.req.formData();
   const texto = (k: string) => String(f.get(k) ?? '').trim().slice(0, 500);
 
-  // Armadilha para robô: campo escondido que humano nunca preenche. Não é
-  // proteção séria — é o filtro barato. Ver qa/SPRINT-3.md §5.
+  // Armadilha para robô: campo escondido que humano nunca preenche.
   if (texto('sitio')) return c.redirect('/agenda?enviado=1', 303);
 
   const nome = texto('nome');
@@ -279,7 +482,7 @@ app.post('/agenda/enviar', async (c) => {
       pagina(
         <Documento titulo="Envio não aceito">
           <h1>Envio não aceito</h1>
-          <div style="margin-block-start: var(--space-m)">
+          <div class="bloco--curto">
             <Aviso>
               <strong>{erro}</strong> <a href="/agenda#enviar">Voltar ao formulário</a>.
             </Aviso>
@@ -289,8 +492,8 @@ app.post('/agenda/enviar', async (c) => {
     );
   }
 
-  const nucleoEnviado = texto('nucleo');
-  const formatoEnviado = texto('formato');
+  const tema = texto('tema');
+  const formato = texto('formato');
 
   // Entra como 'coletado': nada aparece na agenda sem conferência humana.
   await c.env.DB.prepare(
@@ -300,7 +503,7 @@ app.post('/agenda/enviar', async (c) => {
   )
     .bind(
       `e-${crypto.randomUUID().slice(0, 12)}`,
-      ehNucleo(nucleoEnviado) ? nucleoEnviado : 'industria',
+      ehTema(tema) ? tema : 'industria',
       nome,
       texto('descricao') || null,
       inicio,
@@ -308,7 +511,7 @@ app.post('/agenda/enviar', async (c) => {
       texto('cidade') || null,
       texto('uf').toUpperCase().slice(0, 2) || null,
       texto('pais').toUpperCase().slice(0, 2) || 'BR',
-      ['presencial', 'online', 'hibrido'].includes(formatoEnviado) ? formatoEnviado : 'presencial',
+      ['presencial', 'online', 'hibrido'].includes(formato) ? formato : 'presencial',
       texto('organizador') || null,
       texto('url') || null,
       texto('preco') || null,
@@ -318,24 +521,12 @@ app.post('/agenda/enviar', async (c) => {
   return c.redirect('/agenda?enviado=1', 303);
 });
 
-/* ------------------------------------------------------------ evento único
- * ⚠️ Precisa vir ANTES de /:nucleo/:slug — senão o curinga casa primeiro.
- */
 app.get('/agenda/:slug', async (c) => {
   const e = await obterEvento(c.env.DB, c.req.param('slug'));
   if (!e) return c.notFound();
 
   const local =
-    e.formato === 'online'
-      ? 'Online'
-      : [e.cidade, e.pais === 'BR' ? e.uf : e.pais].filter(Boolean).join(' · ');
-
-  /**
-   * Evento que já passou continua tendo página — permalink é contrato com
-   * quem linkou, e derrubar para 404 quebra o link de todo mundo. Mas a
-   * página TEM de dizer que já aconteceu: quem chega pela busca meses
-   * depois não pode achar que ainda vai acontecer.
-   */
+    e.formato === 'online' ? 'Online' : [e.cidade, e.pais === 'BR' ? e.uf : e.pais].filter(Boolean).join(' · ');
   const passou = (e.fim ?? e.inicio).slice(0, 10) < new Date().toISOString().slice(0, 10);
 
   c.header('Cache-Control', CACHE.item);
@@ -343,321 +534,60 @@ app.get('/agenda/:slug', async (c) => {
     pagina(
       <Documento
         titulo={e.nome}
-        nucleo={e.nucleo}
+        secao="agenda"
         descricao={e.descricao ?? `${e.nome} — ${periodoEvento(e.inicio, e.fim)}, ${local}.`}
         url={`${c.env.SITE_URL}/agenda/${e.slug}`}
         ld={ldJson(eventoLd(e, c.env.SITE_URL))}
       >
-        <p>
-          <a href="/agenda" class="kicker kicker--dot">
-            Agenda
-          </a>
-        </p>
-        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{e.nome}</h1>
+        <article class="peca">
+          <header class="peca__cabeca">
+            <div class="etiquetas">
+              <a href="/agenda" class="kicker kicker--dot">Agenda · {nomeTema(e.nucleo)}</a>
+            </div>
+            <h1 class="peca__titulo">{e.nome}</h1>
+            {passou && (
+              <Aviso>
+                <strong>Este evento já aconteceu.</strong> A página fica no ar para quem chegou por um
+                link antigo. Para o que vem pela frente, veja a <a href="/agenda">agenda</a>.
+              </Aviso>
+            )}
+            <div class="assinatura">
+              <span class="assinatura__autor u-dado">{periodoEvento(e.inicio, e.fim)}</span>
+              <span>{local || '—'}</span>
+              <span>{e.formato === 'hibrido' ? 'Híbrido' : e.formato === 'online' ? 'Online' : 'Presencial'}</span>
+              {e.preco && <span>{e.preco === 'gratuito' ? 'Gratuito' : e.preco}</span>}
+            </div>
+          </header>
 
-        {passou && (
-          <div style="margin-block-start: var(--space-m)">
-            <Aviso>
-              <strong>Este evento já aconteceu.</strong> A página fica no ar para quem chegou por
-              um link antigo. Para o que vem pela frente, veja a <a href="/agenda">agenda</a>.
-            </Aviso>
-          </div>
-        )}
-
-        <div class="assinatura" style="margin-block-start: var(--space-m)">
-          <span class="assinatura__autor u-dado">{periodoEvento(e.inicio, e.fim)}</span>
-          <span>{local || '—'}</span>
-          <span>
-            {e.formato === 'hibrido' ? 'Híbrido' : e.formato === 'online' ? 'Online' : 'Presencial'}
-          </span>
-          {e.preco && <span>{e.preco === 'gratuito' ? 'Gratuito' : e.preco}</span>}
-          <span class="assinatura__nucleo">{NUCLEOS[e.nucleo].nome}</span>
-        </div>
-
-        {e.descricao && (
-          <div class="obra" style="margin-block-start: var(--space-l)">
-            <p>{e.descricao}</p>
-          </div>
-        )}
-
-        <p style="margin-block-start: var(--space-l)">
-          {e.url && (
-            <a href={e.url} rel="nofollow noopener" target="_blank">
-              Página oficial do evento
-            </a>
+          {e.descricao && (
+            <div class="obra">
+              <p>{e.descricao}</p>
+            </div>
           )}
-          {e.organizador && <span class="u-muted"> · organização: {e.organizador}</span>}
-        </p>
 
-        <div style="margin-block-start: var(--space-xl)">
-          <Aviso>
-            <strong>Data e local conferidos na fonte oficial.</strong> Se algo mudou,{' '}
-            <a href="/agenda#enviar">avise</a> — agenda com data errada não serve para nada.
-          </Aviso>
-        </div>
+          <p style="margin-block-start: var(--space-l)">
+            {e.url && (
+              <a href={e.url} rel="nofollow noopener" target="_blank">
+                Página oficial do evento
+              </a>
+            )}
+            {e.organizador && <span class="u-muted"> · organização: {e.organizador}</span>}
+          </p>
+
+          <footer class="peca__pe">
+            <Aviso>
+              <strong>Data e local conferidos na fonte oficial.</strong> Se algo mudou,{' '}
+              <a href="/agenda#enviar">avise</a> — agenda com data errada não serve para nada.
+            </Aviso>
+          </footer>
+        </article>
       </Documento>,
     ),
   );
 });
 
-/* -------------------------------------------------------------------- capa
- * PORTAL INSTITUCIONAL, não portal de notícia.
- *
- * A diferença não é de estilo, é de gênero: a home diz o que a instituição
- * É e o que ela FAZ; a notícia é uma seção dentro disso. E há um motivo
- * prático para o momento — portal institucional envelhece bem com pouco
- * conteúdo, portal de notícia parece abandonado. Com o radar ainda vazio,
- * é o único gênero que não denuncia a falta.
- */
-app.get('/', async (c) => {
-  const q = c.req.query();
-  const [contagens, atraso, p, destaque, eventos, obras] = await Promise.all([
-    contarPorNucleo(c.env.DB),
-    medirAtraso(c.env.DB),
-    placar(c.env.DB),
-    itemDestaque(c.env.DB),
-    listarAgenda(c.env.DB, {}, 3),
-    listarObras(c.env.DB, {}, 2),
-  ]);
-  const porNucleo = new Map(contagens.map((x) => [x.nucleo, x]));
-  const totalItens = contagens.reduce((soma, x) => soma + x.total, 0);
-  const temBase = totalItens > 0 || atraso.medidos > 0;
+/* =============================================================== glossário */
 
-  c.header('Cache-Control', CACHE.listagem);
-  return c.html(
-    pagina(
-      <Documento
-        titulo="Instituto Automação"
-        descricao="O Instituto Automação acompanha o que o setor publica no mundo e traduz para o português no mesmo dia — e mede quanto tempo leva para chegar ao Brasil."
-        url={c.env.SITE_URL + '/'}
-      >
-        {/*
-          1 · O HERO.
-
-          Max Planck abre com imagem de largura total e texto sobreposto;
-          Igarapé, com banner grande e DOIS botões. O nosso era lado a lado e
-          claro — por isso não tinha peso. Escuro e sangrando de ponta a
-          ponta, ele vira o bloco que segura a página.
-
-          E os números moram DENTRO dele: num instituto que mede, o dado é
-          parte da apresentação, não uma seção à parte.
-        */}
-        <section class="hero sangra">
-          <div class="hero__fundo">{raw(gerarCapa('abertura-instituto', true).svg)}</div>
-          <div class="hero__veu"></div>
-
-          <div class="wrap hero__conteudo" style="padding-inline: 0">
-            <span class="hero__kicker">O que o setor publicou hoje, lá fora</span>
-            <h1 class="hero__titulo">O setor de automação, em português, no mesmo dia</h1>
-            <p class="hero__lead">
-              Acompanhamos o que fabricantes, associações e imprensa técnica publicam no mundo,
-              traduzimos no dia em que sai e dizemos o que cada coisa muda para quem trabalha
-              com automação no Brasil.
-            </p>
-            <div class="hero__acoes">
-              <a href="/industria" class="botao-acao">Ver o radar</a>
-              <a href="#como-trabalhamos" class="botao-vazado">Como trabalhamos</a>
-            </div>
-
-            {temBase ? (
-              <div class="hero__numeros">
-                <div>
-                  <div class="hero__num">{atraso.media_dias ?? '—'}</div>
-                  <div class="hero__rot">dias, em média, até um assunto chegar ao Brasil</div>
-                </div>
-                <div>
-                  <div class="hero__num">{p.nao_chega}</div>
-                  <div class="hero__rot">
-                    <a href="/industria?v=nao_chega">itens que não chegaram aqui</a>
-                  </div>
-                </div>
-                <div>
-                  <div class="hero__num">{totalItens}</div>
-                  <div class="hero__rot">itens traduzidos e publicados</div>
-                </div>
-              </div>
-            ) : (
-              /* Número zerado na abertura é pior que número nenhum: promete
-                 medição e entrega vazio. Enquanto a base não se forma, a
-                 faixa diz por que ela ainda não existe. */
-              <p class="hero__numeros hero__rot" style="max-width: 52ch">
-                Os números desta faixa aparecem quando houver base para eles. O atraso até o
-                Brasil não se estima — mede-se, coletando todo dia.
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* 2 · O que fazemos: os núcleos como estrutura, não como feed */}
-        <section style="padding-block: var(--space-2xl)">
-          <Secao titulo="Os núcleos" />
-          {/* Os dois núcleos quentes maiores que os dois em Radar. Peso
-              editorial virando tamanho — e a página passa a dizer, sem
-              texto, onde há gente escrevendo. */}
-          <div class="nucleos">
-            {ORDEM_NUCLEOS.filter((k) => NUCLEOS[k].quente).map((k) => (
-              <CardNucleo
-                chave={k}
-                total={porNucleo.get(k)?.total ?? 0}
-                ultimo={porNucleo.get(k)?.ultimo ?? null}
-              />
-            ))}
-          </div>
-          <div class="nucleos nucleos--frios" style="margin-block-start: var(--space-l)">
-            {ORDEM_NUCLEOS.filter((k) => !NUCLEOS[k].quente).map((k) => (
-              <CardNucleo
-                chave={k}
-                total={porNucleo.get(k)?.total ?? 0}
-                ultimo={porNucleo.get(k)?.ultimo ?? null}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* 3 · A pergunta que o Instituto persegue. Os números subiram para
-            o hero; aqui fica o porquê deles, que é o que dá sentido a eles. */}
-        <section class="faixa sangra">
-          <div class="wrap" style="padding-inline: 0">
-            <Secao titulo="O que medimos" />
-            <div class="obra" style="font-size: var(--step-0)">
-              <p>
-                Quase toda notícia de automação nasce em inglês e alemão. Parte dela chega ao
-                Brasil semanas depois; parte nunca chega. <strong>Ninguém mede esse intervalo</strong>
-                {' '}— e sem medida não há conversa sobre o atraso do parque industrial brasileiro
-                que não seja opinião.
-              </p>
-              <p>
-                Todo item que passa pelo radar entra numa base própria, com a data em que saiu
-                lá fora e a data da primeira menção brasileira. É dela que sai o Panorama, e é
-                ela que vai ser publicada aberta, com DOI, para quem quiser conferir ou
-                contestar.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 4 · A notícia. Seção, não a home inteira. */}
-        {destaque && (
-          <section style="padding-block: var(--space-2xl)">
-            <Secao titulo="Do radar" acao={{ texto: 'ver tudo', href: '/industria' }} />
-            <Destaque item={destaque} />
-          </section>
-        )}
-
-        {/* 5 · Obra assinada */}
-        {obras.length > 0 && (
-          <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
-            <Secao titulo="Publicações" acao={{ texto: 'panorama', href: '/panorama' }} />
-            {obras.map((o) => (
-              <ObraNaLista obra={o} />
-            ))}
-          </section>
-        )}
-
-        {/* 6 · Agenda */}
-        {eventos.length > 0 && (
-          <section style="padding-block: var(--space-2xl); border-top: var(--border-hair)">
-            <Secao titulo="Agenda" acao={{ texto: 'calendário completo', href: '/agenda' }} />
-            {eventos.map((e) => (
-              <EventoNaAgenda evento={e} />
-            ))}
-          </section>
-        )}
-
-        {/* 6.5 · A lista.
-            Manufacturing Dive põe a chamada em três pontos fixos; Igarapé
-            fecha a home com ela. O motivo é o mesmo: o site é aluguel, a
-            lista é propriedade — é o único ativo que sobrevive a mudança de
-            domínio, de plataforma e de humor de buscador. */}
-        <section style="padding-block: var(--space-2xl)">
-          <div class="lista">
-            <p class="lista__titulo">O que saiu lá fora, em português, na sua caixa</p>
-            <p class="lista__nota">
-              Um resumo por semana com o que o setor publicou e o que muda por aqui. Sem
-              patrocínio disfarçado de matéria, e sem repassar seu e-mail a ninguém.
-            </p>
-            <form class="lista__form" method="post" action="/assinar">
-              <div aria-hidden="true" style="position:absolute; left:-9999px">
-                <label>
-                  Não preencha
-                  <input type="text" name="sitio" tabindex={-1} autocomplete="off" />
-                </label>
-              </div>
-              <label class="u-visually-hidden" for="email-lista">
-                Seu e-mail
-              </label>
-              <input
-                class="campo"
-                id="email-lista"
-                type="email"
-                name="email"
-                required
-                placeholder="seu@email.com.br"
-              />
-              <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
-                Quero receber
-              </button>
-            </form>
-            {q.assinado === '1' ? (
-              <p class="lista__rodape">
-                <strong>Anotado.</strong> O primeiro envio sai quando houver o que mandar — a
-                lista não serve para avisar que a lista existe.
-              </p>
-            ) : q.assinado === 'erro' ? (
-              <p class="lista__rodape">Esse e-mail não parece válido. Confere e tenta de novo?</p>
-            ) : (
-              <p class="lista__rodape">
-                Ainda não enviamos nada: a lista começa agora, e o primeiro envio sai quando
-                houver conteúdo que justifique.
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* 7 · Como trabalhamos — a credibilidade, declarada na home */}
-        <section
-          id="como-trabalhamos"
-          style="padding-block: var(--space-2xl); border-top: var(--border-hair); scroll-margin-top: 4rem"
-        >
-          <Secao titulo="Como trabalhamos" />
-          <div style="display:grid; gap:var(--space-l); grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))">
-            <div>
-              <h3 style="font-size: var(--step-1)">Só publicamos o que a fonte autoriza</h3>
-              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                Tradução integral apenas de material liberado para imprensa. Do restante, resumo
-                próprio com crédito e link. A regra está no código, não na intenção — e o{' '}
-                <a href="/blueprints">inventário de fontes</a> mostra a autorização de cada uma.
-              </p>
-            </div>
-            <div>
-              <h3 style="font-size: var(--step-1)">Dizemos onde a IA entra</h3>
-              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                A tradução e a triagem são feitas por máquina, e o item avisa quando ainda não
-                passou por revisão humana. O que é juízo do Instituto vem rotulado como tal, e o{' '}
-                <a href="/glossario">glossário</a> que trava os termos técnicos é público.
-              </p>
-            </div>
-            <div>
-              <h3 style="font-size: var(--step-1)">O radar e a agenda não têm autor</h3>
-              <p class="u-muted" style="font-size: var(--step--1); margin-block-start: var(--space-2xs)">
-                São agregação. Análise, Caso e Panorama são assinados — e a responsabilidade
-                pelo que está escrito ali é de quem assina.
-              </p>
-            </div>
-          </div>
-        </section>
-      </Documento>,
-    ),
-  );
-});
-
-/* ----------------------------------------------------------- glossário
- * A infraestrutura de tradução, aberta.
- *
- * Ele já existia como dado — entra no prompt como dicionário obrigatório.
- * Publicá-lo é o mesmo movimento do inventário de fontes: mostrar a régua,
- * não só o resultado. E cresce sozinho conforme as traduções são corrigidas.
- */
 app.get('/glossario', async (c) => {
   const termos = await listarGlossario(c.env.DB);
   const traduz = termos.filter((t) => !t.manter_original);
@@ -668,19 +598,19 @@ app.get('/glossario', async (c) => {
     pagina(
       <Documento
         titulo="Glossário"
-        descricao="Os termos técnicos de automação e como o Instituto os traduz — inclusive os que não se traduzem."
+        secao="glossario"
+        descricao="Os termos técnicos de automação e como o Instituto os escreve em português — inclusive os que não se traduzem."
         url={c.env.SITE_URL + '/glossario'}
       >
-        <h1>Glossário</h1>
-        <div class="obra" style="margin-block-start: var(--space-m)">
-          <p class="lead">
-            Estes termos não são sugestão: entram travados no prompt de tradução. Vocabulário de
-            automação em português é traiçoeiro, e uma máquina traduzindo cru erra na primeira
-            linha — o engenheiro percebe antes do segundo parágrafo.
+        <header class="cabeca-secao">
+          <h1>Glossário</h1>
+          <p class="cabeca-secao__lead">
+            A régua pública de como escrevemos. Vocabulário de automação em português é traiçoeiro:
+            quem traduz cru erra na primeira linha, e o engenheiro percebe antes do segundo parágrafo.
           </p>
-        </div>
+        </header>
 
-        <div style="margin-block-start: var(--space-2xl)">
+        <section class="bloco">
           <Secao titulo={`Traduções travadas · ${traduz.length}`} />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
             Têm equivalente consagrado no setor, e ele é obrigatório.
@@ -696,14 +626,13 @@ app.get('/glossario', async (c) => {
               {t.nota && <p class="termo__nota">{t.nota}</p>}
             </div>
           ))}
-        </div>
+        </section>
 
-        <div style="margin-block-start: var(--space-2xl)">
+        <section class="bloco">
           <Secao titulo={`Não se traduzem · ${mantem.length}`} />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            Ficam na língua de origem, com o significado aproximado na primeira ocorrência.
-            Inventar um equivalente em português que ninguém usa no chão de fábrica é pior que
-            manter o estrangeirismo: denuncia tradução automática e queima o texto inteiro.
+            Ficam na língua de origem, com o significado aproximado na primeira ocorrência. Inventar
+            equivalente que ninguém usa no chão de fábrica é pior que manter o estrangeirismo.
           </p>
           {mantem.map((t) => (
             <div class="termo">
@@ -716,65 +645,116 @@ app.get('/glossario', async (c) => {
               {t.nota && <p class="termo__nota">({t.nota})</p>}
             </div>
           ))}
-        </div>
+        </section>
       </Documento>,
     ),
   );
 });
 
-/**
- * O veredito do robots.txt em uma palavra, para a coluna do inventário.
- *
- * Três estados, e o terceiro importa tanto quanto os outros dois: enquanto o
- * coletor não conferiu, a tabela diz que não conferiu — não fica em branco
- * fingindo que está tudo certo.
- */
+/* ============================================================== blueprints */
+
 function vereditoRobots(permite: number | null): string {
   if (permite === 1) return 'permite';
   if (permite === 0) return 'não permite';
   return 'não conferido';
 }
 
-/* ---------------------------------------------------------- blueprints
- * O que o The Markup chama de Blueprints: dataset, metodologia e processo
- * publicados como SEÇÃO, não como anexo. Anexo ninguém acha; seção tem
- * endereço e é citada.
- */
 app.get('/blueprints', async (c) => {
-  const [fontes, correcoes, atraso, barrados] = await Promise.all([
+  const [fontes, correcoes, rel] = await Promise.all([
     inventarioFontes(c.env.DB),
     listarCorrecoes(c.env.DB),
-    medirAtraso(c.env.DB),
-    girosBarrados(c.env.DB),
+    medirRelogio(c.env.DB),
   ]);
-  const liberadas = fontes.filter((f) => f.licenca === 'liberada');
-  const relogio = fontes.filter((f) => f.marca_relogio);
+  const ativas = fontes.filter((f) => f.ativo);
   const recusadas = fontes.filter((f) => f.robots_permite === 0);
-  const vozes = fontes.filter((f) => f.pessoa);
+  const relogioBR = fontes.filter((f) => f.marca_relogio && f.ativo);
+  const vozes = fontes.filter((f) => f.pessoa && f.ativo);
+  const pecas = todas();
 
   c.header('Cache-Control', CACHE.listagem);
   return c.html(
     pagina(
       <Documento
         titulo="Blueprints"
+        secao="blueprints"
         descricao="Nossos dados, nosso método e nossas fontes — abertos para conferência."
         url={c.env.SITE_URL + '/blueprints'}
       >
-        <h1>Blueprints</h1>
-        <div class="obra" style="margin-block-start: var(--space-m)">
-          <p class="lead">
-            Nossos dados, nosso método e as licenças de cada fonte. Se você quiser conferir,
-            contestar ou ampliar o que publicamos, comece por aqui.
+        <header class="cabeca-secao">
+          <h1>Blueprints</h1>
+          <p class="cabeca-secao__lead">
+            Nossos dados, nosso método e as fontes de cada coisa. Se você quiser conferir, contestar
+            ou ampliar o que publicamos, comece por aqui.
           </p>
-        </div>
+        </header>
 
-        {/* --- o inventário: a regra central exposta para conferência --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo={`As fontes e suas licenças · ${fontes.length}`} />
+        {/* --- como o Instituto funciona --- */}
+        <section class="bloco">
+          <Secao titulo="Como funciona" />
+          <div class="obra" style="font-size: var(--step-0)">
+            <p>
+              <strong>A máquina colhe. A gente decide. Alguém escreve. O git publica.</strong> Um
+              coletor lê {rel.fontes} fontes todo dia, obedecendo o <code>robots.txt</code> de cada
+              uma. O que ele traz vira uma pauta que uma pessoa lê inteira. O que vale virar peça é
+              escolhido, escrito em português a partir da fonte e lido de novo antes de sair.
+            </p>
+            <p>
+              <strong>Não há inteligência artificial em produção.</strong> Nenhuma peça deste site foi
+              traduzida ou redigida por modelo. Toda peça tem autor, e a responsabilidade pelo que
+              está escrito é de quem assina. Hoje são {pecas.length} peça{pecas.length === 1 ? '' : 's'}.
+            </p>
+          </div>
+        </section>
+
+        {/* --- o veredito --- */}
+        <section class="bloco" id="veredito" style="scroll-margin-top: var(--space-l)">
+          <Secao titulo="O veredito: o que isso muda aqui" />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            <strong>Tradução integral só de fonte que autoriza.</strong> A coluna da direita traz
-            o link da página que dá essa autorização — é a nossa prova de que nada foi
-            republicado sem permissão, e não um pedido para acreditar na gente.
+            Toda notícia recebe uma de quatro categorias. Fechadas de propósito: rótulo aberto vira
+            rótulo literário, e a gente quer que dê para discordar.
+          </p>
+          <div class="grade-vereditos">
+            {Object.keys(ROTULO_VEREDITO).map((v) => (
+              <div class="veredito-explicado">
+                <Veredito valor={v} />
+                <p>{EXPLICA_VEREDITO[v]}.</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* --- o relógio --- */}
+        <section class="bloco">
+          <Secao titulo="Como medimos o atraso" />
+          <div class="obra" style="font-size: var(--step-0)">
+            <p>
+              Cada item colhido é agrupado num <strong>assunto</strong> — a mesma notícia publicada por
+              fontes e em idiomas diferentes. O atraso é a diferença entre a{' '}
+              <strong>primeira publicação em qualquer lugar</strong> e a{' '}
+              <strong>primeira menção em fonte brasileira</strong>. Só a primeira menção conta.
+            </p>
+            <p>
+              Hoje: {rel.acompanhados} assuntos acompanhados, {rel.medidos} com atraso apurado
+              {rel.mediana_dias !== null ? ` (mediana de ${rel.mediana_dias} dias)` : ''}, e {rel.sem_mencao}{' '}
+              publicados lá fora há mais de 90 dias sem nenhuma menção aqui.
+            </p>
+            <p>
+              <em>Limitações declaradas:</em> o agrupamento por título erra quando duas notícias
+              diferentes usam palavras parecidas, e acerta menos entre idiomas distantes. E a medição
+              depende de haver imprensa brasileira especializada cobrindo o mesmo assunto — hoje são{' '}
+              {relogioBR.length} fontes marcando o relógio, o que é pouco, e dizemos isso.
+            </p>
+          </div>
+        </section>
+
+        {/* --- o inventário --- */}
+        <section class="bloco">
+          <Secao titulo={`As fontes · ${ativas.length} ativas`} />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            De onde vem o que lemos. <strong>Fonte que bloqueia robô não entra</strong>, e não tentamos
+            contornar: sem trocar a identificação do nosso robô, sem proxy, sem navegador disfarçado.
+            Se o <code>robots.txt</code> não puder ser lido, a fonte também fica de fora — sem regra
+            legível não há autorização a supor.
           </p>
           <div class="scroll-x">
             <table>
@@ -782,62 +762,40 @@ app.get('/blueprints', async (c) => {
                 <tr>
                   <th>Fonte</th>
                   <th>Origem</th>
-                  <th>O que podemos fazer</th>
-                  <th>Autorização</th>
+                  <th>Papel</th>
+                  <th>Itens</th>
                   <th>robots.txt</th>
                 </tr>
               </thead>
               <tbody>
                 {fontes.map((f) => (
-                  <tr>
+                  <tr class={f.ativo ? '' : 'u-faint'}>
                     <td>
-                      <a href={f.url_site} rel="nofollow noopener" target="_blank">
-                        {f.nome}
-                      </a>
-                      {Boolean(f.marca_relogio) && (
-                        <span class="u-faint"> · marca o relógio</span>
-                      )}
+                      <a href={f.url_site} rel="nofollow noopener" target="_blank">{f.nome}</a>
                       {f.pessoa && (
                         <>
                           <br />
-                          <span class="u-faint" style="font-size: var(--step--2)">
-                            voz · {f.pessoa_papel ?? f.pessoa}
-                          </span>
+                          <span class="u-faint" style="font-size: var(--step--2)">voz · {f.pessoa_papel ?? f.pessoa}</span>
                         </>
                       )}
                     </td>
-                    <td class="u-dado">
-                      {f.pais} · {f.idioma}
-                    </td>
+                    <td class="u-dado">{f.pais} · {f.idioma}</td>
                     <td>
-                      <span class={`licenca licenca--${f.licenca}`}>
-                        {f.licenca === 'liberada'
-                          ? 'tradução integral'
-                          : f.licenca === 'resumo'
-                            ? 'só resumo próprio'
-                            : 'não coletamos'}
-                      </span>
-                    </td>
-                    <td>
-                      {f.licenca_evidencia ? (
-                        <a href={f.licenca_evidencia} rel="nofollow noopener" target="_blank">
-                          termos
-                        </a>
+                      {!f.ativo ? (
+                        <span class="u-faint">desativada</span>
+                      ) : f.marca_relogio ? (
+                        'marca o relógio'
+                      ) : f.pessoa ? (
+                        'voz'
                       ) : (
-                        <span class="u-faint">—</span>
+                        'radar'
                       )}
                     </td>
-                    {/* O veredito do robô é dado publicado, não nota de rodapé:
-                        é o que separa "a fonte deixou" de "a gente conseguiu". */}
+                    <td class="u-dado">{f.itens}</td>
                     <td data-robots={vereditoRobots(f.robots_permite)}>
                       <span class="u-dado">{vereditoRobots(f.robots_permite)}</span>
-                      {f.robots_atraso ? (
-                        <span class="u-faint"> · pede {f.robots_atraso}s</span>
-                      ) : null}
                       <br />
-                      <span class="u-faint" style="font-size: var(--step--2)">
-                        {f.robots_motivo ?? 'ainda não consultado'}
-                      </span>
+                      <span class="u-faint" style="font-size: var(--step--2)">{f.robots_motivo ?? 'ainda não consultado'}</span>
                     </td>
                   </tr>
                 ))}
@@ -845,809 +803,84 @@ app.get('/blueprints', async (c) => {
             </table>
           </div>
           <p class="u-faint" style="font-size: var(--step--2); margin-block-start: var(--space-s)">
-            {vozes.length > 0 && (
-              <>
-                {vozes.length} das fontes são <strong>vozes</strong> — pessoa pública que publica
-                com nome próprio, e não redação. O Giro trata as duas de forma diferente porque
-                "a IEEE Spectrum noticiou" e "Rodney Brooks escreveu" não pesam igual.{' '}
-              </>
+            {vozes.length} são <strong>vozes</strong> — pessoa pública que publica com nome próprio, não
+            redação. {relogioBR.length} são brasileiras e existem para marcar quando o assunto chegou
+            aqui. {recusadas.length > 0 && (
+              <>{recusadas.length} {recusadas.length === 1 ? 'está' : 'estão'} fora porque o robots.txt não autoriza — e seguem listadas de propósito.</>
             )}
-            {liberadas.length} de {fontes.length} fontes autorizam tradução integral.{' '}
-            {recusadas.length > 0 && (
-              <>
-                {recusadas.length} {recusadas.length === 1 ? 'está' : 'estão'} fora do radar
-                porque o robots.txt não autoriza — e seguem listadas aqui de propósito.{' '}
-              </>
-            )}
-            {relogio.length} são brasileiras e não são publicadas: existem para medir quando o
-            assunto chegou aqui.
           </p>
-        </div>
-
-        {/* --- método --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="Como medimos o atraso" />
-          <div class="obra" style="font-size: var(--step-0)">
-            <p>
-              Cada item coletado é agrupado num <strong>assunto</strong> — a mesma notícia
-              publicada por fontes e em idiomas diferentes. O agrupamento usa título
-              normalizado, fornecedores citados em comum e uma janela de 30 dias.
-            </p>
-            <p>
-              O atraso é a diferença entre a <strong>primeira publicação em qualquer lugar</strong>{' '}
-              e a <strong>primeira menção em fonte brasileira</strong>. Só a primeira menção
-              conta.
-            </p>
-            <p>
-              <strong>Assunto que fica sem menção brasileira não é falha de coleta.</strong> É o
-              achado: é o que o setor lançou lá fora e nunca chegou aqui. Hoje temos{' '}
-              {atraso.medidos} assunto{atraso.medidos === 1 ? '' : 's'} com atraso apurado.
-            </p>
-            <p>
-              <em>Limitações declaradas:</em> o agrupamento por título erra quando duas notícias
-              diferentes usam palavras muito parecidas, e acerta menos entre idiomas distantes.
-              <strong> Fonte que bloqueia robô não entra</strong>, e não tentamos contornar: sem
-              trocar a identificação do nosso robô, sem proxy, sem navegador disfarçado. Se o
-              robots.txt de uma fonte sequer puder ser lido, ela também fica de fora — sem regra
-              legível não há autorização a supor. A coluna <em>robots.txt</em> na tabela acima diz
-              o veredito de cada uma e por quê.
-            </p>
-          </div>
-        </div>
-
-        {/* --- o giro que não saiu --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="O Giro da Semana, e o que a auditoria barrou" />
-          <div class="obra" style="font-size: var(--step-0)">
-            <p>
-              O <a href="/giro">Giro</a> é montado por máquina: os números saem de consulta ao
-              banco antes de qualquer texto existir, e a prosa escrita em cima deles passa por
-              uma auditoria que confere <strong>cada valor citado</strong> contra o agregado.
-              Edição que reprova <strong>não vai ao ar</strong>.
-            </p>
-            <p>
-              Isso só vale alguma coisa se as reprovações forem públicas — auditoria que barra em
-              silêncio é auditoria que ninguém confere. Então elas ficam aqui:
-            </p>
-          </div>
-          {barrados.length === 0 ? (
-            <p class="u-faint" style="margin-block-start: var(--space-s); font-size: var(--step--1)">
-              Nenhuma edição retida até agora.
-            </p>
-          ) : (
-            <div class="scroll-x" style="margin-block-start: var(--space-s)">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Edição</th>
-                    <th>Semana</th>
-                    <th>Por que não saiu</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {barrados.map((b) => (
-                    <tr data-barrado={b.slug}>
-                      <td class="u-dado">{b.slug}</td>
-                      <td>{b.rotulo}</td>
-                      <td class="u-faint">{b.motivo ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* --- IA --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="Como usamos inteligência artificial" />
-          <div class="obra" style="font-size: var(--step-0)">
-            <p>
-              <strong>A IA decide sozinha:</strong> se um item é notícia ou ruído, em que núcleo
-              ele entra, e o resumo em português.
-            </p>
-            <p>
-              <strong>A IA escreve, e a licença manda:</strong> a tradução integral só acontece
-              quando a fonte autoriza, e essa checagem é feita no banco, não pelo modelo.
-            </p>
-            <p>
-              <strong>A IA nunca decide:</strong> se uma fonte pode ser traduzida, se um evento
-              entra na agenda, ou o que é publicado com assinatura.
-            </p>
-            <p>
-              Item traduzido que ainda não passou por olho humano vai ao ar{' '}
-              <strong>com o selo dizendo isso</strong>. O selo some quando alguém revisa.
-            </p>
-          </div>
-        </div>
+        </section>
 
         {/* --- correções --- */}
-        <div style="margin-block-start: var(--space-2xl)">
+        <section class="bloco">
           <Secao titulo={`Correções · ${correcoes.length}`} />
           {correcoes.length === 0 ? (
             <Aviso>
-              <strong>Nenhuma correção até agora.</strong> Quando houver, ela aparece aqui com
-              data e com o que mudou — e o texto original não é apagado. Registro que some não
-              é registro.
+              <strong>Nenhuma correção até agora.</strong> Quando houver, aparece aqui com data e com o
+              que mudou — e o texto original não é apagado. Registro que some não é registro.
             </Aviso>
           ) : (
             correcoes.map((k) => (
               <div class="termo">
                 <p class="termo__nota">
                   <span class="u-dado">{dataBR(k.data, false)}</span> — {k.texto}
+                  {k.peca && <> (<a href={k.peca}>{k.peca}</a>)</>}
                 </p>
               </div>
             ))
           )}
-        </div>
+        </section>
 
-        {/* --- dataset --- */}
-        <div style="margin-block-start: var(--space-2xl)">
+        <section class="bloco">
           <Secao titulo="O dataset" />
           <Aviso>
-            <strong>Ainda não publicado.</strong> O conjunto de dados sai com DOI e licença
-            CC-BY quando houver o primeiro trimestre de coleta — publicar uma base vazia seria a
-            única forma de estragá-la. Enquanto isso, a tabela de fontes acima já mostra o que
-            está sendo coletado e sob que autorização.
+            <strong>Ainda não publicado.</strong> O conjunto de dados sai com DOI e licença CC-BY quando
+            houver o primeiro trimestre de coleta — publicar uma base vazia seria a única forma de
+            estragá-la.
           </Aviso>
-        </div>
+        </section>
       </Documento>,
     ),
   );
 });
 
-/* ------------------------------------------------------------ assinar */
+/* ================================================================ assinar */
+
 app.post('/assinar', async (c) => {
   const f = await c.req.formData();
   const email = String(f.get('email') ?? '').trim().slice(0, 200);
   const sitio = String(f.get('sitio') ?? '').trim();
 
-  // Robô: devolve sucesso sem gravar. Ele acha que funcionou.
   if (sitio) return c.redirect('/?assinado=1', 303);
-
-  const valido = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-  if (!valido) return c.redirect('/?assinado=erro', 303);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return c.redirect('/?assinado=erro', 303);
 
   await assinar(c.env.DB, email, 'capa');
-  // Sempre a mesma resposta, tenha ou não gravado: dizer "já existe"
-  // entregaria a terceiros quem está na lista.
   return c.redirect('/?assinado=1', 303);
 });
 
-/* ------------------------------------------------------------------ giro
- * O Giro da Semana.
- *
- * A pergunta que ele responde não é "o que saiu?" — é "o que foi a semana?".
- * Três coisas o separam de um resumo automático qualquer, e as três estão
- * na página, não no comentário do código:
- *
- *   · o destaque sai de uma FÓRMULA publicada, com o placar à vista, para o
- *     leitor poder discordar da escolha vendo a conta;
- *   · a prosa passa por auditoria contra os números, e a edição não sai se
- *     inventar um;
- *   · quando nenhum assunto alcança o piso de repercussão, o giro diz que
- *     não houve destaque — e diz por quê.
- *
- * ⚠️ Antes de /:nucleo, como toda rota de caminho fixo.
+/* =========================================================== redirects v1
+ * Link que alguém guardou é contrato. 301 para a seção que herdou o assunto.
  */
-app.get('/giro', async (c) => {
-  const giros = await listarGiros(c.env.DB, 30);
-
-  c.header('Cache-Control', CACHE.listagem);
-  return c.html(
-    pagina(
-      <Documento
-        titulo="Giro da Semana"
-        descricao="O balanço semanal do Instituto Automação: o que a base registrou, o destaque e por que ele foi o destaque."
-        url={c.env.SITE_URL + '/giro'}
-      >
-        <h1>Giro da Semana</h1>
-        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
-          Toda segunda-feira, o balanço da semana que fechou: o que o radar registrou nos quatro
-          núcleos, o que o relógio mediu, e a notícia que mais repercutiu — com o placar que
-          justifica a escolha.
-        </p>
-
-        <div style="margin-block-start: var(--space-xl)">
-          {giros.length === 0 ? (
-            <Aviso>
-              <strong>O primeiro Giro sai na segunda-feira seguinte à primeira semana cheia de
-              coleta.</strong> Ele não é escrito na segunda de manhã: é montado a partir do que a
-              base registrou, e por isso depende de haver semana registrada.
-            </Aviso>
-          ) : (
-            giros.map((g) => (
-              <article class="item" data-edicao={g.slug}>
-                <div class="item__topo">
-                  <Kicker>{g.rotulo}</Kicker>
-                  <span class="u-dado u-faint" style="font-size:var(--step--2)">
-                    {g.agregado.totais.itens} itens
-                  </span>
-                  {!g.agregado.destaque && <Selo tipo="radar">sem destaque</Selo>}
-                </div>
-                <h3 class="item__titulo">
-                  <a href={`/giro/${g.slug}`}>{g.titulo}</a>
-                </h3>
-                {g.lead && <p class="item__resumo">{g.lead}</p>}
-              </article>
-            ))
-          )}
-        </div>
-      </Documento>,
-    ),
-  );
-});
-
-app.get('/giro/:slug', async (c) => {
-  const g = await obterGiro(c.env.DB, c.req.param('slug'));
-  if (!g) return c.notFound();
-  const a = g.agregado;
-
-  c.header('Cache-Control', CACHE.item);
-  return c.html(
-    pagina(
-      <Documento
-        titulo={`${g.titulo} · Giro de ${g.rotulo}`}
-        descricao={g.lead ?? undefined}
-        url={`${c.env.SITE_URL}/giro/${g.slug}`}
-      >
-        <Kicker>Giro da Semana</Kicker>
-        <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{g.titulo}</h1>
-        <p class="u-dado" style="margin-block-start: var(--space-2xs)">
-          {g.rotulo}
-          {Boolean(g.simulado) && (
-            <>
-              {' · '}
-              <Selo tipo="pendente">texto simulado · sem chamada à API</Selo>
-            </>
-          )}
-        </p>
-
-        {g.lead && (
-          <div class="obra" style="margin-block-start: var(--space-m)">
-            <p class="lead">{g.lead}</p>
-          </div>
-        )}
-
-        {/* --- os números da semana, antes de qualquer prosa --- */}
-        <div class="numeros" style="margin-block-start: var(--space-l)">
-          <Numero valor={a.totais.itens} rotulo="itens coletados" />
-          <Numero valor={a.totais.fontes} rotulo="fontes que publicaram" />
-          <Numero valor={a.relogio.naoChegaram} rotulo="assuntos que não chegaram ao Brasil" />
-          <Numero
-            valor={a.relogio.medianaDias === null ? '—' : `${a.relogio.medianaDias} d`}
-            rotulo="atraso mediano apurado"
-          />
-        </div>
-
-        {/* --- o destaque, e a conta que o elegeu --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo={a.destaque ? 'O destaque da semana' : 'Esta semana não teve destaque'} />
-          {g.destaque_texto && (
-            <div class="obra" style="font-size: var(--step-0)">
-              <p>{g.destaque_texto}</p>
-            </div>
-          )}
-
-          {a.destaque?.item_slug && a.destaque.item_nucleo && (
-            <p style="margin-block-start: var(--space-s)">
-              <a href={`/${a.destaque.item_nucleo}/${a.destaque.item_slug}`}>
-                {a.destaque.item_titulo}
-              </a>
-            </p>
-          )}
-
-          <div style="margin-block-start: var(--space-l)">
-            <p class="u-muted" style="max-width: var(--measure); font-size: var(--step--1)">
-              <strong>A escolha é uma conta, não um gosto.</strong> Cada assunto da semana
-              recebe pontos por quantas fontes independentes o cobriram, pelo peso editorial
-              delas, por ainda não ter sido mencionado no Brasil e pelo veredito. O piso para
-              entrar no placar é {PISO_FONTES} fontes independentes — notícia da semana precisa
-              ter sido notícia para mais de um.
-            </p>
-            <p class="u-faint" style="max-width: var(--measure); font-size: var(--step--2)">
-              Outros <strong>{a.sozinhos}</strong> assuntos apareceram em uma fonte só e ficaram
-              de fora do placar. Esse número também mede a nossa limitação: parte deles é a mesma
-              notícia que o agrupamento por título não juntou.{' '}
-              <a href="/blueprints">Como medimos</a>.
-            </p>
-          </div>
-
-          {a.placar.length > 0 && (
-            <div style="margin-block-start: var(--space-m)">
-              <div class="scroll-x" style="margin-block-start: var(--space-s)">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Assunto</th>
-                      <th>Fontes</th>
-                      <th>Alcance</th>
-                      <th>Inédito aqui</th>
-                      <th>Veredito</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {a.placar.map((cand) => (
-                      <tr data-placar={cand.assunto_id}>
-                        <td>
-                          {cand.item_slug && cand.item_nucleo ? (
-                            <a href={`/${cand.item_nucleo}/${cand.item_slug}`}>{cand.rotulo}</a>
-                          ) : (
-                            cand.rotulo
-                          )}
-                          {cand.assunto_id === a.destaque?.assunto_id && (
-                            <span class="u-faint"> · destaque</span>
-                          )}
-                        </td>
-                        <td class="u-dado">{cand.fontes}</td>
-                        <td class="u-dado">{cand.parcelas.alcance}</td>
-                        <td class="u-dado">{cand.parcelas.ineditismo}</td>
-                        <td class="u-dado">{cand.parcelas.veredito}</td>
-                        <td class="u-dado">
-                          <strong>{cand.pontos}</strong>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* --- a semana em cada núcleo --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="A semana em cada núcleo" />
-          {a.porNucleo.map((n) => {
-            const frase = g.nucleos.find((x) => x.nucleo === n.nucleo)?.frase;
-            return (
-              <div class={`bloco-nucleo ${NUCLEOS[n.nucleo].classe}`}>
-                <h3 class="bloco-nucleo__titulo">
-                  <a href={`/${n.nucleo}`}>{NUCLEOS[n.nucleo].nome}</a>
-                  <span class="u-dado">
-                    {' · '}
-                    {n.itens} {n.itens === 1 ? 'item' : 'itens'}
-                  </span>
-                </h3>
-                {frase && <p style="max-width: var(--measure)">{frase}</p>}
-                {n.topo.length > 0 && (
-                  <ul class="lista-seca">
-                    {n.topo.map((t) => (
-                      <li>
-                        {t.slug ? <a href={`/${n.nucleo}/${t.slug}`}>{t.titulo}</a> : t.titulo}
-                        <span class="u-faint"> — {t.fonte}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* --- as vozes --- */}
-        {a.vozes.length > 0 && (
-          <div style="margin-block-start: var(--space-2xl)">
-            <Secao titulo="O que as vozes disseram" />
-            <p class="u-muted" style="max-width: var(--measure); font-size: var(--step--1)">
-              Pessoas públicas que publicam com nome próprio. Não é a mesma coisa que uma
-              redação noticiar — e por isso aparecem em separado, com o nome de quem assina.
-            </p>
-            <ul class="lista-seca" style="margin-block-start: var(--space-s)">
-              {a.vozes.map((v) => (
-                <li data-voz={v.pessoa}>
-                  <strong>{v.pessoa}</strong>
-                  {v.papel && <span class="u-faint"> · {v.papel}</span>}
-                  <br />
-                  <a href={v.url} rel="nofollow noopener" target="_blank">
-                    {v.titulo}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* --- o que vem pela frente --- */}
-        {a.agenda.length > 0 && (
-          <div style="margin-block-start: var(--space-2xl)">
-            <Secao titulo="Nos próximos 30 dias" acao={{ texto: 'Agenda completa', href: '/agenda' }} />
-            <ul class="lista-seca">
-              {a.agenda.map((e) => (
-                <li>
-                  <a href={`/agenda/${e.slug}`}>{e.titulo}</a>
-                  <span class="u-faint">
-                    {' '}
-                    — {dataBR(e.inicio, false)}
-                    {e.cidade ? `, ${e.cidade}` : ''} · {e.pais}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* --- como este giro foi montado --- */}
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao titulo="Como este giro foi montado" />
-          <div class="obra" style="font-size: var(--step--1)">
-            <p>
-              Os números vêm de consulta ao banco do Instituto, não de redação: contagens,
-              mediana e o placar são calculados antes de qualquer texto existir. A prosa é
-              escrita a partir <em>desses</em> números e passa por uma auditoria automática que
-              confere cada valor citado contra o agregado.{' '}
-              {g.auditoria && (
-                <>
-                  <strong>
-                    {g.auditoria.conferidas} conferências nesta edição, {g.auditoria.falhas.length}{' '}
-                    reprovada{g.auditoria.falhas.length === 1 ? '' : 's'}.
-                  </strong>{' '}
-                </>
-              )}
-              Edição que reprova não vai ao ar — fica registrada em{' '}
-              <a href="/blueprints">Blueprints</a> com o motivo.
-            </p>
-            <p>
-              <strong>A fórmula do destaque:</strong> {FORMULA.repercussao}; {FORMULA.alcance};{' '}
-              {FORMULA.ineditismo}; {FORMULA.veredito}. O ineditismo pesa mais que a repercussão
-              de propósito — a pergunta que este veículo existe para responder é o que{' '}
-              <em>não</em> chegou aqui.
-            </p>
-            <p class="u-faint">
-              Os dados desta edição estão congelados na data em que ela saiu. Se a base mudar
-              depois, esta página continua dizendo o que dizia — balanço que se reescreve não é
-              balanço.
-            </p>
-          </div>
-        </div>
-      </Documento>,
-    ),
-  );
-});
-
-/* --------------------------------------------------------------- a obra
- * Análise, Caso e Panorama têm página própria e URL sem núcleo: obra é para
- * durar, e núcleo pode mudar de nome antes do texto envelhecer.
- * A Leitura NÃO tem página: vive dentro do item que comenta.
- *
- * ⚠️ Três caminhos EXPLÍCITOS, e antes de /:nucleo/:slug. A versão anterior
- * usava um parâmetro com alternância na própria rota; explícito não depende
- * de como o roteador interpreta a expressão.
- */
-for (const formato of ['analise', 'caso', 'panorama'] as const) {
-  app.get(`/${formato}/:slug`, async (c) => {
-    const o = await obterObra(c.env.DB, formato as FormatoObra, c.req.param('slug'));
-    if (!o) return c.notFound();
-
-    const html = renderizarObra(o.corpo);
-    const minutos = minutosDeLeitura(o.corpo);
-
-    c.header('Cache-Control', CACHE.item);
-    return c.html(
-      pagina(
-        <Documento
-          titulo={o.titulo}
-          nucleo={o.nucleo}
-          descricao={o.lead ?? undefined}
-          url={`${c.env.SITE_URL}/${o.formato}/${o.slug}`}
-        >
-          <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
-          <h1 style="max-width: var(--measure); margin-block-start: var(--space-2xs)">{o.titulo}</h1>
-
-          <div style="margin-block-start: var(--space-m)">
-            <AssinaturaObra obra={o} minutos={minutos} />
-          </div>
-
-          <div class="obra" style="margin-block-start: var(--space-l)">
-            {o.lead && <p class="lead">{o.lead}</p>}
-            {raw(html)}
-          </div>
-
-          {o.item_slug && o.item_nucleo && (
-            <p class="u-muted" style="margin-block-start: var(--space-xl); font-size: var(--step--1)">
-              Comenta: <a href={`/${o.item_nucleo}/${o.item_slug}`}>{o.item_titulo}</a>
-            </p>
-          )}
-
-          <div style="margin-block-start: var(--space-xl)">
-            <Aviso>
-              <strong>Texto assinado.</strong> O radar e a agenda deste site não têm autor — são
-              agregação. Análise, Caso e Panorama têm, e a responsabilidade pelo que está escrito
-              aqui é de quem assina.
-            </Aviso>
-          </div>
-        </Documento>,
-      ),
-    );
-  });
+for (const [de, para] of Object.entries(REDIRECTS_V1)) {
+  app.get(de, (c) => c.redirect(para, 301));
+  app.get(`${de}/:slug`, (c) => c.redirect(para, 301));
+}
+for (const antigo of ['analise', 'caso']) {
+  app.get(`/${antigo}/:slug`, (c) => c.redirect('/relatorios', 301));
 }
 
-/* ------------------------------------------------------------------ núcleo */
-app.get('/:nucleo', async (c) => {
-  const chave = c.req.param('nucleo');
-  if (!ehNucleo(chave)) return c.notFound();
-
-  const n = NUCLEOS[chave];
-  const v = c.req.query('v');
-  const filtrandoVeredito = v && ROTULO_VEREDITO[v] ? v : undefined;
-
-  /**
-   * Paginação.
-   *
-   * TODA página tem o mesmo tamanho: a 1 é manchete + 3 secundárias + 26 de
-   * fluxo; as seguintes são 30 de fluxo. Páginas de tamanhos diferentes
-   * fazem a conta do intervalo mentir — foi o que produziu "61–59 de 59".
-   *
-   * E o filtro de veredito vai no SQL, não na lista carregada.
-   */
-  const POR_PAGINA = 30;
-  const paginaAtual = Math.max(1, Number.parseInt(c.req.query('p') ?? '1', 10) || 1);
-  const naPrimeira = paginaAtual === 1;
-
-  const total = filtrandoVeredito
-    ? await contarRadarPorVeredito(c.env.DB, chave, filtrandoVeredito)
-    : await contarRadar(c.env.DB, chave);
-  const ultimaPagina = Math.max(1, Math.ceil(total / POR_PAGINA));
-
-  // Página além do fim é 404, não página vazia: página fantasma vira espaço
-  // infinito para rastreador e soft-404 na busca.
-  if (paginaAtual > ultimaPagina) return c.notFound();
-
-  const [todos, obras, manchete] = await Promise.all([
-    listarRadar(
-      c.env.DB,
-      chave,
-      POR_PAGINA,
-      (paginaAtual - 1) * POR_PAGINA,
-      filtrandoVeredito,
-    ),
-    naPrimeira ? listarObras(c.env.DB, { nucleo: chave }, 5) : Promise.resolve([]),
-    naPrimeira && !filtrandoVeredito
-      ? itemDestaque(c.env.DB, chave)
-      : Promise.resolve(null),
-  ]);
-
-  // O filtro por veredito é o que dá rosto à pergunta-assinatura: a lista do
-  // que o setor lançou lá fora e não chegou aqui.
-  // A manchete sai da lista para não aparecer duas vezes. Sob filtro não há
-  // níveis: o recorte é resposta a uma pergunta, e ali toda linha vale o
-  // mesmo.
-  const restantes = todos.filter((i) => i.id !== manchete?.id);
-  const comNiveis = naPrimeira && !filtrandoVeredito;
-  const secundarias = comNiveis ? restantes.slice(0, 3) : [];
-  const fluxo = comNiveis ? restantes.slice(3) : restantes;
-
-  const buscaNucleo = new URLSearchParams();
-  if (filtrandoVeredito) buscaNucleo.set('v', filtrandoVeredito);
-
-  c.header('Cache-Control', CACHE.listagem);
-  return c.html(
-    pagina(
-      <Documento titulo="Radar" nucleo={chave} descricao={n.resumo} url={`${c.env.SITE_URL}/${chave}${buscaNucleo.toString() || paginaAtual > 1 ? `?${new URLSearchParams([...buscaNucleo, ...(paginaAtual > 1 ? [['p', String(paginaAtual)] as [string, string]] : [])])}` : ''}`}>
-        <h1>{n.nome}</h1>
-        <p class="u-muted" style="max-width: var(--measure); margin-block-start: var(--space-2xs)">
-          {n.resumo}
-        </p>
-
-        {!n.quente && (
-          <div style="margin-block-start: var(--space-m)">
-            <EmRadar nucleo={chave} />
-          </div>
-        )}
-
-        {/* Filtro por veredito — cada recorte com URL própria, sem JS. */}
-        <div class="filtro" style="margin-block-start: var(--space-m)">
-          <span class="filtro__rotulo">O que muda aqui</span>
-          <a class="pilula" href={`/${chave}`} aria-current={!filtrandoVeredito ? 'true' : undefined}>
-            Tudo
-          </a>
-          {Object.keys(ROTULO_VEREDITO).map((k) => (
-            <a
-              class="pilula"
-              href={`/${chave}?v=${k}`}
-              aria-current={filtrandoVeredito === k ? 'true' : undefined}
-            >
-              {ROTULO_VEREDITO[k]}
-            </a>
-          ))}
-        </div>
-
-        {manchete && naPrimeira && !filtrandoVeredito && (
-          <div style="margin-block-start: var(--space-xl)">
-            <Destaque item={manchete} />
-          </div>
-        )}
-
-        {/* Sob filtro de veredito a obra sai: ela não tem veredito, e mostrá-la
-            ali entregaria lista misturada onde a página prometeu um recorte. */}
-        {obras.length > 0 && naPrimeira && !filtrandoVeredito && (
-          <div style="margin-block-start: var(--space-xl)">
-            <Secao titulo="Obra" />
-            {obras.map((o) => (
-              <ObraNaLista obra={o} />
-            ))}
-          </div>
-        )}
-
-        {/*
-          OS TRÊS NÍVEIS.
-
-          Lista chapada é densidade sem hierarquia — o mesmo defeito que
-          diagnosticamos no Portal Solar. Aqui o peso editorial vira tamanho:
-            1 · a manchete, com capa      (acima)
-            2 · três secundárias em grade
-            3 · o resto, uma linha por item
-
-          Sob filtro de veredito o nível 2 some: o recorte é uma resposta a
-          uma pergunta, e ali toda linha vale o mesmo.
-        */}
-        {secundarias.length > 0 && !filtrandoVeredito && (
-          <div style="margin-block-start: var(--space-2xl)">
-            <div class="grade-sec">
-              {secundarias.map((i) => (
-                <ItemSecundario item={i} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div style="margin-block-start: var(--space-2xl)">
-          <Secao
-            titulo={
-              filtrandoVeredito
-                ? `Radar · ${ROTULO_VEREDITO[filtrandoVeredito]}`
-                : 'Tudo do radar'
-            }
-            acao={filtrandoVeredito ? { texto: 'ver tudo', href: `/${chave}` } : undefined}
-          />
-          {fluxo.length === 0 ? (
-            <Aviso>
-              {filtrandoVeredito ? (
-                <>
-                  <strong>Nenhum item com este veredito ainda.</strong>{' '}
-                  <a href={`/${chave}`}>Ver o radar inteiro</a>.
-                </>
-              ) : (
-                <>
-                  <strong>Ainda não há itens aqui.</strong> O radar publica assim que a coleta
-                  encontrar algo que passe na triagem.
-                </>
-              )}
-            </Aviso>
-          ) : (
-            <div class="fluxo-lista">
-              {fluxo.map((i) => (
-                <ItemLinha item={i} />
-              ))}
-            </div>
-          )}
-          <Paginacao
-            base={`/${chave}`}
-            busca={buscaNucleo}
-            pagina={paginaAtual}
-            porPagina={POR_PAGINA}
-            total={total}
-          />
-        </div>
-      </Documento>,
-    ),
-  );
-});
-
-/* -------------------------------------------------------------------- item */
-app.get('/:nucleo/:slug', async (c) => {
-  const chave = c.req.param('nucleo');
-  if (!ehNucleo(chave)) return c.notFound();
-
-  const i = await obterItem(c.env.DB, chave, c.req.param('slug'));
-  if (!i) return c.notFound();
-
-  const n = NUCLEOS[chave];
-  const leitura = await leituraDoItem(c.env.DB, i.id);
-  const traduzido = i.modo === 'traducao';
-  const pendente = traduzido && i.revisado_humano === 0;
-
-  c.header('Cache-Control', CACHE.item);
-  return c.html(
-    pagina(
-      <Documento
-        titulo={i.titulo}
-        nucleo={chave}
-        descricao={i.resumo ?? i.contexto_br ?? undefined}
-        url={`${c.env.SITE_URL}/${chave}/${i.slug}`}
-      >
-        <div class="item__topo" style="margin-block-end: var(--space-s)">
-          <span class="kicker kicker--dot">{n.nome}</span>
-          <Relogio minutos={i.minutos_apos_fonte} />
-          {traduzido && <Selo tipo="traducao">Tradução integral</Selo>}
-          {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
-        </div>
-
-        <h1 style="max-width: var(--measure)">{i.titulo}</h1>
-
-        <div class="assinatura" style="margin-block-start: var(--space-m)">
-          <span>
-            Fonte:{' '}
-            <a href={i.url} rel="nofollow noopener" target="_blank">
-              {i.fonte_nome}
-            </a>
-          </span>
-          <span class="u-dado">{dataBR(i.publicado_fonte)}</span>
-          <Selo tipo="original">{i.idioma_origem.toUpperCase()}</Selo>
-          {i.atraso_br_dias != null && <span>chegou ao Brasil {i.atraso_br_dias} dias depois</span>}
-        </div>
-
-        {/* A maior ambiguidade do produto, resolvida com uma palavra: o que
-            está acima é apuração de terceiro; o que vem abaixo é juízo do
-            Instituto. Semafor deu a ideia, Aos Fatos deu a forma. */}
-        <div style="margin-block-start: var(--space-l)">
-          <span class="camada">O que a fonte diz</span>
-          <div class="obra" style="margin-block-start: var(--space-2xs)">
-            {(i.corpo ?? i.resumo ?? '')
-              .split(/\n{2,}/)
-              .filter(Boolean)
-              .map((par) => (
-                <p>{par}</p>
-              ))}
-          </div>
-        </div>
-
-        {i.contexto_br && (
-          <>
-            <div
-              class="item__contexto"
-              style="margin-block-start: var(--space-xl); max-width: var(--measure)"
-            >
-              {i.contexto_veredito && (
-                <p style="margin-block-end: var(--space-2xs)">
-                  <Veredito valor={i.contexto_veredito} />
-                </p>
-              )}
-              {i.contexto_br}
-            </div>
-            <p
-              class="u-faint"
-              style="margin-block-start: var(--space-s); font-size: var(--step--2); max-width: var(--measure)"
-            >
-              O veredito e o parágrafo acima são <strong>redação do Instituto</strong> e seguem
-              critério público. O texto anterior é da fonte.
-            </p>
-          </>
-        )}
-
-        {leitura && <LeituraNoItem obra={leitura} html={renderizarObra(leitura.corpo)} />}
-
-        <div style="margin-block-start: var(--space-xl)">
-          <Aviso>
-            <strong>Como este item foi produzido.</strong>{' '}
-            {traduzido
-              ? 'Tradução integral a partir de material liberado para imprensa pela própria fonte, com crédito e link.'
-              : 'Resumo escrito pelo Instituto a partir da publicação original, com crédito e link. O texto integral está na fonte.'}{' '}
-            O parágrafo destacado acima é redação do Instituto.
-            {pendente && ' A tradução ainda não passou por revisão humana.'}
-          </Aviso>
-        </div>
-
-        {i.titulo_original && (
-          <p class="u-faint" style="margin-block-start: var(--space-m); font-size: var(--step--1)">
-            Título original: <span class="u-dado">{i.titulo_original}</span>
-          </p>
-        )}
-      </Documento>,
-    ),
-  );
-});
+/* ==================================================================== 404 */
 
 app.notFound((c) =>
   c.html(
     pagina(
       <Documento titulo="Não encontrado">
-        <h1>Não encontrado</h1>
-        <p class="u-muted" style="margin-block-start: var(--space-s)">
-          A página que você procurou não existe (ou ainda não existe).{' '}
-          <a href="/">Voltar à capa</a>.
-        </p>
+        <header class="cabeca-secao">
+          <h1>Não encontrado</h1>
+          <p class="cabeca-secao__lead">
+            A página que você procurou não existe, ou ainda não existe. <a href="/">Voltar à capa</a>.
+          </p>
+        </header>
       </Documento>,
     ),
     404,
@@ -1658,78 +891,25 @@ export default {
   fetch: app.fetch,
 
   /**
-   * O cron.
+   * O cron: só o coletor.
    *
    * ⚠️ TODO trabalho assíncrono passa por ctx.waitUntil. Promessa não
    * esperada é CANCELADA quando a resposta sai — e o miniflare local deixa
-   * terminar, então esse defeito só aparece em produção. Já derrubou outro
-   * Worker desta casa.
-   *
-   * Testar local:  npm run dev  →  curl "localhost:8787/cdn-cgi/handler/scheduled"
+   * terminar, então esse defeito só aparece em produção.
    */
-  async scheduled(evento: ScheduledController, env: Env, ctx: ExecutionContext) {
-    /**
-     * Dois ritmos, um handler.
-     *
-     * `0 11 * * 1` é o Giro da Semana, e ele NÃO divide invocação com o
-     * coletor: a segunda de manhã é o pior momento para as duas coisas
-     * disputarem o orçamento de CPU, e o cron das 11h05 já traz o coletor de
-     * volta. Comparar o padrão que disparou é a forma barata de separar —
-     * flag em variável de ambiente teria de ser lembrada em dois lugares.
-     */
-    /* `--test-scheduled` entrega o cron como veio na query, e `+` na query
-       é espaço em algumas rotas e literal em outras. Normalizar aqui custa
-       uma linha e evita passar meia hora achando que o despacho está
-       quebrado quando o que está diferente é a codificação da URL. */
-    const cron = (evento.cron ?? '').replace(/\+/g, ' ').replace(/\s+/g, ' ').trim();
-
-    if (cron === CRON_GIRO) {
-      ctx.waitUntil(
-        (async () => {
-          try {
-            const g = await montarGiro(env);
-            console.log(
-              `[giro] ${g.slug} (${g.rotulo}) · ${g.publicou ? 'PUBLICADO' : 'retido'} · ` +
-                `${g.conferidas} conferências${g.simulado ? ' · SIMULADO' : ''} · ` +
-                `R$ ${g.custo_brl.toFixed(4)} no dia · ${g.ms}ms`,
-            );
-            if (!g.publicou) console.warn(`[giro] retido: ${g.motivo}`);
-          } catch (e) {
-            console.error('[giro] falhou inteiro:', e);
-          }
-        })(),
-      );
-      return;
-    }
-
+  async scheduled(_evento: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(
       (async () => {
-        // Coletor primeiro, pipeline depois — e o pipeline nunca pode
-        // impedir a coleta: feed não guarda histórico, e dia sem coletar
-        // não volta. Se o teto de custo estourar, a base continua crescendo.
         try {
-          const c = await coletar(env);
+          const r = await coletar(env);
           console.log(
-            `[coletor] ${c.fontes} fontes · ${c.novos} novos · ${c.repetidos} repetidos · ` +
-              `${c.ignorados} ignorados · ${c.adiados} adiados · ` +
-              `${c.recusados} recusados pelo robots · ${c.erros.length} erros · ${c.ms}ms`,
+            `[coletor] ${r.fontes} fontes · ${r.novos} novos · ${r.repetidos} repetidos · ` +
+              `${r.ignorados} ignorados · ${r.adiados} adiados · ` +
+              `${r.recusados} recusados pelo robots · ${r.erros.length} erros · ${r.ms}ms`,
           );
-          for (const e of c.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
+          for (const e of r.erros) console.warn(`[coletor] ${e.fonte}: ${e.erro}`);
         } catch (e) {
           console.error('[coletor] falhou inteiro:', e);
-        }
-
-        try {
-          const p = await processar(env);
-          console.log(
-            `[pipeline] ${p.processados} processados · ${p.publicados} publicados · ` +
-              `${p.aguardando} na fila · ${p.arquivados} arquivados · ` +
-              `R$ ${p.custo_brl.toFixed(4)} no dia${p.simulado ? ' · SIMULADO' : ''}` +
-              `${p.pausado_por_teto ? ' · PAUSADO PELO TETO' : ''} · ${p.ms}ms`,
-          );
-          for (const e of p.erros) console.warn(`[pipeline] ${e.item}: ${e.erro}`);
-        } catch (e) {
-          console.error('[pipeline] falhou inteiro:', e);
         }
       })(),
     );

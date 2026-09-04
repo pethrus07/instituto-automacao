@@ -42,3 +42,23 @@ VALUES
   -- Voz brasileira: marca o relógio. Não é publicada — existe para medir
   -- quando o assunto chegou aqui, como as outras fontes BR.
   ('f-voz-rodrigo-ghedin', 'Rodrigo Ghedin', 'https://manualdousuario.net', 'https://manualdousuario.net/feed/', 'imprensa', 'pt', 'BR', 'observatorio', 'resumo', NULL, 'alta', 1, 180, 1, 7, 'Rodrigo Ghedin', 'jornalista; edita o Manual do Usuário');
+
+-- =========================================================================
+-- v2 · 03/09/2026 — as vozes do RECORTE
+--
+-- Ficam as que falam de automacao industrial (Brooks, Anderson) e de agentes
+-- e processos (Willison, Mollick, Marcus). Saem as que eram tecnologia em
+-- geral. Ghedin sai por outro motivo: e otimo e nao e do tema — e a voz BR
+-- que o recorte precisa e de automacao industrial, que ainda nao achamos.
+-- =========================================================================
+UPDATE fonte SET ativo = 0 WHERE id IN (
+  'f-voz-benedict-evans', 'f-voz-sebastian-raschka', 'f-voz-tim-bray',
+  'f-voz-rodrigo-ghedin', 'f-voz-andrej-karpathy'
+);
+UPDATE fonte SET nucleo = 'processos' WHERE id IN ('f-voz-simon-willison','f-voz-ethan-mollick','f-voz-gary-marcus');
+UPDATE fonte SET nucleo = 'industria' WHERE id IN ('f-voz-rodney-brooks','f-voz-chris-anderson');
+
+-- v2: os quatro nucleos viraram dois temas. Vale para quem cria do zero e
+-- para quem roda por cima de um banco antigo — e idempotente.
+UPDATE fonte SET nucleo = 'industria' WHERE nucleo IN ('industria','edificacoes');
+UPDATE fonte SET nucleo = 'processos' WHERE nucleo IN ('observatorio','operacao');

@@ -1,25 +1,28 @@
 -- =========================================================================
--- Instituto Automação — schema do D1
--- Espelha docs/MODELO-DADOS.md. Tudo em UTC (ISO 8601).
+-- Instituto Automação — schema do D1 · v2 (03/09/2026)
 --
--- Entra INTEIRO no dia 1, mesmo com tela para quase nada: classificação rica
--- e medição de atraso não são reconstituíveis depois. Notícia sai do ar e
--- feed guarda só as últimas dezenas de itens.
+-- O D1 guarda DUAS coisas, e só duas:
+--   1. o que a máquina colhe — `fonte`, `item`, `assunto`: a base do relógio
+--   2. o que vem de fora — `evento` (formulário público) e `assinante`
+--
+-- Conteúdo NÃO mora aqui. Peça é arquivo markdown em conteudo/**, compilado
+-- para o bundle. Saíram desta versão: `obra`, `giro`, `custo_dia`, e as 17
+-- colunas de `item` que eram estado do pipeline de IA.
+--
+-- Tudo em UTC (ISO 8601). Para banco que já tem dado, use migracoes/005-v2.sql
+-- em vez deste arquivo — ele começa com DROP TABLE, e item colhido não volta.
 -- =========================================================================
 
-DROP TABLE IF EXISTS giro;
 DROP TABLE IF EXISTS correcao;
-DROP TABLE IF EXISTS obra;
 DROP TABLE IF EXISTS item;
 DROP TABLE IF EXISTS assunto;
 DROP TABLE IF EXISTS evento;
 DROP TABLE IF EXISTS glossario;
-DROP TABLE IF EXISTS custo_dia;
 DROP TABLE IF EXISTS assinante;
 DROP TABLE IF EXISTS fonte;
 
 -- -------------------------------------------------------------------------
--- fonte — a tabela que decide o que o pipeline PODE fazer com cada texto
+-- fonte — de onde a máquina colhe, e o que cada fonte permite
 -- -------------------------------------------------------------------------
 CREATE TABLE fonte (
   id                TEXT PRIMARY KEY,
@@ -27,43 +30,36 @@ CREATE TABLE fonte (
   veiculo           TEXT,
   url_site          TEXT NOT NULL,
   url_feed          TEXT,
-  -- Tipos ampliados em 01/09: a sondagem mostrou que forum, artigo, rede
-  -- social, video e release de produto TAMBEM sao RSS — o coletor ja serve,
-  -- sem uma linha nova. As excecoes medidas: X/Twitter e LinkedIn nao tem
-  -- feed publico.
+  -- o MEIO: imprensa, sala de imprensa, associacao, forum, social...
   tipo              TEXT NOT NULL CHECK (tipo IN
                     ('press','imprensa','associacao','academico','calendario',
                      'social','forum','video','release')),
   idioma            TEXT NOT NULL,
   pais              TEXT NOT NULL,
+  -- o TEMA (chama-se `nucleo` por heranca da v1): 'industria' | 'processos'
   nucleo            TEXT,
-  -- nega por padrão: fonte nova nasce 'resumo' e só sobe depois que alguém
-  -- leu os termos e gravou a evidência
+  -- 'bloqueada' e a unica que muda a coleta: fonte bloqueada nao e colhida.
+  -- 'liberada' deixou de ser pre-requisito de produto — nao ha republicacao
+  -- automatica de nada. Fica como registro do que a fonte autoriza.
   licenca           TEXT NOT NULL DEFAULT 'resumo' CHECK (licenca IN ('liberada','resumo','bloqueada')),
   licenca_evidencia TEXT,
   licenca_conferida TEXT,
   confianca         TEXT NOT NULL DEFAULT 'media' CHECK (confianca IN ('alta','media','baixa')),
-  -- VOZ: pessoa publica que publica com nome proprio. E um EIXO, nao um
-  -- tipo — `tipo` diz o MEIO (imprensa, forum, social), `pessoa` diz de QUEM
-  -- e a assinatura. Um blog pessoal e meio 'imprensa' COM pessoa; a IEEE
-  -- Spectrum e meio 'imprensa' SEM pessoa. Para o Giro a diferenca e
-  -- substantiva: "a Spectrum noticiou" e "Rodney Brooks escreveu" nao pesam
-  -- igual, e um giro que nao sabe disso vira agregador.
+  -- VOZ: pessoa publica que publica com nome proprio. E um EIXO, nao um tipo:
+  -- `tipo` diz o MEIO, `pessoa` diz de QUEM e a assinatura.
   pessoa            TEXT,
   pessoa_papel      TEXT,
-  -- 1 = fonte BR que quase nunca é publicada: existe para medir o atraso
+  -- 1 = fonte BR que existe para marcar quando o assunto chegou aqui
   marca_relogio     INTEGER NOT NULL DEFAULT 0,
   peso              INTEGER NOT NULL DEFAULT 5,
-  -- De onde os itens vem. 'sitemap' e o caminho para fonte que fecha o RSS
-  -- no robots.txt e anuncia o sitemap-news no mesmo arquivo — traz titulo,
-  -- data e URL, que e 100% do que a medicao de atraso precisa.
+  -- 'sitemap' e o caminho para fonte que fecha o RSS no robots.txt e anuncia
+  -- o sitemap-news no mesmo arquivo
   colheita          TEXT NOT NULL DEFAULT 'feed' CHECK (colheita IN ('feed','sitemap')),
   intervalo_min     INTEGER NOT NULL DEFAULT 60,
   ativo             INTEGER NOT NULL DEFAULT 1,
-  -- O veredito do robots.txt da fonte, conferido pelo coletor e publicado no
-  -- inventario. NULL = ainda nao conferido; 1 = permite; 0 = a fonte pede que
-  -- nao coletemos OU o proprio robots.txt esta ilegivel (403) — sem regra
-  -- legivel nao ha consentimento a inferir, e o lado certo de errar e o dela.
+  -- O veredito do robots.txt, conferido pelo coletor e PUBLICADO em
+  -- /blueprints. NULL = nao conferido; 0 = a fonte diz nao, ou o proprio
+  -- robots.txt esta ilegivel — sem regra legivel nao ha consentimento a inferir.
   robots_permite    INTEGER,
   robots_atraso     REAL,
   robots_motivo     TEXT,
@@ -76,8 +72,9 @@ CREATE TABLE fonte (
 CREATE INDEX idx_fonte_vencida ON fonte(ativo, ultima_coleta);
 
 -- -------------------------------------------------------------------------
--- assunto — o coração da pergunta-assinatura
--- Agrupa itens de fontes e idiomas diferentes que falam da mesma coisa.
+-- assunto — o coracao da pergunta-assinatura
+-- Agrupa itens de fontes e idiomas diferentes que falam da mesma coisa, e e
+-- onde o atraso entre "la fora" e "aqui" e medido.
 -- -------------------------------------------------------------------------
 CREATE TABLE assunto (
   id                 TEXT PRIMARY KEY,
@@ -91,8 +88,8 @@ CREATE TABLE assunto (
   fonte_original     TEXT REFERENCES fonte(id),
   primeira_mencao_br TEXT,
   fonte_br           TEXT REFERENCES fonte(id),
-  -- NULL não é falha: assunto que segue NULL depois de meses é o que
-  -- nunca chegou ao Brasil — e esse costuma ser o achado
+  -- NULL nao e falha: assunto que segue NULL depois de meses e o que nunca
+  -- chegou ao Brasil — e esse costuma ser o achado
   atraso_br_dias     INTEGER,
   atraso_apurado_em  TEXT,
 
@@ -104,68 +101,40 @@ CREATE INDEX idx_assunto_chave  ON assunto(chave);
 CREATE INDEX idx_assunto_atraso ON assunto(atraso_br_dias);
 
 -- -------------------------------------------------------------------------
--- item — o radar
+-- item — o registro do que foi colhido. So isso.
+--
+-- Dez colunas. Eram vinte e sete: as outras dezessete (corpo, contexto_br,
+-- veredito, modo, status, slug, revisado_*, og_key...) eram o estado do
+-- pipeline de IA SOBRE o item. Sem pipeline, item volta a ser dado bruto.
+-- Peca publicada e outra coisa, mora em outro lugar, e aponta para a URL da
+-- fonte — nao para uma linha daqui.
 -- -------------------------------------------------------------------------
 CREATE TABLE item (
-  id                 TEXT PRIMARY KEY,
-  fonte_id           TEXT NOT NULL REFERENCES fonte(id),
-  assunto_id         TEXT REFERENCES assunto(id),
-  nucleo             TEXT NOT NULL,
-  slug               TEXT UNIQUE,
-
-  titulo             TEXT NOT NULL,
-  titulo_original    TEXT,
-  url                TEXT NOT NULL,
-  url_canonica       TEXT NOT NULL,
-  idioma_origem      TEXT NOT NULL,
-
-  modo               TEXT NOT NULL CHECK (modo IN ('traducao','resumo')),
-  corpo              TEXT,
-  resumo             TEXT,
-  -- a camada que separa autoridade de tradução automática em massa
-  contexto_br        TEXT,
-  -- O veredito do contexto: categoria fechada, pública e auditável (a lição
-  -- do Aos Fatos). 'nao_chega' é exatamente o que o atraso mede; 'sem_efeito'
-  -- é a opção honesta — sem ela o parágrafo vira enchimento, porque o modelo
-  -- SEMPRE acha alguma consequência quando é obrigado a achar.
-  contexto_veredito  TEXT CHECK (contexto_veredito IN
-                     ('chega','a_caminho','nao_chega','sem_efeito')),
-
-  tipo_de_item       TEXT,
-  tema               TEXT,
-  fornecedores       TEXT,
-  uf                 TEXT,
-
-  publicado_fonte    TEXT NOT NULL,
-  coletado_em        TEXT NOT NULL DEFAULT (datetime('now')),
-  publicado_em       TEXT,
-  traduzido_em       TEXT,
-  -- o relógio: é conteúdo, não metadado
-  minutos_apos_fonte INTEGER,
-
-  status             TEXT NOT NULL DEFAULT 'coletado'
-                     CHECK (status IN ('coletado','classificado','publicado','arquivado')),
-  motivo_arquivo     TEXT,
-  -- 0 acende o selo "tradução automática · revisão pendente"
-  revisado_humano    INTEGER NOT NULL DEFAULT 0,
-  revisor            TEXT,
-  revisado_em        TEXT,
-
-  og_key             TEXT,
-  criado_em          TEXT NOT NULL DEFAULT (datetime('now'))
+  id              TEXT PRIMARY KEY,
+  fonte_id        TEXT NOT NULL REFERENCES fonte(id),
+  assunto_id      TEXT REFERENCES assunto(id),
+  titulo          TEXT NOT NULL,
+  url             TEXT NOT NULL,
+  url_canonica    TEXT NOT NULL,
+  idioma          TEXT NOT NULL,
+  resumo          TEXT,
+  publicado_fonte TEXT NOT NULL,
+  coletado_em     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE UNIQUE INDEX idx_item_canonica  ON item(url_canonica);
-CREATE INDEX        idx_item_publicado ON item(nucleo, status, publicado_em DESC);
-CREATE INDEX        idx_item_assunto   ON item(assunto_id);
-CREATE INDEX        idx_item_veredito  ON item(status, contexto_veredito);
+CREATE UNIQUE INDEX idx_item_canonica ON item(url_canonica);
+CREATE INDEX        idx_item_assunto  ON item(assunto_id);
+CREATE INDEX        idx_item_colheita ON item(coletado_em DESC);
 
 -- -------------------------------------------------------------------------
--- evento — o ativo mais durável. Sempre passa por aprovação humana.
+-- evento — o ativo mais duravel. Chega pelo formulario publico, e por isso
+-- mora no banco: nao da para passar por commit o que o organizador envia.
+-- Sempre passa por conferencia humana antes de aparecer.
 -- -------------------------------------------------------------------------
 CREATE TABLE evento (
   id            TEXT PRIMARY KEY,
   slug          TEXT UNIQUE,
+  -- o TEMA (chama-se `nucleo` por heranca): 'industria' | 'processos'
   nucleo        TEXT NOT NULL,
   nome          TEXT NOT NULL,
   descricao     TEXT,
@@ -190,30 +159,9 @@ CREATE TABLE evento (
 CREATE INDEX idx_evento_agenda ON evento(status, inicio);
 
 -- -------------------------------------------------------------------------
--- obra — o conteúdo assinado. Separado de item de propósito.
--- -------------------------------------------------------------------------
-CREATE TABLE obra (
-  id           TEXT PRIMARY KEY,
-  slug         TEXT UNIQUE NOT NULL,
-  nucleo       TEXT NOT NULL,
-  formato      TEXT NOT NULL CHECK (formato IN ('leitura','analise','caso','panorama')),
-  titulo       TEXT NOT NULL,
-  lead         TEXT,
-  corpo        TEXT NOT NULL,
-  autor        TEXT NOT NULL,
-  -- 0 só na Leitura do Instituto, que sai como voz do núcleo
-  assinada     INTEGER NOT NULL DEFAULT 1,
-  item_id      TEXT REFERENCES item(id),
-  publicado_em TEXT,
-  status       TEXT NOT NULL DEFAULT 'rascunho'
-               CHECK (status IN ('rascunho','publicado','arquivado')),
-  criado_em    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX idx_obra_nucleo ON obra(nucleo, status, publicado_em DESC);
-
--- -------------------------------------------------------------------------
--- glossario — infraestrutura de tradução que também é página pública
+-- glossario — a pagina de referencia dos termos.
+-- Na v1 entrava no prompt de traducao. Sem prompt, continua sendo o que
+-- sempre foi para o leitor: a regua publica de como o Instituto traduz.
 -- -------------------------------------------------------------------------
 CREATE TABLE glossario (
   termo_origem TEXT NOT NULL,
@@ -222,8 +170,7 @@ CREATE TABLE glossario (
   nota         TEXT,
   travado      INTEGER NOT NULL DEFAULT 1,
   -- 1 = o termo NAO se traduz: fica na lingua de origem, com o significado
-  -- aproximado entre parenteses na primeira ocorrencia. Inventar equivalente
-  -- em portugues que ninguem usa no setor e pior que manter o estrangeirismo.
+  -- aproximado na primeira ocorrencia
   manter_original INTEGER NOT NULL DEFAULT 0,
   nucleo       TEXT,
   criado_em    TEXT NOT NULL DEFAULT (datetime('now')),
@@ -231,29 +178,18 @@ CREATE TABLE glossario (
 );
 
 -- -------------------------------------------------------------------------
--- Apoio
+-- correcao — registro publico. Aponta para a PECA pelo caminho publico
+-- (/noticias/slug), porque peca nao esta no banco.
 -- -------------------------------------------------------------------------
-
--- registro público de correção — separa veículo de blog
 CREATE TABLE correcao (
   id      TEXT PRIMARY KEY,
-  item_id TEXT REFERENCES item(id),
-  obra_id TEXT REFERENCES obra(id),
+  peca    TEXT,
   texto   TEXT NOT NULL,
   data    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- kill-switch: sem isto, um feed que enlouquece vira uma conta que não é sua
-CREATE TABLE custo_dia (
-  data       TEXT PRIMARY KEY,
-  tokens_in  INTEGER NOT NULL DEFAULT 0,
-  tokens_out INTEGER NOT NULL DEFAULT 0,
-  brl        REAL    NOT NULL DEFAULT 0,
-  itens      INTEGER NOT NULL DEFAULT 0,
-  pausado_em TEXT
-);
-
--- site é aluguel, lista é propriedade. No v0 só captura; envio vem depois.
+-- site e aluguel, lista e propriedade. Captura agora; envio quando a lista
+-- justificar.
 CREATE TABLE assinante (
   email      TEXT PRIMARY KEY,
   nucleos    TEXT,
@@ -261,44 +197,3 @@ CREATE TABLE assinante (
   confirmado INTEGER NOT NULL DEFAULT 0,
   criado_em  TEXT NOT NULL DEFAULT (datetime('now'))
 );
-
--- -------------------------------------------------------------------------
--- giro — a edicao semanal, congelada
---
--- Nao e `obra` de proposito: obra e texto ASSINADO, com responsabilidade de
--- quem assina. O giro e montado a partir da base e auditado por maquina.
--- Misturar os dois borraria a linha que o projeto inteiro existe para manter.
--- -------------------------------------------------------------------------
-CREATE TABLE giro (
-  id             TEXT PRIMARY KEY,
-  -- `2026-s36`: semana ISO. Fronteira fixa de proposito — janela movel de 7
-  -- dias daria recorte diferente a cada execucao, e a edicao deixaria de ser
-  -- reproduzivel.
-  slug           TEXT UNIQUE NOT NULL,
-  inicio         TEXT NOT NULL,
-  fim            TEXT NOT NULL,
-  rotulo         TEXT NOT NULL,
-
-  titulo         TEXT NOT NULL,
-  lead           TEXT,
-  destaque_texto TEXT,
-  por_nucleo     TEXT,
-
-  -- O agregado inteiro, CONGELADO. A pagina le o placar daqui e nao refaz a
-  -- conta: o giro da semana 36 tem de continuar dizendo o que dizia na
-  -- semana 36. Sem isso, "publicamos os nossos dados" vira "publicamos os
-  -- dados de hoje".
-  agregado       TEXT NOT NULL,
-  -- O que a auditoria conferiu, inclusive quando passa: auditoria que so
-  -- aparece no erro nao da para verificar.
-  auditoria      TEXT,
-  simulado       INTEGER NOT NULL DEFAULT 0,
-
-  status         TEXT NOT NULL DEFAULT 'rascunho'
-                 CHECK (status IN ('rascunho','publicado','arquivado')),
-  motivo_rascunho TEXT,
-  publicado_em   TEXT,
-  criado_em      TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX idx_giro_periodo ON giro(status, inicio DESC);

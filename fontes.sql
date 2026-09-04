@@ -77,3 +77,33 @@ UPDATE fonte
    SET colheita = 'sitemap',
        url_feed = 'https://canaltech.com.br/smap/sitemap-news.xml'
  WHERE id = 'f-canaltech';
+
+-- =========================================================================
+-- v2 · 03/09/2026 — a LISTA LARGA (docs/CONCEPCAO-V2.md)
+--
+-- O produto passou de volume para peca, e a lista de fontes foi refeita pela
+-- medicao do npm run cadencia: heise, Canaltech, arXiv e Tecnoblog eram 80%
+-- da pauta e quase nada do tema. Saem. Ars Technica, The Verge e o Forum
+-- Home Assistant ficam como LARGURA para o Giro. Nada e apagado — fonte
+-- desativada continua no inventario, e os itens que ela trouxe continuam
+-- contando para o relogio.
+-- =========================================================================
+UPDATE fonte SET ativo = 0 WHERE id IN (
+  'f-heise-online', 'f-canaltech', 'f-tecnoblog', 'f-olhar-digital',
+  'f-arxiv-sistemas-e-controle', 'f-arxiv-robotica',
+  'f-mastodon-fosstodon-tag-automation'
+);
+
+-- As tres fontes BRASILEIRAS especializadas que sobreviveram a sondagem de
+-- 03/09 (18 candidatos; 3 vivos). Marcam o relogio, nao sao publicadas.
+INSERT OR REPLACE INTO fonte (id, nome, url_site, url_feed, tipo, idioma, pais, nucleo,
+                              licenca, licenca_evidencia, confianca, marca_relogio, intervalo_min, ativo, peso)
+VALUES
+  ('f-cimm', 'CIMM', 'https://www.cimm.com.br', 'https://www.cimm.com.br/portal/noticia/rss', 'imprensa', 'pt', 'BR', 'industria', 'resumo', NULL, 'media', 1, 120, 1, 6),
+  ('f-abinee', 'ABINEE', 'https://www.abinee.org.br', 'https://www.abinee.org.br/feed/', 'associacao', 'pt', 'BR', 'industria', 'resumo', NULL, 'alta', 1, 180, 1, 7),
+  ('f-automacao-industrial', 'Automação Industrial', 'https://www.automacaoindustrial.info', 'https://www.automacaoindustrial.info/feed/', 'imprensa', 'pt', 'BR', 'industria', 'resumo', NULL, 'media', 1, 180, 1, 7);
+
+-- v2: os quatro nucleos viraram dois temas. Vale para quem cria do zero e
+-- para quem roda por cima de um banco antigo — e idempotente.
+UPDATE fonte SET nucleo = 'industria' WHERE nucleo IN ('industria','edificacoes');
+UPDATE fonte SET nucleo = 'processos' WHERE nucleo IN ('observatorio','operacao');

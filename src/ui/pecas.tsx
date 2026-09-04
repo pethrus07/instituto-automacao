@@ -1,52 +1,52 @@
 /**
  * As primitivas do sistema de design, em JSX.
  *
- * Nenhuma delas sabe em que núcleo está: todas leem --accent-*, que o
- * container .n-* define. É o que permite o mesmo card servir aos quatro.
- * Elas vestem design/components.css — não trazem estilo próprio.
+ * Elas vestem design/components.css — não trazem estilo próprio. E nenhuma
+ * sabe de banco: recebem a peça pronta e desenham.
  */
 import { raw } from 'hono/html';
 import { gerarCapa } from './capa';
-import type { ItemRadar, Evento, Obra } from '../db';
-import { NUCLEOS, ORDEM_NUCLEOS, type ChaveNucleo } from '../config';
+import type { Evento } from '../db';
+import { ORDEM_TEMAS, TEMAS, type Tema } from '../config';
+import {
+  arte as arteDe,
+  caminho,
+  ROTULO_FORMATO,
+  ROTULO_SECAO,
+  ROTULO_TEMA,
+  type Peca,
+} from '../conteudo';
 
-/** ---------------------------------------------------------------- Kicker */
-export const Kicker = (p: { children: string; ponto?: boolean }) => (
+/* ================================================================== texto */
+
+export const Kicker = (p: { children: unknown; ponto?: boolean }) => (
   <span class={p.ponto ? 'kicker kicker--dot' : 'kicker'}>{p.children}</span>
 );
 
-/** ---------------------------------------------------------------- Selo */
-export const Selo = (p: { tipo: string; children: string }) => (
+export const Selo = (p: { tipo: string; children: unknown }) => (
   <span class={`selo selo--${p.tipo}`}>{p.children}</span>
 );
 
-/** --------------------------------------------------------------- Relógio
- * A assinatura visual do projeto: explica o produto sem uma linha de texto
- * institucional. Passadas 24 h o argumento "primeira mão" não vale mais e o
- * destaque some sozinho — daí o modo frio.
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const MESES_LONGOS = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+];
+
+/**
+ * Data de peça: `2026-09-03` → `3 de setembro de 2026`.
+ *
+ * É data de calendário, não instante: não passa por fuso. Passar por
+ * `new Date()` e formatar em São Paulo mostraria o dia anterior — feira
+ * marcada para dia 3 apareceria como dia 2.
  */
-export function humanizarMinutos(min: number): string {
-  if (min < 60) return `${min} min`;
-  if (min < 60 * 24) return `${Math.round(min / 60)} h`;
-  const dias = Math.round(min / (60 * 24));
-  return dias === 1 ? '1 dia' : `${dias} dias`;
+export function dataPeca(data: string, longa = true): string {
+  const [a, m, d] = data.slice(0, 10).split('-').map(Number);
+  if (!a || !m || !d) return data;
+  return longa ? `${d} de ${MESES_LONGOS[m - 1]} de ${a}` : `${d} ${MESES[m - 1]} ${a}`;
 }
 
-export const Relogio = (p: { minutos: number | null }) => {
-  if (p.minutos == null) return null;
-  const frio = p.minutos >= 60 * 24;
-  return (
-    <span class={frio ? 'relogio relogio--frio' : 'relogio'}>
-      <span class="relogio__ponto"></span>
-      <span class="relogio__valor">{humanizarMinutos(p.minutos)}</span> após a fonte
-    </span>
-  );
-};
-
-/** ------------------------------------------------------------- Data em PT */
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-
-/** Guardamos UTC; mostramos São Paulo. Nunca o contrário. */
+/** Instante guardado em UTC, mostrado em São Paulo. */
 export function dataBR(iso: string | null, comHora = true): string {
   if (!iso) return '';
   const d = new Date(iso.includes('T') ? iso : iso.replace(' ', 'T') + 'Z');
@@ -64,62 +64,6 @@ export function dataBR(iso: string | null, comHora = true): string {
   return comHora ? `${base}, ${v('hour')}:${v('minute')}` : base;
 }
 
-/** --------------------------------------------------------- Item do radar
- * Sem caixa e sem sombra: fio embaixo e espaço. Lista longa de cards
- * fechados vira parede, e o radar é para varrer com o olho.
- */
-export const ItemDoRadar = (p: { item: ItemRadar; comContexto?: boolean }) => {
-  const i = p.item;
-  const nucleo = NUCLEOS[i.nucleo];
-  const traduzido = i.modo === 'traducao';
-  const pendente = traduzido && i.revisado_humano === 0;
-
-  return (
-    <article class="item" data-item>
-      <div class="item__topo">
-        <Kicker ponto>{nucleo.nome}</Kicker>
-        <Relogio minutos={i.minutos_apos_fonte} />
-        {traduzido && <Selo tipo="traducao">Tradução integral</Selo>}
-        {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
-      </div>
-
-      <h3 class="item__titulo">
-        <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
-      </h3>
-
-      {(i.resumo || i.corpo) && (
-        <p class="item__resumo">{i.resumo ?? primeiroParagrafo(i.corpo!)}</p>
-      )}
-
-      {p.comContexto && i.contexto_br && <p class="item__contexto">{i.contexto_br}</p>}
-
-      <p class="item__pe">
-        <span class="item__fonte">
-          <a href={i.url} rel="nofollow noopener" target="_blank">
-            {i.fonte_nome}
-          </a>
-        </span>
-        <span>·</span>
-        <span>{dataBR(i.publicado_fonte)}</span>
-        <span>·</span>
-        <Selo tipo="original">{i.idioma_origem.toUpperCase()}</Selo>
-        {i.atraso_br_dias != null && (
-          <>
-            <span>·</span>
-            <span>chegou ao Brasil {i.atraso_br_dias} dias depois</span>
-          </>
-        )}
-      </p>
-    </article>
-  );
-};
-
-function primeiroParagrafo(corpo: string): string {
-  const p = corpo.split(/\n{2,}/)[0] ?? corpo;
-  return p.length > 320 ? p.slice(0, 317).trimEnd() + '…' : p;
-}
-
-/** ---------------------------------------------------- Cabeçalho de seção */
 export const Secao = (p: { titulo: string; acao?: { texto: string; href: string } }) => (
   <div class="secao">
     <span class="secao__titulo">{p.titulo}</span>
@@ -131,33 +75,228 @@ export const Secao = (p: { titulo: string; acao?: { texto: string; href: string 
   </div>
 );
 
-/** ------------------------------------------------------------- Aviso */
 export const Aviso = (p: { children: unknown }) => <div class="aviso">{p.children}</div>;
 
-/** ------------------------------------------------- Selo de núcleo em radar
- * O site declara quando uma seção é só agregação. É a diferença entre
- * "seção abandonada" e "seção que promete o que entrega".
+/**
+ * O estado vazio que não parece abandono.
+ *
+ * Um site que publica pouco tem de dizer o que está vindo, não mostrar um
+ * espaço em branco. O bloco tem o mesmo peso visual de uma peça — porque a
+ * promessa honesta É conteúdo.
  */
-export const EmRadar = (p: { nucleo: ChaveNucleo }) => (
-  <Aviso>
-    <strong>{NUCLEOS[p.nucleo].nome} está em modo Radar.</strong> Por enquanto esta seção só
-    agrega e traduz o que sai lá fora — sem análise própria. Quando ganhar voz, ela ganha cor.
-  </Aviso>
+export const Vazio = (p: { titulo: string; children: unknown }) => (
+  <div class="vazio">
+    <p class="vazio__titulo">{p.titulo}</p>
+    <p class="vazio__texto">{p.children}</p>
+  </div>
 );
 
-/* ========================================================================= */
-/* Agenda                                                                     */
-/* ========================================================================= */
+/* ================================================================ veredito */
+
+/**
+ * Categoria fechada, pública e auditável — a lição do Aos Fatos: o rótulo
+ * não é literário, é um conjunto finito com critério publicado.
+ */
+export const ROTULO_VEREDITO: Record<string, string> = {
+  chega: 'Chega aqui',
+  a_caminho: 'A caminho',
+  nao_chega: 'Não chega',
+  sem_efeito: 'Sem efeito aqui',
+};
+
+export const EXPLICA_VEREDITO: Record<string, string> = {
+  chega: 'já tem representação, distribuição ou efeito prático no Brasil',
+  a_caminho: 'vai chegar, mas depende de representante, homologação ou preço',
+  nao_chega: 'não tem caminho para o Brasil no horizonte visível',
+  sem_efeito: 'não muda nada para quem opera aqui — e dizer isso é parte do trabalho',
+};
+
+export const Veredito = (p: { valor: string | null | undefined }) =>
+  p.valor && ROTULO_VEREDITO[p.valor] ? (
+    <span class={`veredito v-${p.valor}`}>{ROTULO_VEREDITO[p.valor]}</span>
+  ) : null;
+
+/* =================================================================== arte */
+
+/**
+ * A arte da peça. Desenhada quando existe; gerada quando não.
+ *
+ * O gerador é o fallback honesto: mantém o vocabulário (varredura, malha,
+ * sinal) para a página nunca ficar com buraco, e a arte desenhada entra
+ * onde há gente para desenhá-la — que é o que 3 peças por semana permitem.
+ */
+export const Arte = (p: { peca: Peca; classe?: string; destaque?: boolean }) => {
+  const svg = arteDe(p.peca.arte);
+  return (
+    <div class={`arte ${svg ? 'arte--desenhada' : 'arte--gerada'} ${p.classe ?? ''}`} data-arte={svg ? 'desenhada' : 'gerada'}>
+      {raw(svg ?? gerarCapa(p.peca.slug, p.destaque).svg)}
+    </div>
+  );
+};
+
+/* =================================================================== peça */
+
+/** Seção · tema, e o veredito quando houver. É a linha de etiquetas de toda peça. */
+export const Etiquetas = (p: { peca: Peca; comVeredito?: boolean }) => (
+  <div class="etiquetas">
+    <Kicker ponto>
+      {ROTULO_FORMATO[p.peca.formato]} · {ROTULO_TEMA[p.peca.tema]}
+    </Kicker>
+    {p.comVeredito !== false && <Veredito valor={p.peca.veredito} />}
+  </div>
+);
+
+/** Autor, data, leitura, fonte — a linha que separa peça de agregação. */
+export const AssinaturaPeca = (p: { peca: Peca; completa?: boolean }) => {
+  const q = p.peca;
+  const minutos = Math.max(1, Math.round(q.palavras / 200));
+  return (
+    <div class="assinatura">
+      <span class="assinatura__autor">{q.autor}</span>
+      <span class="u-dado">{dataPeca(q.data, false)}</span>
+      {p.completa && <span>{minutos} min de leitura</span>}
+      {q.fonte && (
+        <span class="assinatura__fonte">
+          a partir de{' '}
+          <a href={q.fonte.url} rel="nofollow noopener" target="_blank">
+            {q.fonte.nome}
+          </a>
+          <Selo tipo="original">{q.fonte.idioma.toUpperCase()}</Selo>
+        </span>
+      )}
+    </div>
+  );
+};
+
+/**
+ * A peça que abre a capa.
+ *
+ * Uma manchete manda (Rest of World), e o peso vira tamanho: arte grande,
+ * título grande, e o resto com espaço. É a primeira coisa que o site diz —
+ * e com 3 peças por semana, é a única que precisa gritar.
+ */
+export const PecaDestaque = (p: { peca: Peca; principal?: boolean }) => {
+  const q = p.peca;
+  /* Na capa o destaque E o h1 da pagina. Dentro de uma secao, que ja tem o
+     seu h1, ele desce um nivel — pagina com dois h1 e leitor de tela perdido. */
+  const Titulo = p.principal ? 'h1' : 'h2';
+  return (
+    <article class="destaque" data-peca={q.slug}>
+      <a href={caminho(q)} class="destaque__arte" aria-hidden="true" tabindex={-1}>
+        <Arte peca={q} destaque />
+      </a>
+      <div class="destaque__texto">
+        <Etiquetas peca={q} />
+        <Titulo class="destaque__titulo">
+          <a href={caminho(q)}>{q.titulo}</a>
+        </Titulo>
+        <p class="destaque__lead">{q.lead}</p>
+        <AssinaturaPeca peca={q} />
+      </div>
+    </article>
+  );
+};
+
+/** A peça em grade: arte, etiqueta, título, lead curto, assinatura. */
+export const PecaCard = (p: { peca: Peca }) => {
+  const q = p.peca;
+  return (
+    <article class="card" data-peca={q.slug}>
+      <a href={caminho(q)} class="card__arte" aria-hidden="true" tabindex={-1}>
+        <Arte peca={q} />
+      </a>
+      <div class="card__texto">
+        <Etiquetas peca={q} />
+        <h3 class="card__titulo">
+          <a href={caminho(q)}>{q.titulo}</a>
+        </h3>
+        <p class="card__lead">{q.lead}</p>
+        <p class="card__pe">
+          <span>{q.autor}</span>
+          <span class="u-dado">{dataPeca(q.data, false)}</span>
+          {q.fonte && <span class="u-faint">a partir de {q.fonte.nome}</span>}
+        </p>
+      </div>
+    </article>
+  );
+};
+
+/** A peça em linha — para listas longas dentro de uma seção. */
+export const PecaLinha = (p: { peca: Peca }) => {
+  const q = p.peca;
+  return (
+    <article class="linha" data-peca={q.slug}>
+      <span class="linha__data u-dado">{dataPeca(q.data, false)}</span>
+      <div>
+        <h3 class="linha__titulo">
+          <a href={caminho(q)}>{q.titulo}</a>
+        </h3>
+        <p class="linha__pe">
+          {ROTULO_FORMATO[q.formato]} · {ROTULO_TEMA[q.tema]}
+          {q.fonte && <> · a partir de {q.fonte.nome}</>}
+        </p>
+      </div>
+      <Veredito valor={q.veredito} />
+    </article>
+  );
+};
+
+/**
+ * A caixa da fonte, na página da peça.
+ *
+ * Crédito com link não é rodapé — é obrigação com quem publicou primeiro, e
+ * é a prova de que o que está acima é leitura nossa de um texto deles.
+ */
+export const FonteCaixa = (p: { peca: Peca }) => {
+  const f = p.peca.fonte;
+  if (!f) return null;
+  return (
+    <aside class="fonte-caixa">
+      <span class="fonte-caixa__rotulo">A fonte</span>
+      <p class="fonte-caixa__nome">
+        <a href={f.url} rel="nofollow noopener" target="_blank">
+          {f.nome}
+        </a>
+        <Selo tipo="original">{f.idioma.toUpperCase()}</Selo>
+      </p>
+      <p class="fonte-caixa__texto">
+        {f.publicado ? <>Publicado em {dataPeca(f.publicado)}. </> : null}
+        O texto acima é leitura e redação do Instituto a partir desta publicação. O original
+        está lá, inteiro — e vale a leitura.
+      </p>
+    </aside>
+  );
+};
+
+/** O veredito com o critério, na página da notícia. */
+export const VereditoCaixa = (p: { valor: string | undefined }) =>
+  p.valor && ROTULO_VEREDITO[p.valor] ? (
+    <aside class="veredito-caixa">
+      <span class="fonte-caixa__rotulo">O que isso muda aqui</span>
+      <p>
+        <Veredito valor={p.valor} />
+      </p>
+      <p class="fonte-caixa__texto">
+        {EXPLICA_VEREDITO[p.valor]}. Categoria fechada, com critério{' '}
+        <a href="/blueprints#veredito">publicado</a>.
+      </p>
+    </aside>
+  ) : null;
+
+/* ================================================================ números */
+
+/** Our World in Data: o rótulo é uma frase, não uma etiqueta. */
+export const Numero = (p: { valor: number | string; rotulo: string; href?: string }) => (
+  <div class="numero">
+    <div class="numero__valor">{p.valor}</div>
+    <div class="numero__rotulo">{p.href ? <a href={p.href}>{p.rotulo}</a> : p.rotulo}</div>
+  </div>
+);
+
+/* ================================================================= agenda */
 
 const MES_CURTO = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
-/**
- * Data só, sem fuso.
- *
- * `inicio` é uma data de calendário ('2027-03-03'), não um instante. Passar
- * pelo `new Date()` a trataria como meia-noite UTC e, no fuso do Brasil,
- * mostraria o dia anterior — feira que começa dia 3 apareceria como dia 2.
- */
 function partesData(iso: string): { dia: string; mes: string; ano: string } {
   const [a, m, d] = iso.slice(0, 10).split('-');
   return { dia: d ?? '', mes: MES_CURTO[Number(m) - 1] ?? '', ano: a ?? '' };
@@ -174,19 +313,27 @@ export function periodoEvento(inicio: string, fim: string | null): string {
     : `${i.dia} de ${i.mes.toLowerCase()} a ${f.dia} de ${f.mes.toLowerCase()} de ${f.ano}`;
 }
 
-const ROTULO_FORMATO: Record<string, string> = {
+const ROTULO_FORMATO_EVENTO: Record<string, string> = {
   presencial: 'Presencial',
   online: 'Online',
   hibrido: 'Híbrido',
 };
 
+/** O nome do tema, tolerando valor antigo no banco. */
+export function nomeTema(v: string): string {
+  return (TEMAS as Record<string, { nome: string }>)[v]?.nome ?? 'Automação';
+}
+
 export const EventoNaAgenda = (p: { evento: Evento }) => {
   const e = p.evento;
   const d = partesData(e.inicio);
-  const local = e.pais === 'BR' ? [e.cidade, e.uf].filter(Boolean).join(' · ') : [e.cidade, e.pais].filter(Boolean).join(' · ');
+  const local =
+    e.pais === 'BR'
+      ? [e.cidade, e.uf].filter(Boolean).join(' · ')
+      : [e.cidade, e.pais].filter(Boolean).join(' · ');
 
   return (
-    <article class={`evento ${NUCLEOS[e.nucleo].classe}`}>
+    <article class="evento">
       <div class="evento__data">
         <span class="evento__dia">{d.dia}</span>
         <span class="evento__mes">{d.mes}</span>
@@ -198,9 +345,9 @@ export const EventoNaAgenda = (p: { evento: Evento }) => {
         </h3>
         <p class="evento__meta">
           <span>{local || '—'}</span>
-          <span>{ROTULO_FORMATO[e.formato] ?? e.formato}</span>
+          <span>{ROTULO_FORMATO_EVENTO[e.formato] ?? e.formato}</span>
           {e.preco && <span>{e.preco === 'gratuito' ? 'Gratuito' : e.preco}</span>}
-          <span class="selo selo--nucleo">{NUCLEOS[e.nucleo].nome}</span>
+          <span class="selo selo--tema">{nomeTema(e.nucleo)}</span>
         </p>
       </div>
     </article>
@@ -208,18 +355,14 @@ export const EventoNaAgenda = (p: { evento: Evento }) => {
 };
 
 /**
- * Filtro sem JavaScript.
- *
- * Cada combinação vira URL própria — indexável, linkável, e mandável no
- * WhatsApp para o organizador da feira. É `<a>` em vez de `<form>` de
- * propósito: são poucas opções, e link já é navegável por teclado, abre em
- * nova aba e aparece no histórico.
+ * Filtro sem JavaScript: cada combinação vira URL própria — indexável,
+ * linkável, e mandável no WhatsApp para o organizador da feira.
  */
 export const FiltroAgenda = (p: {
   rotulo: string;
   parametro: string;
   atual: string | undefined;
-  opcoes: { valor: string; texto: string; classe?: string }[];
+  opcoes: { valor: string; texto: string }[];
   base: URLSearchParams;
 }) => {
   const href = (valor: string | null) => {
@@ -237,11 +380,7 @@ export const FiltroAgenda = (p: {
         Todos
       </a>
       {p.opcoes.map((o) => (
-        <a
-          class={`pilula ${o.classe ?? ''}`}
-          href={href(o.valor)}
-          aria-current={p.atual === o.valor ? 'true' : undefined}
-        >
+        <a class="pilula" href={href(o.valor)} aria-current={p.atual === o.valor ? 'true' : undefined}>
           {o.texto}
         </a>
       ))}
@@ -249,14 +388,7 @@ export const FiltroAgenda = (p: {
   );
 };
 
-/**
- * Formulário de envio de evento — o canal de entrada dos organizadores.
- *
- * HTML puro: `required`, `type="date"` e `pattern` fazem a validação de
- * primeira linha no próprio navegador, sem uma linha de JavaScript. O
- * servidor revalida tudo de qualquer jeito — validação de cliente é
- * conveniência, nunca barreira.
- */
+/** O formulário de envio: HTML puro, e o servidor revalida tudo. */
 export const FormularioEvento = () => (
   <form method="post" action="/agenda/enviar" class="u-fluxo" style="max-width: var(--measure)">
     {/* Armadilha para robô: invisível e fora da ordem de foco. */}
@@ -268,73 +400,71 @@ export const FormularioEvento = () => (
     </div>
 
     <div style="display:grid; gap:var(--space-s)">
-      <label style="display:grid; gap:var(--space-3xs)">
-        <span style="font-size:var(--step--1); font-weight:500">Nome do evento *</span>
+      <label class="campo-rotulo">
+        <span>Nome do evento *</span>
         <input type="text" name="nome" required maxlength={200} class="campo" />
       </label>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(9rem,1fr)); gap:var(--space-s)">
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">Início *</span>
+      <div class="campo-grade">
+        <label class="campo-rotulo">
+          <span>Início *</span>
           <input type="date" name="inicio" required class="campo" />
         </label>
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">Fim</span>
+        <label class="campo-rotulo">
+          <span>Fim</span>
           <input type="date" name="fim" class="campo" />
         </label>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(9rem,1fr)); gap:var(--space-s)">
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">Cidade</span>
+      <div class="campo-grade">
+        <label class="campo-rotulo">
+          <span>Cidade</span>
           <input type="text" name="cidade" maxlength={80} class="campo" />
         </label>
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">UF</span>
+        <label class="campo-rotulo">
+          <span>UF</span>
           <input type="text" name="uf" maxlength={2} class="campo" />
         </label>
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">País</span>
+        <label class="campo-rotulo">
+          <span>País</span>
           <input type="text" name="pais" maxlength={2} value="BR" class="campo" />
         </label>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(9rem,1fr)); gap:var(--space-s)">
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">Formato</span>
+      <div class="campo-grade">
+        <label class="campo-rotulo">
+          <span>Formato</span>
           <select name="formato" class="campo">
             <option value="presencial">Presencial</option>
             <option value="online">Online</option>
             <option value="hibrido">Híbrido</option>
           </select>
         </label>
-        <label style="display:grid; gap:var(--space-3xs)">
-          <span style="font-size:var(--step--1); font-weight:500">Núcleo</span>
-          <select name="nucleo" class="campo">
-            {ORDEM_NUCLEOS.map((k) => (
-              <option value={k}>{NUCLEOS[k].nome}</option>
+        <label class="campo-rotulo">
+          <span>Tema</span>
+          <select name="tema" class="campo">
+            {ORDEM_TEMAS.map((k: Tema) => (
+              <option value={k}>{TEMAS[k].nome}</option>
             ))}
           </select>
         </label>
       </div>
 
-      <label style="display:grid; gap:var(--space-3xs)">
-        <span style="font-size:var(--step--1); font-weight:500">Página oficial</span>
+      <label class="campo-rotulo">
+        <span>Página oficial</span>
         <input type="url" name="url" placeholder="https://" class="campo" />
       </label>
-
-      <label style="display:grid; gap:var(--space-3xs)">
-        <span style="font-size:var(--step--1); font-weight:500">Organização</span>
+      <label class="campo-rotulo">
+        <span>Organização</span>
         <input type="text" name="organizador" maxlength={120} class="campo" />
       </label>
-
-      <label style="display:grid; gap:var(--space-3xs)">
-        <span style="font-size:var(--step--1); font-weight:500">O que é, em duas linhas</span>
+      <label class="campo-rotulo">
+        <span>O que é, em duas linhas</span>
         <textarea name="descricao" rows={3} maxlength={500} class="campo"></textarea>
       </label>
 
       <div>
-        <button type="submit" class="pilula" style="cursor:pointer; font:inherit">
+        <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
           Enviar para conferência
         </button>
       </div>
@@ -342,329 +472,4 @@ export const FormularioEvento = () => (
   </form>
 );
 
-/* ========================================================================= */
-/* Obra — o conteúdo assinado                                                 */
-/* ========================================================================= */
-
-export const ROTULO_OBRA: Record<string, string> = {
-  analise: 'Análise',
-  caso: 'Caso',
-  panorama: 'Panorama',
-  leitura: 'Leitura do Instituto',
-};
-
-/** O caminho de cada obra. A Leitura não tem página própria: vive no item. */
-export function caminhoObra(o: Obra): string {
-  return o.formato === 'leitura' && o.item_nucleo && o.item_slug
-    ? `/${o.item_nucleo}/${o.item_slug}#leitura`
-    : `/${o.formato}/${o.slug}`;
-}
-
-/**
- * A assinatura.
- *
- * É aqui que a decisão central do projeto aparece na tela: radar e agenda
- * não têm autor, obra tem. Autoridade não transfere de marca anônima para
- * pessoa — e é autoridade pessoal o objetivo do Instituto.
- *
- * A Leitura sai como voz do núcleo (`assinada = 0`): o formato é curto e o
- * parceiro não quer ser colunista.
- */
-export const AssinaturaObra = (p: { obra: Obra; minutos?: number }) => {
-  const o = p.obra;
-  return (
-    <div class="assinatura">
-      <span class="assinatura__autor">{o.assinada ? o.autor : `Núcleo ${NUCLEOS[o.nucleo].nome}`}</span>
-      {o.assinada && <span class="assinatura__nucleo">Núcleo {NUCLEOS[o.nucleo].nome}</span>}
-      {o.publicado_em && <span class="u-dado">{dataBR(o.publicado_em, false)}</span>}
-      {p.minutos && <span>{p.minutos} min de leitura</span>}
-    </div>
-  );
-};
-
-/** A obra numa lista — no núcleo ou no índice de Panoramas. */
-export const ObraNaLista = (p: { obra: Obra }) => {
-  const o = p.obra;
-  return (
-    <article class={`item ${NUCLEOS[o.nucleo].classe}`}>
-      <div class="item__topo">
-        <Kicker>{ROTULO_OBRA[o.formato] ?? o.formato}</Kicker>
-        {o.assinada ? (
-          <span class="u-faint" style="font-size:var(--step--2)">por {o.autor}</span>
-        ) : (
-          <Selo tipo="radar">voz do núcleo</Selo>
-        )}
-        {o.publicado_em && (
-          <span class="u-dado u-faint" style="font-size:var(--step--2)">
-            {dataBR(o.publicado_em, false)}
-          </span>
-        )}
-      </div>
-      <h3 class="item__titulo">
-        <a href={caminhoObra(o)}>{o.titulo}</a>
-      </h3>
-      {o.lead && <p class="item__resumo">{o.lead}</p>}
-    </article>
-  );
-};
-
-/**
- * A Leitura do Instituto, dentro da página do item.
- *
- * Três a cinco linhas por cima de um item que o parceiro já ia ler de
- * qualquer jeito. Atrito quase zero — e é o suficiente para o núcleo ter
- * voz própria sem exigir que alguém vire colunista.
- */
-export const LeituraNoItem = (p: { obra: Obra; html: string }) => (
-  <aside
-    id="leitura"
-    style="margin-block-start: var(--space-xl); border-block: var(--border-mark); padding-block: var(--space-m); scroll-margin-top: var(--space-l)"
-  >
-    <Kicker>Leitura do Instituto</Kicker>
-    <div class="obra" style="margin-block-start: var(--space-s); font-size: var(--step-0)">
-      {raw(p.html)}
-    </div>
-  </aside>
-);
-
-/* ========================================================================= */
-/* O veredito, o destaque e os números — o mapa das referências aplicado      */
-/* ========================================================================= */
-
-/**
- * O veredito do "o que isso muda aqui".
- *
- * Categoria fechada, pública e auditável — a lição do Aos Fatos, que resolveu
- * melhor que o Semafor: o rótulo não é literário, é um conjunto finito com
- * critério publicado.
- *
- * `nao_chega` é exatamente o que o atraso mede. `sem_efeito` é a opção
- * honesta, e ela é obrigatória: sem ela o parágrafo vira enchimento, porque
- * o modelo sempre encontra alguma consequência quando é obrigado a encontrar.
- */
-export const ROTULO_VEREDITO: Record<string, string> = {
-  chega: 'Chega aqui',
-  a_caminho: 'A caminho',
-  nao_chega: 'Não chega',
-  sem_efeito: 'Sem efeito aqui',
-};
-
-export const Veredito = (p: { valor: string | null }) =>
-  p.valor && ROTULO_VEREDITO[p.valor] ? (
-    <span class={`veredito v-${p.valor}`}>{ROTULO_VEREDITO[p.valor]}</span>
-  ) : null;
-
-/**
- * A manchete que manda (Manufacturing Dive) com o peso virando tamanho
- * (Rest of World).
- *
- * Sem imagem licenciada, a capa é o próprio bloco tipográfico. Não é
- * remendo: é o MESMO desenho que vira a OG image gerada, então uma decisão
- * serve aos dois lugares e o layout nunca fica com buraco.
- */
-export const Destaque = (p: { item: ItemRadar }) => {
-  const i = p.item;
-  const n = NUCLEOS[i.nucleo];
-  const traduzido = i.modo === 'traducao';
-  const pendente = traduzido && i.revisado_humano === 0;
-
-  return (
-    <article class={`destaque ${n.classe}`} data-item>
-      <div class="moldura-capa">{raw(gerarCapa(i.slug ?? i.id, true).svg)}</div>
-      <div style="display:grid; gap:var(--space-s); align-content:start">
-        <div class="item__topo">
-          <Kicker ponto>{n.nome}</Kicker>
-          <Relogio minutos={i.minutos_apos_fonte} />
-          {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
-        </div>
-        <h2 class="destaque__titulo">
-          <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
-        </h2>
-        {i.resumo && <p class="destaque__lead">{i.resumo}</p>}
-
-        {/* O "o que isso muda aqui" na manchete. Ele é a camada que justifica
-            o site existir — sumir dela na peça de maior exposição foi
-            regressão, e o QA pegou. */}
-        {i.contexto_br && (
-          <div class="item__contexto" style="max-width: var(--measure)">
-            {i.contexto_veredito && (
-              <p style="margin-block-end: var(--space-3xs)">
-                <Veredito valor={i.contexto_veredito} />
-              </p>
-            )}
-            {i.contexto_br}
-          </div>
-        )}
-
-        <p class="destaque__pe">
-          <span class="item__fonte">
-            <a href={i.url} rel="nofollow noopener" target="_blank">
-              {i.fonte_nome}
-            </a>
-          </span>
-          <span>·</span>
-          <span>{dataBR(i.publicado_fonte, false)}</span>
-          <span>·</span>
-          <Selo tipo="original">{i.idioma_origem.toUpperCase()}</Selo>
-        </p>
-      </div>
-    </article>
-  );
-};
-
-/**
- * Um número da capa.
- *
- * Our World in Data: o rótulo é uma frase, não uma etiqueta. Número sem
- * pergunta não informa ninguém — é o erro clássico de painel.
- */
-export const Numero = (p: { valor: number | string; rotulo: string; href?: string }) => (
-  <div>
-    <div class="numero__valor">{p.valor}</div>
-    <div class="numero__rotulo">{p.href ? <a href={p.href}>{p.rotulo}</a> : p.rotulo}</div>
-  </div>
-);
-
-
-/* ========================================================================= */
-/* Os três níveis do radar                                                    */
-/* ========================================================================= */
-
-/**
- * Nível 2 · a secundária.
- *
- * Capa menor, título médio, sem resumo. O peso editorial vira tamanho — é o
- * recurso do Rest of World, e é o que permite densidade sem poluição.
- */
-export const ItemSecundario = (p: { item: ItemRadar }) => {
-  const i = p.item;
-  const pendente = i.modo === 'traducao' && i.revisado_humano === 0;
-  return (
-    <article class="sec" data-item>
-      <div class="moldura-capa">{raw(gerarCapa(i.slug ?? i.id).svg)}</div>
-      <div class="sec__pe">
-        <Kicker ponto>{NUCLEOS[i.nucleo].nome}</Kicker>
-        <Veredito valor={i.contexto_veredito} />
-        {pendente && <Selo tipo="pendente">Revisão pendente</Selo>}
-      </div>
-      <h3 class="sec__titulo">
-        <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
-      </h3>
-      <p class="sec__pe">
-        <Relogio minutos={i.minutos_apos_fonte} />
-        {/* Crédito com link em TODA peça, não só na página do item: é
-            obrigação com a fonte, não decoração de rodapé. */}
-        <span class="item__fonte">
-          <a href={i.url} rel="nofollow noopener" target="_blank">
-            {i.fonte_nome}
-          </a>
-        </span>
-      </p>
-    </article>
-  );
-};
-
-/**
- * Nível 3 · a linha.
- *
- * Hora, título, fonte. Quem varre radar procura título e hora, não card —
- * Techmeme e Hacker News são feios de propósito e usados todo dia por quem
- * trabalha com aquilo.
- */
-export const ItemLinha = (p: { item: ItemRadar }) => {
-  const i = p.item;
-  const frio = (i.minutos_apos_fonte ?? 0) >= 60 * 24;
-  return (
-    <article class="linha-item" data-item>
-      <span class={frio ? 'linha-item__hora linha-item__hora--frio' : 'linha-item__hora'}>
-        {i.minutos_apos_fonte != null ? humanizarMinutos(i.minutos_apos_fonte) : '—'}
-      </span>
-      <h3 class="linha-item__titulo">
-        <a href={`/${i.nucleo}/${i.slug}`}>{i.titulo}</a>
-      </h3>
-      <span class="linha-item__fonte item__fonte">
-        {i.idioma_origem.toUpperCase()} ·{' '}
-        <a href={i.url} rel="nofollow noopener" target="_blank">
-          {i.fonte_nome}
-        </a>
-      </span>
-    </article>
-  );
-};
-
-/** O card de núcleo da capa. Quente pesa mais que Radar — e parece. */
-export const CardNucleo = (p: { chave: ChaveNucleo; total: number; ultimo: string | null }) => {
-  const n = NUCLEOS[p.chave];
-  return (
-    <article class={`nucleo-card ${n.quente ? 'nucleo-card--quente' : 'nucleo-card--frio'}`}>
-      <div class="moldura-capa" style={n.quente ? 'aspect-ratio: 16/9' : 'aspect-ratio: 21/9'}>
-        {raw(gerarCapa(`nucleo-${p.chave}`).svg)}
-      </div>
-      <div class="sec__pe" style="margin-block-start: var(--space-2xs)">
-        <Kicker ponto>{n.nome}</Kicker>
-        {!n.quente && <Selo tipo="radar">Radar</Selo>}
-      </div>
-      <h3 class="nucleo-card__nome">
-        <a href={`/${p.chave}`}>{n.resumo}</a>
-      </h3>
-      <p class="nucleo-card__pe">
-        {p.total} publicado{p.total === 1 ? '' : 's'}
-        {p.ultimo ? ` · último em ${dataBR(p.ultimo, false)}` : ''}
-      </p>
-    </article>
-  );
-};
-
-
-/**
- * Paginação sem JavaScript, com URL própria por página.
- *
- * Rolagem infinita seria mais fácil e pior: a página 3 deixaria de ter
- * endereço, ninguém conseguiria marcá-la nem mandá-la no WhatsApp, e o
- * rodapé ficaria inalcançável para quem quer chegar nele.
- */
-export const Paginacao = (p: {
-  base: string;
-  busca: URLSearchParams;
-  pagina: number;
-  porPagina: number;
-  total: number;
-}) => {
-  const ultima = Math.max(1, Math.ceil(p.total / p.porPagina));
-  if (ultima <= 1) return null;
-
-  const href = (n: number) => {
-    const q = new URLSearchParams(p.busca);
-    if (n > 1) q.set('p', String(n));
-    else q.delete('p');
-    const t = q.toString();
-    return t ? `${p.base}?${t}` : p.base;
-  };
-
-  const de = (p.pagina - 1) * p.porPagina + 1;
-  const ate = Math.min(p.pagina * p.porPagina, p.total);
-
-  return (
-    <nav class="paginacao" aria-label="Paginação">
-      <span class="paginacao__onde">
-        {de}–{ate} de {p.total} · página {p.pagina} de {ultima}
-      </span>
-      <span class="paginacao__botoes">
-        {p.pagina > 1 ? (
-          <a href={href(p.pagina - 1)} rel="prev">
-            ← Anteriores
-          </a>
-        ) : (
-          <span aria-disabled="true">← Anteriores</span>
-        )}
-        {p.pagina < ultima ? (
-          <a href={href(p.pagina + 1)} rel="next">
-            Mais antigas →
-          </a>
-        ) : (
-          <span aria-disabled="true">Mais antigas →</span>
-        )}
-      </span>
-    </nav>
-  );
-};
+export { ROTULO_SECAO };

@@ -10,3 +10,10 @@ dist/
 # lidas), e e ele que impede um item ja descartado de voltar para a pauta.
 colheita/*
 !colheita/lidos.json
+
+# Gerado por npm run compilar a partir de conteudo/**.md. O fonte e o markdown;
+# o .ts e a versao compilada que entra no bundle. dev e deploy o regeneram.
+src/conteudo.gerado.ts
+
+# Saida do dry-run do wrangler que o QA usa para conferir o bundle (P1).
+dist/

@@ -263,9 +263,9 @@ export async function coletar(env: Env, limite = FONTES_POR_TICK): Promise<Relat
  * isso é trabalho do pipeline. O que se grava aqui é o palpite da fonte e o
  * texto original, com status 'coletado' dizendo exatamente isso.
  *
- * `modo` já sai decidido pela licença, porque essa é a única regra que não
- * pode depender de julgamento depois: licença não liberada nunca vira
- * tradução integral.
+ * v2: grava DEZ colunas. Não há mais `modo`, `status` nem `nucleo` no item —
+ * eram estado do pipeline de IA sobre o registro, e o pipeline não existe.
+ * Item é o que foi colhido; peça é outra coisa, mora em conteudo/**.
  */
 async function gravar(
   db: D1Database,
@@ -273,29 +273,16 @@ async function gravar(
   e: { titulo: string; link: string; publicado: string | null; resumo: string | null },
   canonica: string,
 ): Promise<boolean> {
-  const modo = f.licenca === 'liberada' ? 'traducao' : 'resumo';
   const publicado = e.publicado ?? new Date().toISOString();
   const id = `i-${await digest(canonica)}`;
 
   const r = await db
     .prepare(
       `INSERT OR IGNORE INTO item
-         (id, fonte_id, nucleo, titulo, titulo_original, url, url_canonica,
-          idioma_origem, modo, resumo, publicado_fonte, status)
-       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'coletado')`,
+         (id, fonte_id, titulo, url, url_canonica, idioma, resumo, publicado_fonte)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`,
     )
-    .bind(
-      id,
-      f.id,
-      f.nucleo ?? 'industria',
-      e.titulo,
-      e.link,
-      canonica,
-      f.idioma,
-      modo,
-      e.resumo,
-      publicado,
-    )
+    .bind(id, f.id, e.titulo, e.link, canonica, f.idioma, e.resumo, publicado)
     .run();
 
   const inseriu = (r.meta?.changes ?? 0) > 0;
