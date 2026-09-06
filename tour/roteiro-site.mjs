@@ -218,7 +218,7 @@ const blueprints = {
         await c.ir("/blueprints");
         /* o player do próprio tour fica no topo desta página: rola até "Como
            funciona" encostar no alto, senão o vídeo mostra um vídeo dentro dele */
-        await c.rolarAte("h2:has-text('Como funciona')", { fracao: 0.06 });
+        await c.rolarAte("h2:has-text('Como funciona')", { fracao: 0.12 });
         await c.olharPara("h2:has-text('Como funciona')");
         await c.aos("medimos");
         await c.rolarAte("h2:has-text('Como medimos o atraso')");
