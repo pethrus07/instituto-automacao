@@ -43,13 +43,13 @@ export const GANCHOS = {
   },
 
   /* Rola até um elemento ficar a um terço da tela — a leitura confortável. */
-  async rolarAte(c, seletor) {
+  async rolarAte(c, seletor, { fracao = 0.28 } = {}) {
     const alvo = c.page.locator(seletor).filter({ visible: true }).first();
     if (!(await alvo.count().catch(() => 0))) { console.log(`      ⚠ não achei: ${seletor}`); return false; }
-    await alvo.evaluate((el) => {
-      const y = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.28;
+    await alvo.evaluate((el, f) => {
+      const y = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * f;
       window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-    });
+    }, fracao);
     await c.esperar(650);
     return true;
   },
@@ -216,6 +216,9 @@ const blueprints = {
       narracao: "Em Blueprints, o método fica aberto: como colhemos, como medimos o atraso, e cada fonte com o robots ponto txt ao lado.",
       async acao(c) {
         await c.ir("/blueprints");
+        /* o player do próprio tour fica no topo desta página: rola até "Como
+           funciona" encostar no alto, senão o vídeo mostra um vídeo dentro dele */
+        await c.rolarAte("h2:has-text('Como funciona')", { fracao: 0.06 });
         await c.olharPara("h2:has-text('Como funciona')");
         await c.aos("medimos");
         await c.rolarAte("h2:has-text('Como medimos o atraso')");
