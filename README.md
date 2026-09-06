@@ -55,6 +55,23 @@ de 600 KB, o compilador aborta. O crédito aparece sobre a imagem; a licença va
 mede os dois na página. **Foto de veículo é obra dele e não entra** — só material de imprensa
 do fabricante, CC BY, cedida ou nossa. Quem não tem imagem licenciada leva arte desenhada.
 
+## Homologação — no ar, na conta do Pedro
+
+**https://instituto-automacao-homolog.desbravando-utv.workers.dev** — o site inteiro na borda da Cloudflare, para ver, testar e mostrar. **Não é produção**:
+tudo sai com `X-Robots-Tag: noindex` e `robots.txt` fechado, porque esse endereço não é o
+definitivo e não pode virar duplicata do domínio. A produção vai para a conta do sócio quando o
+acesso vier — mesmo código, outro `account_id`, sementes rodadas de novo.
+
+```
+npm run db:homolog        # D1 remoto: schema + fontes + vozes + seed (idempotente)
+npm run deploy:homolog    # compila (rasteriza OG) e publica o env.homolog
+npm run qa -- https://instituto-automacao-homolog.desbravando-utv.workers.dev       # o QA contra o site publicado (3 diferenças esperadas, ver SPRINT-V2 §13)
+node qa/revisao.mjs https://instituto-automacao-homolog.desbravando-utv.workers.dev # a revisão com rede de verdade
+```
+
+O cron roda a cada 15 min na homologação — é onde o coletor é testado de verdade (`/saude` mostra a
+última coleta e o ambiente).
+
 ## Rotas
 
 | Rota | O que é |

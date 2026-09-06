@@ -352,3 +352,38 @@ conferidos em screenshot a 1440 px. Nenhum defeito visual.
 - Revisão da narração pelo Pedro (mudar frase antes de dublar é de graça; depois é regenerar — e
   regenerar custa 3 minutos).
 - Versão para celular (tela `celular` já existe no motor) quando houver por quê.
+
+---
+
+## 13. Sessão 7 (06/09, noite) — a homologação na borda
+
+> **https://instituto-automacao-homolog.desbravando-utv.workers.dev** · `npm run deploy:homolog` · QA contra o publicado: **910 ok · 3 diferenças esperadas** · revisão na borda: **axe 0 · CLS 0,01 · 71 links, 0 quebrados**
+
+Decisão do Pedro: subir na conta dele (ryzecode08) para visualização e testes, produção continua
+reservada à conta do sócio. O que a subida exigiu e o que ela mostrou:
+
+- **`[env.homolog]` no `wrangler.toml`**: nome, `account_id` explícito (já houve confusão de conta
+  por variável de ambiente em outro projeto), D1 próprio (`instituto-homolog`, semeado dos mesmos
+  `.sql` em quatro comandos), cron, assets, e `HOMOLOG = "1"`.
+- **`noindex` por variável**: `robots.txt` fecha tudo e o middleware põe `X-Robots-Tag: noindex,
+  nofollow` em toda resposta quando `HOMOLOG` é "1". `/saude` diz o ambiente.
+- **O subdomínio não era o que eu assumi.** A conta publica em `desbravando-utv.workers.dev`, não
+  `ryzecode`; a `SITE_URL` foi corrigida e republicada — canônica e `og:image` dependem dela.
+- **Na borda, tudo que o local não prova:** `_headers` aplicado (fontes `immutable` por um ano,
+  vídeo com `Accept-Ranges`, `nosniff` em asset), CSP e demais cabeçalhos, barra final 200, 404,
+  TTFB ~200 ms, capa fria 1,3 s e quente 0,22 s no celular (o 3,4 s da primeira medição era o
+  Worker acordando).
+- **As 3 diferenças do QA contra o publicado, todas esperadas:** o teste de assinatura escreve no
+  banco e lê o D1 local para conferir (agora **só roda no dev local**, e apaga o rastro
+  `qa.*@exemplo.com` que deixava — o remoto também foi limpo); `robots.txt` não aponta o sitemap
+  (fechado de propósito); capa em 371 ms contra teto de 300 ms "local" (é rede).
+- **`ERR_ABORTED` no tour não é falha:** `<video preload="metadata">` lê o cabeçalho e o navegador
+  aborta o resto do arquivo. A revisão passou a ignorar abort de mídia.
+- **PageSpeed Insights** ficou para depois: a cota anônima da API estava esgotada.
+- **O cron** ainda não tinha batido no fechamento desta sessão; conferir `/saude` (`coleta.ultima`).
+
+### Em aberto
+1. Produção na conta do sócio (A2) — `wrangler deploy` sem `--env`, com `database_id` e
+   `account_id` dele, `db:remoto` + sementes, Search Console, sitemap.
+2. Abrir a homologação no celular e colar o link no WhatsApp para ver o cartão (og:image).
+3. Primeiro Giro — segunda 07/09.

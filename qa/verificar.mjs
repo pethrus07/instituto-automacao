@@ -378,16 +378,25 @@ checar('B', 'P12 · o colher nunca escreve em lidos.json', !/writeFileSync\(\s*L
 titulo('B · Conformidade — a lista');
 const antes = sql(`SELECT COUNT(*) n FROM assinante`)[0].n;
 const postar = (caminho, corpo) => fetch(BASE + caminho, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: corpo, redirect: 'manual' });
-const rInvalido = await postar('/assinar', 'email=nao-e-email');
-checar('B', 'e-mail inválido não entra na lista', sql(`SELECT COUNT(*) n FROM assinante`)[0].n === antes && rInvalido.status === 303);
-const rRobo = await postar('/assinar', 'email=robo.qa@exemplo.com&sitio=preenchido');
-checar('B', 'honeypot não grava e responde igual', sql(`SELECT COUNT(*) n FROM assinante`)[0].n === antes && rRobo.status === 303);
-const alvoQa = `qa.${Date.now()}@exemplo.com`;
-const r1 = await postar('/assinar', `email=${encodeURIComponent(alvoQa.toUpperCase())}`);
-checar('B', 'e-mail válido entra, normalizado', Boolean(sql(`SELECT email FROM assinante WHERE email='${alvoQa}'`)[0]));
-const r2 = await postar('/assinar', `email=${encodeURIComponent(alvoQa)}`);
-checar('B', 'reenviar o mesmo e-mail responde IGUAL', r1.status === r2.status && r1.headers.get('location') === r2.headers.get('location'));
-sql(`DELETE FROM assinante WHERE email='${alvoQa}'`);
+/* Este bloco ESCREVE no banco (assinante de QA). Só roda contra o dev local,
+   onde o QA também consegue ler o D1 para conferir e apagar o rastro; contra um
+   site publicado ele deixaria um "qa@exemplo.com" no banco de verdade. */
+const LOCAL = /127\.0\.0\.1|localhost/.test(BASE);
+if (LOCAL) {
+  const rInvalido = await postar('/assinar', 'email=nao-e-email');
+  checar('B', 'e-mail inválido não entra na lista', sql(`SELECT COUNT(*) n FROM assinante`)[0].n === antes && rInvalido.status === 303);
+  const rRobo = await postar('/assinar', 'email=robo.qa@exemplo.com&sitio=preenchido');
+  checar('B', 'honeypot não grava e responde igual', sql(`SELECT COUNT(*) n FROM assinante`)[0].n === antes && rRobo.status === 303);
+  const alvoQa = `qa.${Date.now()}@exemplo.com`;
+  const r1 = await postar('/assinar', `email=${encodeURIComponent(alvoQa.toUpperCase())}`);
+  checar('B', 'e-mail válido entra, normalizado', Boolean(sql(`SELECT email FROM assinante WHERE email='${alvoQa}'`)[0]));
+  const r2 = await postar('/assinar', `email=${encodeURIComponent(alvoQa)}`);
+  checar('B', 'reenviar o mesmo e-mail responde IGUAL', r1.status === r2.status && r1.headers.get('location') === r2.headers.get('location'));
+  sql(`DELETE FROM assinante WHERE email='${alvoQa}'`);
+  sql(`DELETE FROM assinante WHERE email LIKE '%@exemplo.com'`);
+} else {
+  avisar('assinatura não testada', 'o alvo é remoto — teste de escrita só roda no dev local, para não deixar assinante de QA no banco publicado');
+}
 
 /* ------------------------------------------------------ B. TEXTO E TEMA */
 titulo('B · Conformidade — o texto e o tema');

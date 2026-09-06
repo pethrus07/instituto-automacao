@@ -130,7 +130,12 @@ async function medirPagina(context, nome, rota, largura) {
   const erros = []; const falhas = []; const avisos = [];
   page.on('console', (m) => { if (m.type() === 'error') erros.push(m.text().slice(0, 160)); if (m.type() === 'warning') avisos.push(m.text().slice(0, 160)); });
   page.on('pageerror', (e) => erros.push('pageerror: ' + String(e.message).slice(0, 160)));
-  page.on('requestfailed', (r) => falhas.push(r.url() + ' → ' + (r.failure()?.errorText ?? 'falhou')));
+  page.on('requestfailed', (r) => {
+    // <video preload="metadata"> lê o cabeçalho e ABORTA o resto do arquivo: é o navegador
+    // economizando banda, não um pedido que falhou. Sem este filtro, todo tour vira "falha".
+    if (r.resourceType() === 'media' && /ERR_ABORTED/.test(r.failure()?.errorText ?? '')) return;
+    falhas.push(r.url() + ' → ' + (r.failure()?.errorText ?? 'falhou'));
+  });
   page.on('response', (r) => { if (r.status() >= 400 && !rota.startsWith('/nao-existe')) falhas.push(r.url() + ' → ' + r.status()); });
 
   const resposta = await page.goto(BASE + rota, { waitUntil: 'load' });
