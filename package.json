@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "npm run compilar && wrangler dev --test-scheduled",
     "deploy": "npm run compilar && wrangler deploy",
+    "deploy:homolog": "npm run compilar && wrangler deploy --env homolog",
+    "db:homolog": "wrangler d1 execute instituto-homolog --remote --env homolog --file=./schema.sql && wrangler d1 execute instituto-homolog --remote --env homolog --file=./fontes.sql && wrangler d1 execute instituto-homolog --remote --env homolog --file=./vozes.sql && wrangler d1 execute instituto-homolog --remote --env homolog --file=./seed.sql",
     "tipos": "tsc --noEmit",
     "compilar": "node --experimental-strip-types scripts/compilar.ts",
     "ler": "node --experimental-strip-types scripts/ler.ts",

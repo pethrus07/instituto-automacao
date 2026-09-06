@@ -56,6 +56,8 @@ app.use('*', async (c, next) => {
   h.set('X-Frame-Options', 'DENY');
   h.set('Cross-Origin-Opener-Policy', 'same-origin');
   if ((h.get('Content-Type') ?? '').includes('text/html')) h.set('Content-Security-Policy', CSP);
+  // homologação: nada indexa, em nenhuma resposta
+  if (c.env.HOMOLOG === '1') h.set('X-Robots-Tag', 'noindex, nofollow');
 });
 
 /* ------------------------------------------------------------ as páginas */

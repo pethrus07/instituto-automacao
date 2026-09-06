@@ -24,7 +24,8 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const AXE = require.resolve('axe-core/axe.min.js');
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BASE = `http://127.0.0.1:${process.argv[2] ?? '8787'}`;
+const ALVO = process.argv[2] ?? '8787';
+const BASE = /^https?:\/\//.test(ALVO) ? ALVO.replace(/\/$/, '') : `http://127.0.0.1:${ALVO}`;
 const SAIDA = join(RAIZ, 'qa', 'revisao');
 mkdirSync(SAIDA, { recursive: true });
 

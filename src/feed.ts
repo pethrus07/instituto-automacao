@@ -86,6 +86,8 @@ ${urls.map((u) => `  <url><loc>${x(u.loc)}</loc>${u.mod ? `<lastmod>${x(u.mod.sl
 }
 
 export function robots(env: Env): string {
+  // Homologação não entra em índice nenhum: o endereço não é o definitivo.
+  if (env.HOMOLOG === '1') return `User-agent: *\nDisallow: /\n`;
   return `User-agent: *
 Allow: /
 

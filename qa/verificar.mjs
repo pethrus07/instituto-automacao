@@ -18,8 +18,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const PORTA = process.argv[2] ?? '8787';
-const BASE = `http://127.0.0.1:${PORTA}`;
+const ALVO = process.argv[2] ?? '8787';
+// `npm run qa -- https://…` aponta o QA para um site publicado; um número continua sendo a porta local
+const BASE = /^https?:\/\//.test(ALVO) ? ALVO.replace(/\/$/, '') : `http://127.0.0.1:${ALVO}`;
 
 let ok = 0;
 const falhas = [];

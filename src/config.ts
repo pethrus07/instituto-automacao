@@ -12,6 +12,8 @@ export type Env = {
   DB: D1Database;
   SITE_NOME: string;
   SITE_URL: string;
+  /** "1" na homologação: robots fechado e X-Robots-Tag noindex em tudo */
+  HOMOLOG?: string;
 };
 
 /**

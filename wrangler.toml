@@ -48,3 +48,42 @@ SITE_URL = "http://localhost:8787"
 
 [observability]
 enabled = true
+
+# ---------------------------------------------------------------------------
+# HOMOLOGAÇÃO — na conta do Pedro (ryzecode08), decisão de 06/09/2026.
+#
+# Existe para ver o site na borda de verdade: cron rodando, cache dos assets,
+# og:image em rede social, medição de fora. NÃO é produção: a produção vai
+# para a conta do sócio quando o acesso vier (mesmo código, outro account_id,
+# sementes rodadas de novo). Por isso:
+#   · HOMOLOG = "1"  → robots.txt fecha tudo e toda resposta leva
+#                      X-Robots-Tag: noindex (o endereço workers.dev não pode
+#                      ser indexado antes do domínio, senão vira duplicata)
+#   · D1 próprio (instituto-homolog), semeado dos mesmos .sql
+#   · account_id explícito, porque já houve confusão de conta pelo ambiente
+#
+#   npm run deploy:homolog
+# ---------------------------------------------------------------------------
+[env.homolog]
+name = "instituto-automacao-homolog"
+account_id = "c8c7dba80266ce63cfac94490604fa14"
+workers_dev = true
+
+[env.homolog.vars]
+SITE_NOME = "Instituto Automação"
+SITE_URL = "https://instituto-automacao-homolog.desbravando-utv.workers.dev"
+HOMOLOG = "1"
+
+[[env.homolog.d1_databases]]
+binding = "DB"
+database_name = "instituto-homolog"
+database_id = "bf664b9a-46f6-4b7c-b5ae-45b57872d562"
+
+[env.homolog.triggers]
+crons = ["*/15 * * * *"]
+
+[env.homolog.assets]
+directory = "./publico"
+
+[env.homolog.observability]
+enabled = true

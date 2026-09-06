@@ -36,7 +36,7 @@ estatico.get('/saude', async (c) => {
   } catch (e) {
     db = `erro: ${(e as Error).message}`;
   }
-  return c.json({ ok: db === 'ok', db, pecas: todas().length, coleta, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
+  return c.json({ ok: db === 'ok', ambiente: c.env.HOMOLOG === '1' ? 'homologacao' : 'producao', db, pecas: todas().length, coleta, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
 });
 
 /* --------------------------------------------------------- distribuição */
