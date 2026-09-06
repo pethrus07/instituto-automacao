@@ -1,5 +1,6 @@
 ---
 titulo:    NSF põe US$ 90 milhões em três centros de ciência e tecnologia, um deles sobre a adaptação entre pessoas e robôs
+titulo_curto: NSF põe US$ 90 milhões em três centros de pesquisa
 secao:     noticias
 tema:      industria
 formato:   curta

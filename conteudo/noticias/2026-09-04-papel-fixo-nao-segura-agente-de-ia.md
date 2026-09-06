@@ -1,5 +1,6 @@
 ---
 titulo:    Papel fixo não segura agente de IA, e o n8n defende controle por tarefa no lugar
+titulo_curto: Papel fixo não segura agente de IA, diz o n8n
 secao:     noticias
 tema:      processos
 formato:   curta

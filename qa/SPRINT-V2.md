@@ -261,3 +261,67 @@ conferidos em screenshot a 1440 px. Nenhum defeito visual.
   lista; nenhuma página tem `og:image`; só `Cache-Control` nos cabeçalhos; sem folha de impressão.
   Nada disso apareceria nas 561 asserções — elas afirmam o que sabemos; o Playwright mede o que
   não sabíamos.
+
+---
+
+## 11. Sessão 5 (06/09, noite) — SEO e estrutura de primeira linha
+
+> `npm run qa` · **908 asserções · 0 falhas** · `npm run revisao` · **CLS 0 em 39 medições · axe 0 · zero terceiro**
+>
+> O pedido: *"vamos melhorar SEO e estrutura, tem que ser top do top de linha."*
+
+### Estrutura
+- `src/index.tsx` (1.090 linhas) virou **9 arquivos em `src/paginas/`** + um índice de 80 linhas que monta
+  as páginas, os cabeçalhos e o cron. Cada página é um `Hono` próprio; apagar uma é apagar um arquivo.
+- `strict: false` no roteador: `/noticias/` não é mais 404.
+- **Cabeçalhos de segurança** em toda resposta: CSP estrita (`script-src` só pelo hash do script do
+  tema — `ui/tema.ts` → compilador → `TEMA_SCRIPT_HASH`; o QA recalcula do HTML e compara), `nosniff`,
+  `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'`, COOP. Assets pela borda via
+  `publico/_headers` (fontes imutáveis por um ano, CORS para fonte).
+- **Fontes self-hosted** (5 woff2, subset latin, 343 KB no total) com preload das duas críticas e
+  **fallbacks com métricas** (Georgia/Arial/Consolas ajustadas por `size-adjust` e overrides, calculadas
+  com fontTools). Resultado medido: **CLS 0,20 → 0** no tablet, em todas as páginas; nenhum host de
+  terceiro em nenhuma página.
+
+### SEO
+- `<title>` curto: `titulo_curto` (≤ 53 + " — Instituto Automação" = 75) em todas as 21 peças; o título
+  inteiro fica no h1 e no `og:title`.
+- Descrição cortada em fim de frase a ≤ 160 (`ui/seo.ts`); toda página entre 50 e 160.
+- **`og:image` em toda página**, absoluta, com largura e altura: a foto de imprensa quando há; senão o
+  PNG 1200×630 que o compilador rasteriza da arte SVG (ou da capa gerada) com o Playwright; a padrão do
+  site é a logo sobre o azul das capas. Twitter card `summary_large_image`. `article:*` nas peças.
+- **JSON-LD por tipo de página**: Organization + WebSite na capa; NewsArticle/Article (autor, data,
+  imagem, `isBasedOn` e `citation` da fonte) + BreadcrumbList nas peças; CollectionPage nas seções;
+  ItemList/Event na agenda; DefinedTermSet no glossário; **Dataset** no blueprints (Google Dataset
+  Search). O QA parseia todos e confere os tipos.
+- `theme-color` (claro e escuro), `apple-touch-icon`, `manifest.webmanifest`, ícones 180/192/512
+  rasterizados do ícone da marca; `link rel=sitemap`; 404 com `noindex`; agenda filtrada com `noindex`
+  e canônica na agenda inteira.
+- **Hierarquia h1 → h2 → h3 sem salto** em toda página: o rótulo de seção virou `h2` de verdade
+  (visual pela classe); evento da agenda é `h2` na agenda e `h3` na capa.
+
+### Acessibilidade e leitura
+- `--step--2` com piso em 12 px (texto miúdo no celular: **386 → 0**).
+- Alvos de toque ≥ 24 px onde o ponteiro é grosso (rodapé, ações de bloco, eventos, listas):
+  **157 → 27**, e na capa e na agenda sobra só o skip link (1×1, isento por definição).
+- `--ink-faint` no escuro de 4,02:1 para ~5,7:1.
+- `@media print`: sem navegação, rodapé, formulários e faixa; URL da fonte escrita depois do link.
+- `destaque: true` no frontmatter (compilador aceita um só) — a capa deixou de depender do alfabeto.
+
+### O que a rodada ensinou
+1. **A CSP estrita quebra a própria ferramenta de medir**: o axe-core é injetado como script inline.
+   `bypassCSP: true` no contexto do Playwright — o leitor fica protegido, o teste passa.
+2. **O JSON-LD conta como `<script>`** para uma asserção ingênua. A checagem passou a contar só script
+   executável (`type` diferente de `application/ld+json`).
+3. **53 caracteres é o teto real do título curto**: 22 vão para o nome do site. Seis títulos que
+   pareciam curtos estouravam 75.
+4. **Métrica de fallback não é enfeite**: sem `size-adjust`, trocar Google Fonts por self-hosted
+   não zera o CLS — só muda quem serve a fonte que faz a página pular.
+5. **Heredoc longo no Git Bash quebra** com aspas simples no meio; script vai para arquivo e mensagem de
+   commit vai por `-F`.
+
+### Em aberto (atualizado)
+1. **Deploy** — acesso à Cloudflare; a máquina do deploy precisa do Chromium do Playwright
+   (o compilador rasteriza `publico/og/`).
+2. **Primeiro Giro** — segunda-feira 07/09.
+3. Docs v1 · lint · Search Console e envio do sitemap (dependem de estar no ar).

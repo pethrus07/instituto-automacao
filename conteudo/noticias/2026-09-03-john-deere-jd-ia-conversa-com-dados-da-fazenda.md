@@ -1,5 +1,6 @@
 ---
 titulo:    A John Deere pôs uma IA para conversar com os dados da fazenda — só os da própria fazenda
+titulo_curto: John Deere põe IA para conversar com dados da fazenda
 secao:     noticias
 tema:      processos
 formato:   contexto

@@ -46,16 +46,3 @@ function hash(texto: string): string {
 
 export const CSS_HASH = hash(CSS);
 export const CSS_ROTA = `/a/app-${CSS_HASH}.css`;
-
-/**
- * ⚠️ Pendência antes do primeiro deploy (design/SISTEMA.md): as três famílias
- * precisam ser self-hosted, com subset latin e .woff2, servidas daqui com
- * cache imutável. Enquanto isso, dev puxa do Google — um terceiro no caminho
- * crítico que não vai para produção.
- */
-export const FONTES_DEV =
-  'https://fonts.googleapis.com/css2' +
-  '?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600' +
-  '&family=IBM+Plex+Mono:wght@400;500;600' +
-  '&family=IBM+Plex+Sans:wght@400;500;600;700' +
-  '&display=swap';

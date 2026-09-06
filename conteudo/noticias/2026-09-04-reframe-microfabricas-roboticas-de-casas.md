@@ -1,5 +1,6 @@
 ---
 titulo:    Reframe levanta US$ 40 milhões para multiplicar microfábricas robóticas de casas
+titulo_curto: Reframe levanta US$ 40 mi para microfábricas de casas
 secao:     noticias
 tema:      industria
 formato:   curta

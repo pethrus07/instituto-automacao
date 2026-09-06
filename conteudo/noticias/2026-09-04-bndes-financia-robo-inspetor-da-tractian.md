@@ -1,5 +1,6 @@
 ---
 titulo:    BNDES financia com R$ 120,1 milhões o robô inspetor da Tractian, que deve rondar a planta até 2028
+titulo_curto: BNDES põe R$ 120 milhões no robô inspetor da Tractian
 secao:     noticias
 tema:      industria
 formato:   contexto

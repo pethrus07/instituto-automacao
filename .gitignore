@@ -20,3 +20,6 @@ dist/
 
 # saída da revisão por medição (screenshots + medidas), regenerável
 qa/revisao/
+
+# imagens de compartilhamento rasterizadas pelo compilador (regeneráveis)
+publico/og/

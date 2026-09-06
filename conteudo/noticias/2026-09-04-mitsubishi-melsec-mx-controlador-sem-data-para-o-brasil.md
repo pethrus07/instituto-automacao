@@ -1,5 +1,6 @@
 ---
 titulo:    Mitsubishi Electric junta lógica, movimento e rede num só controlador, o MELSEC MX, ainda sem data para o Brasil
+titulo_curto: MELSEC MX: um controlador só, sem data no Brasil
 secao:     noticias
 tema:      industria
 formato:   contexto

@@ -1,5 +1,6 @@
 ---
 titulo:    PlusAI vai à bolsa por SPAC avaliada em US$ 800 milhões, com caminhões autônomos já rodando no Texas
+titulo_curto: PlusAI vai à bolsa por SPAC de US$ 800 milhões
 secao:     noticias
 tema:      industria
 formato:   curta

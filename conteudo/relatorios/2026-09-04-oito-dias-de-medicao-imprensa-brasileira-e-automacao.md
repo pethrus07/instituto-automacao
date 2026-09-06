@@ -1,5 +1,6 @@
 ---
 titulo:    Oito dias de medição: a imprensa de tecnologia brasileira publicou 79 itens, e nenhum era sobre automação
+titulo_curto: 79 itens em oito dias, nenhum sobre automação
 secao:     relatorios
 tema:      industria
 formato:   analise

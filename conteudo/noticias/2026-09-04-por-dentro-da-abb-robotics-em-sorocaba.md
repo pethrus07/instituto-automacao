@@ -1,5 +1,6 @@
 ---
 titulo:    Por dentro da ABB Robotics em Sorocaba: o robô vem pronto da Suécia, dos EUA ou da China, e a linha é desenhada aqui
+titulo_curto: Por dentro da ABB Robotics em Sorocaba
 secao:     noticias
 tema:      industria
 formato:   contexto

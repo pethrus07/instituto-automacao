@@ -27,12 +27,15 @@ export function obter(secao: Secao, slug: string): Peca | null {
 }
 
 /**
- * A peça que abre a capa: a notícia mais recente. Se não houver notícia, o
- * relatório mais recente; se não houver nada, null — e a capa diz isso em
- * vez de fingir.
+ * A peça que abre a capa: a marcada com `destaque: true`; senão a notícia
+ * mais recente; senão o relatório mais recente; senão null — e a capa diz
+ * isso em vez de fingir.
  */
 export function destaque(): Peca | null {
-  return porSecao('noticias')[0] ?? porSecao('relatorios')[0] ?? PECAS[0] ?? null;
+  // `destaque: true` no frontmatter manda; o compilador garante que é um só.
+  // Sem ele, a notícia mais recente — e, no empate de data, a ordem do slug,
+  // que é arbitrária: por isso o campo existe.
+  return PECAS.find((p) => p.destaque) ?? porSecao('noticias')[0] ?? porSecao('relatorios')[0] ?? PECAS[0] ?? null;
 }
 
 /** As seguintes, sem repetir o destaque. */

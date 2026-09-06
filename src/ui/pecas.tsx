@@ -67,7 +67,9 @@ export function dataBR(iso: string | null, comHora = true): string {
 
 export const Secao = (p: { titulo: string; acao?: { texto: string; href: string } }) => (
   <div class="secao">
-    <span class="secao__titulo">{p.titulo}</span>
+    {/* h2 de verdade: o rótulo de seção É o título do bloco, e a hierarquia
+        h1 → h2 → h3 é o que leitor de tela e buscador seguem. O visual vem da classe. */}
+    <h2 class="secao__titulo">{p.titulo}</h2>
     {p.acao && (
       <span class="secao__acao">
         <a href={p.acao.href}>{p.acao.texto}</a>
@@ -341,8 +343,10 @@ export function nomeTema(v: string): string {
   return (TEMAS as Record<string, { nome: string }>)[v]?.nome ?? 'Automação';
 }
 
-export const EventoNaAgenda = (p: { evento: Evento }) => {
+export const EventoNaAgenda = (p: { evento: Evento; nivel?: 'h2' | 'h3' }) => {
   const e = p.evento;
+  /* na agenda o evento vem logo abaixo do h1 da página (h2); na capa, abaixo do bloco "Agenda" (h3) */
+  const Titulo = p.nivel ?? 'h3';
   const d = partesData(e.inicio);
   const local =
     e.pais === 'BR'
@@ -357,9 +361,9 @@ export const EventoNaAgenda = (p: { evento: Evento }) => {
         <span class="evento__ano">{d.ano}</span>
       </div>
       <div class="evento__corpo">
-        <h3 class="evento__nome">
+        <Titulo class="evento__nome">
           <a href={`/agenda/${e.slug}`}>{e.nome}</a>
-        </h3>
+        </Titulo>
         <p class="evento__meta">
           <span>{local || '—'}</span>
           <span>{ROTULO_FORMATO_EVENTO[e.formato] ?? e.formato}</span>

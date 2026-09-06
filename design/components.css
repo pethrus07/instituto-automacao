@@ -87,6 +87,12 @@
 .navbar__secundario { color: var(--ink-faint); font-size: var(--step--2); }
 .navbar__secundario:hover { color: var(--marca); }
 .navbar__acao { margin-inline-start: var(--space-m); }
+/* Abaixo de 64 rem o botão vai para a própria linha, decidido pelo layout e
+   não pela largura da fonte: era a fonte web chegando e alargando os itens que
+   empurrava o botão para baixo depois da primeira pintura (CLS 0,20 no tablet). */
+@media (max-width: 63.99rem) {
+  .navbar__acao { flex-basis: 100%; display: flex; justify-content: center; margin-inline-start: 0; }
+}
 /* O botão herda `.navbar a` (padding-block e borda de estado ativo). Só a
    borda sai: zerar o padding também deixava o botão de 1 linha com o texto
    vazando por cima — defeito que o QA não vê e o screenshot viu. */
@@ -371,7 +377,9 @@
   border-bottom: 2px solid var(--marca);
   margin-block-end: var(--space-m);
 }
+/* é um h2: zera o que base.css dá a título e veste o rótulo */
 .secao__titulo {
+  margin: 0; line-height: var(--leading-normal);
   font-family: var(--face-fluxo);
   font-size: var(--step--1);
   font-weight: var(--weight-bold);
@@ -602,3 +610,14 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .regras { display: grid; gap: var(--space-s); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
 .regras li { list-style: none; padding-inline-start: var(--space-m); border-inline-start: 2px solid var(--marca); }
 .regras li strong { display: block; font-family: var(--face-fluxo); }
+
+/* ------------------------------------------------------------ alvo de toque
+   Onde o dedo manda, link de 19 px é sorte. Padding vertical leva rodapé,
+   listas e ações de bloco a ≥ 24 px (WCAG 2.5.8) sem mexer no desktop. */
+@media (pointer: coarse) {
+  .rodape__colunas a, .secao__acao a, .evento__nome a, .lista li a, .card__pe a, .linha__pe a,
+  .assinatura a, .fonte-caixa a, .termo__nota a, .cabeca-secao__lead a, .aviso a, .vazio a {
+    display: inline-block; padding-block: 0.375rem; margin-block: -0.375rem;
+  }
+  .rodape__colunas a { margin-block: 0; }
+}

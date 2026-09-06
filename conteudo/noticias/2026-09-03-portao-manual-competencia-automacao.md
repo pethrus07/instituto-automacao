@@ -1,5 +1,6 @@
 ---
 titulo:    Um engenheiro nuclear explica por que deixou passos manuais numa usina que podia se operar sozinha
+titulo_curto: Por que um engenheiro deixou passos manuais na usina
 secao:     noticias
 tema:      processos
 formato:   contexto

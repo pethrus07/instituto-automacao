@@ -1,5 +1,6 @@
 ---
 titulo:    Seis controles para o fluxo automatizado que toca dado sensível — e dois deles são recurso pago
+titulo_curto: Seis controles para o fluxo que toca dado sensível
 secao:     noticias
 tema:      processos
 formato:   contexto

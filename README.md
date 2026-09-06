@@ -38,6 +38,11 @@ npm run qa            # 213 asserções contra o site rodando — sai com códig
 | **3 · Escrever** | — | `npm run ler -- <url>` traz o artigo; `npm run nova -- noticias <slug> --url <url>` cria o arquivo |
 | **4 · Publicar** | git | `npm run compilar` → `npm run qa` → commit → `npm run deploy` |
 | **revisão** | — | `npm run revisao` — Playwright: 13 páginas × 3 larguras, axe, fluxos, screenshots em `qa/revisao/` |
+
+Frontmatter opcional que a busca e a capa usam: `titulo_curto:` (≤ 53 caracteres; vira o `<title>`
+e o headline do JSON-LD — o título inteiro fica no h1) e `destaque: true` (a peça que abre a
+capa; o compilador aceita uma só). Peça sem foto ganha uma imagem de compartilhamento rasterizada
+da arte em `publico/og/` pelo próprio `compilar`, com o Chromium do Playwright.
 | **semanal** | — | `npm run dossie` traz os números; o Giro é escrito em cima |
 
 O conteúdo mora em `conteudo/**.md` com frontmatter. O compilador **aborta** sem autor, sem
@@ -70,12 +75,13 @@ Todo caminho da v1 (`/industria`, `/panorama`, `/analise/...`) redireciona com 3
 ```
 conteudo/            AS PEÇAS. noticias/ relatorios/ giro/ arte/ — markdown + SVG
 colheita/            a pauta e os ledgers (fora do git, exceto lidos.json)
-src/index.tsx        as rotas e o cron
+src/index.tsx        monta as páginas, os cabeçalhos de segurança (CSP por hash), a 404 e o cron
+src/paginas/         uma página por arquivo: capa · secoes (e a peça) · agenda · glossario · blueprints · marca · formularios · redirects · estatico
 src/conteudo/        tipos e o índice do conteúdo compilado
 src/coletor/         feed · robots · sitemap · canonicalização
 src/giro/            semana ISO e a auditoria de números
 src/ui/              Documento, primitivas, marca, capa gerada, JSON-LD
-publico/             assets estáticos do Worker (fora do bundle): imagens/ com licença · dados/ (CSV)
+publico/             assets estáticos (fora do bundle): imagens/ com licença · dados/ (CSV) · fontes/ (woff2 self-hosted) · marca/ · icones/ · og/ (gerado) · _headers (cache e segurança dos assets) · manifest.webmanifest
 design/              tokens, base, componentes — o sistema de design
 scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
 qa/verificar.mjs     o QA por medição (afirma e falha); qa/SPRINT-*.md o que cada rodada revelou
@@ -112,6 +118,14 @@ documento antes do código descreve intenção, e esse era o defeito.
 - **`npm run compilar` antes de tudo.** `dev` e `deploy` fazem sozinhos; editar um `.md` com
   o dev rodando exige rodar de novo.
 - **Nada em `conteudo/arte/` com cor crua.** As artes vestem os tokens, e o QA confere.
+- **Mudou `src/ui/tema.ts`? Rode `npm run compilar`.** A CSP só libera o script inline pelo hash
+  SHA-256 que o compilador grava no módulo gerado; o QA recalcula do HTML servido e compara.
+- **Ferramenta que injeta script na página precisa de `bypassCSP`.** A revisão Playwright injeta o
+  axe-core; sem isso a CSP a bloqueia — e o leitor é quem tem de ser protegido, não o teste.
+- **Fontes são self-hosted com métricas de fallback** (`size-adjust`, `ascent-override`… em
+  `design/base.css`, calculadas por fontTools). Trocar fonte = recalcular; é o que mantém o CLS em zero.
+- **`publico/og/` é gerado e está fora do git.** `dev` e `deploy` rodam o compilador, que rasteriza o
+  que falta; a máquina do deploy precisa do Chromium do Playwright.
 - **Imagem sem licença declarada não existe.** A regra do texto vale para a imagem: a licença
   governa, não o formato. "Peguei da matéria" não é licença.
 - **Mudou `wrangler.toml`? Reinicie o `dev`.** `[assets]` não recarrega a quente.

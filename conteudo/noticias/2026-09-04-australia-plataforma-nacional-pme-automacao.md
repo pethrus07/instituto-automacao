@@ -1,5 +1,6 @@
 ---
 titulo:    Austrália lança plataforma nacional para a PME descrever o projeto de automação antes de gastar
+titulo_curto: Austrália lança plataforma para a PME automatizar
 secao:     noticias
 tema:      industria
 formato:   contexto

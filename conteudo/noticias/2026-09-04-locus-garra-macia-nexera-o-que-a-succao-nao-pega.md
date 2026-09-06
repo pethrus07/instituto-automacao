@@ -1,5 +1,6 @@
 ---
 titulo:    Locus Robotics aposta na garra macia da Nexera para o que a sucção não pega, os 30% a 40% que sobram
+titulo_curto: Locus aposta em garra macia onde a sucção não pega
 secao:     noticias
 tema:      industria
 formato:   contexto

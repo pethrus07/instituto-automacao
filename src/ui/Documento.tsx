@@ -1,23 +1,42 @@
 /**
  * O invólucro de toda página: <head>, cabeçalho, navegação e rodapé.
  *
- * Zero JavaScript, com uma exceção: o botão de tema. Tudo o mais é <a>.
+ * Zero JavaScript, com uma exceção: o botão de tema (ui/tema.ts). Tudo o
+ * mais é <a>.
+ *
+ * O <head> é onde o site é lido por máquina: título curto para a busca,
+ * descrição de até 160 caracteres, imagem para compartilhar (Open Graph e
+ * Twitter), JSON-LD, fontes self-hosted com preload, ícones e manifesto.
+ * Nada aqui é afirmado sem existir na página.
  */
 import { raw } from 'hono/html';
-import { CSS_ROTA, FONTES_DEV } from '../estilo';
+import { CSS_ROTA } from '../estilo';
 import { simbolo } from './marca';
+import { TEMA_SCRIPT } from './tema';
+import { NOME_SITE, absoluta, descricaoCurta, origemDe, tituloDaAba } from './seo';
 import type { Secao } from '../conteudo';
+
+export type ImagemOg = { url: string; largura?: number; altura?: number; alt?: string };
 
 type Props = {
   titulo: string;
+  /** o título da aba e do resultado de busca, quando o título inteiro é longo */
+  tituloCurto?: string;
   descricao?: string;
   /** a seção atual, para o estado ativo da navegação */
   secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca';
+  /** URL canônica, absoluta */
   url?: string;
-  /** JSON-LD já serializado e escapado (ver ui/jsonld.ts). */
-  ld?: string;
+  /** JSON-LD já serializado e escapado (ver ui/jsonld.ts); um ou vários blocos */
+  ld?: string | string[];
   /** `article` para peça; `website` para o resto */
   tipoOg?: 'website' | 'article';
+  /** a imagem de compartilhamento; sem ela, entra a padrão do site */
+  imagemOg?: ImagemOg;
+  /** metadados de artigo (Open Graph) — só em peça */
+  artigo?: { publicado: string; autor: string; secao: string };
+  /** páginas de erro e utilitárias não entram no índice */
+  naoIndexar?: boolean;
   children?: unknown;
 };
 
@@ -29,7 +48,13 @@ const NAV: { href: string; texto: string; chave: Props['secao'] }[] = [
 ];
 
 export const Documento = (p: Props) => {
-  const titulo = p.titulo === 'Instituto Automação' ? p.titulo : `${p.titulo} — Instituto Automação`;
+  const titulo = tituloDaAba(p.titulo, p.tituloCurto);
+  const descricao = descricaoCurta(p.descricao);
+  const base = origemDe(p.url);
+  const og: ImagemOg = p.imagemOg
+    ? { ...p.imagemOg, url: absoluta(base, p.imagemOg.url) }
+    : { url: absoluta(base, '/og/padrao.png'), largura: 1200, altura: 630, alt: `${NOME_SITE} — o que o setor de automação publica lá fora, lido daqui` };
+  const lds = p.ld ? (Array.isArray(p.ld) ? p.ld : [p.ld]) : [];
 
   return (
     <html lang="pt-BR">
@@ -37,27 +62,53 @@ export const Documento = (p: Props) => {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{titulo}</title>
-        {p.descricao && <meta name="description" content={p.descricao} />}
-        <meta property="og:title" content={titulo} />
-        {p.descricao && <meta property="og:description" content={p.descricao} />}
-        <meta property="og:type" content={p.tipoOg ?? 'website'} />
-        <meta property="og:locale" content="pt_BR" />
-        <meta property="og:site_name" content="Instituto Automação" />
+        {descricao && <meta name="description" content={descricao} />}
+        {p.naoIndexar && <meta name="robots" content="noindex, follow" />}
         {p.url && <link rel="canonical" href={p.url} />}
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-        {/* DEV: em produção as fontes são self-hosted. Ver design/SISTEMA.md */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-        <link rel="stylesheet" href={FONTES_DEV} />
+        {/* Open Graph: o que aparece quando alguém compartilha */}
+        <meta property="og:type" content={p.tipoOg ?? 'website'} />
+        <meta property="og:site_name" content={NOME_SITE} />
+        <meta property="og:locale" content="pt_BR" />
+        <meta property="og:title" content={p.titulo === NOME_SITE ? p.titulo : `${p.titulo} — ${NOME_SITE}`} />
+        {descricao && <meta property="og:description" content={descricao} />}
+        {p.url && <meta property="og:url" content={p.url} />}
+        <meta property="og:image" content={og.url} />
+        {og.largura && <meta property="og:image:width" content={String(og.largura)} />}
+        {og.altura && <meta property="og:image:height" content={String(og.altura)} />}
+        {og.alt && <meta property="og:image:alt" content={og.alt} />}
+        {p.artigo && <meta property="article:published_time" content={p.artigo.publicado} />}
+        {p.artigo && <meta property="article:author" content={p.artigo.autor} />}
+        {p.artigo && <meta property="article:section" content={p.artigo.secao} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={p.titulo} />
+        {descricao && <meta name="twitter:description" content={descricao} />}
+        <meta name="twitter:image" content={og.url} />
+        {og.alt && <meta name="twitter:image:alt" content={og.alt} />}
+
+        {/* cor da barra do navegador: o papel no claro, o papel do escuro no escuro */}
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0f" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icones/icone-180.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+
+        {/* Fontes self-hosted (publico/fontes/), só o subset latin. As duas do
+            caminho crítico vão em preload; a itálica e a mono chegam quando o
+            CSS pedir. Nenhum terceiro no caminho da primeira pintura. */}
+        <link rel="preload" href="/fontes/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin="" />
+        <link rel="preload" href="/fontes/plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin="" />
         <link rel="stylesheet" href={CSS_ROTA} />
 
-        {p.ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: p.ld }} />}
+        {lds.map((ld) => (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld }} />
+        ))}
 
-        <link rel="alternate" type="application/rss+xml" title="Instituto Automação" href="/feed.xml" />
-        <link rel="alternate" type="application/rss+xml" title="Notícias — Instituto Automação" href="/feed/noticias.xml" />
-        <link rel="alternate" type="application/rss+xml" title="Relatórios — Instituto Automação" href="/feed/relatorios.xml" />
-        <link rel="alternate" type="application/rss+xml" title="Giro da Semana — Instituto Automação" href="/feed/giro.xml" />
+        <link rel="alternate" type="application/rss+xml" title={NOME_SITE} href="/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title={`Notícias — ${NOME_SITE}`} href="/feed/noticias.xml" />
+        <link rel="alternate" type="application/rss+xml" title={`Relatórios — ${NOME_SITE}`} href="/feed/relatorios.xml" />
+        <link rel="alternate" type="application/rss+xml" title={`Giro da Semana — ${NOME_SITE}`} href="/feed/giro.xml" />
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
 
       <body>
@@ -69,14 +120,10 @@ export const Documento = (p: Props) => {
           O cabeçalho de revista: símbolo e nome no centro, a linha de
           propósito embaixo, a régua, e a navegação — que é a única parte que
           gruda ao rolar.
-
-          A marca gráfica é a varredura de radar das capas geradas: um anel,
-          um raio, e UM ponto aceso. Duas cores com o mesmo trabalho que têm
-          no resto do site — azul é a instituição, laranja é o que importa.
         */}
         <header>
           <div class="wrap marca">
-            <a href="/" class="marca__lockup" aria-label="Instituto Automação — capa">
+            <a href="/" class="marca__lockup" aria-label={`${NOME_SITE} — capa`}>
               {raw(simbolo(44))}
               <span class="marca__nome">
                 <span class="marca__nome-fino">Instituto</span> Automação
@@ -116,9 +163,9 @@ export const Documento = (p: Props) => {
         <footer class="rodape">
           <div class="wrap rodape__grade">
             <div>
-              <a href="/" class="rodape__marca" aria-label="Instituto Automação">
+              <a href="/" class="rodape__marca" aria-label={NOME_SITE}>
                 {raw(simbolo(28))}
-                <span>Instituto Automação</span>
+                <span>{NOME_SITE}</span>
               </a>
               <p class="rodape__texto">
                 Lemos o que o setor de automação publica lá fora, escolhemos o que importa para
@@ -126,7 +173,7 @@ export const Documento = (p: Props) => {
                 em toda peça. E medimos quanto tempo cada assunto leva para chegar aqui.
               </p>
             </div>
-            <div class="rodape__colunas">
+            <nav class="rodape__colunas" aria-label="Rodapé">
               <div>
                 <span class="rodape__rotulo">Seções</span>
                 <a href="/noticias">Notícias</a>
@@ -141,7 +188,7 @@ export const Documento = (p: Props) => {
                 <a href="/marca">Marca</a>
                 <a href="/feed.xml">RSS</a>
               </div>
-            </div>
+            </nav>
           </div>
           <div class="wrap rodape__pe">
             <span>Nada aqui é gerado por máquina. Toda peça tem autor.</span>
@@ -151,12 +198,9 @@ export const Documento = (p: Props) => {
           </div>
         </footer>
 
-        {/* A única linha de JS do site. Tudo o mais é HTML. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var r=document.documentElement;try{var t=localStorage.getItem('tema');if(t==='dark'||t==='light')r.dataset.theme=t}catch(e){}var b=document.getElementById('tema');if(!b)return;b.addEventListener('click',function(){var e=r.dataset.theme==='dark';var n=e?'light':'dark';r.dataset.theme=n;try{localStorage.setItem('tema',n)}catch(e){}})})()`,
-          }}
-        />
+        {/* A única linha de JS do site (ui/tema.ts). A CSP só a deixa rodar
+            pelo hash — o compilador calcula, o QA confere. */}
+        <script dangerouslySetInnerHTML={{ __html: TEMA_SCRIPT }} />
       </body>
     </html>
   );

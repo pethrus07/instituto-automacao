@@ -1,5 +1,6 @@
 ---
 titulo:    Italiana Gefran compra a gaúcha NOVUS por R$ 215 milhões e ganha fábrica de instrumentação no Brasil
+titulo_curto: Gefran compra a gaúcha NOVUS por R$ 215 milhões
 secao:     noticias
 tema:      industria
 formato:   curta

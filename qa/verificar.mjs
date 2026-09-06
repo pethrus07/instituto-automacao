@@ -149,7 +149,7 @@ titulo('A · Funcional — rotas');
 
 const rotas = [
   ['/', 200], ['/noticias', 200], ['/relatorios', 200], ['/giro', 200],
-  ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/marca', 200], ['/saude', 200],
+  ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/marca', 200], ['/saude', 200], ['/manifest.webmanifest', 200],
   ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
   ...pecas.map((p) => [`/${p.secao}/${p.slug}`, 200]),
   ['/noticias/nao-existe', 404], ['/relatorios/nao-existe', 404], ['/qualquer-coisa', 404], ['/feed/inventado.xml', 404],
@@ -427,7 +427,7 @@ checar('C', 'peça tem og:type article', pecas.length === 0 || respostas[`/${pec
 checar('C', 'landmarks header/main/footer + skip link', /<header/.test(capa) && /<main/.test(capa) && /<footer/.test(capa) && /Pular para o conteúdo/.test(capa));
 checar('C', 'a marca gráfica está no cabeçalho com aria-label', /marca-simbolo[^>]*aria-label="Instituto Automação"|aria-label="Instituto Automação"[^>]*marca-simbolo/.test(capa));
 checar('C', 'nenhuma imagem sem alt', !/<img(?![^>]*\balt=)/.test(capa));
-checar('C', 'no máximo 1 script na página (só o tema)', (capa.match(/<script/g) ?? []).length <= 1);
+checar('C', 'no máximo 1 script executável na página (só o tema; JSON-LD não executa)', (capa.match(/<script(?![^>]*application\/ld\+json)/g) ?? []).length <= 1, `${(capa.match(/<script(?![^>]*application\/ld\+json)/g) ?? []).length} script(s) executáveis`);
 checar('C', 'nenhum recurso JS externo', !/<script[^>]+src=/.test(capa));
 checar('C', 'toda arte SVG declara role=img e aria-label', !/<svg(?![^>]*aria-label)[^>]*class="capa-gerada|<svg(?![^>]*aria-label)[^>]*preserveAspectRatio="xMidYMid slice"/.test(capa));
 
@@ -518,6 +518,85 @@ for (const nome of datasets) {
 }
 const relatorios = pecas.filter((p) => p.secao === 'relatorios');
 checar('B', 'todo relatório que cita dataset aponta para um arquivo que existe', relatorios.every((p) => [...p.corpo.matchAll(/\]\(\/dados\/([^)]+)\)/g)].every((m) => datasets.includes(m[1]))));
+
+titulo('B · Conformidade — SEO e cabeçalhos: o que a máquina lê');
+/* Tudo que o buscador, a rede social e o navegador leem sem mostrar: título,
+   descrição, imagem de compartilhamento, dados estruturados, cabeçalhos de
+   segurança, fontes servidas daqui. Cada afirmação do relatório de revisão
+   virou uma asserção. */
+const { createHash } = await import('node:crypto');
+const htmlOk = todasAsPaginas.filter(([, r]) => r.status === 200);
+for (const [rota, r] of todasAsPaginas) {
+  const cab = r.cab;
+  checar('B', `cabeçalhos de segurança · ${rota}`,
+    cab['x-content-type-options'] === 'nosniff' && /strict-origin/.test(cab['referrer-policy'] ?? '') && !!cab['permissions-policy'] && /frame-ancestors 'none'/.test(cab['content-security-policy'] ?? '') && cab['x-frame-options'] === 'DENY',
+    JSON.stringify({ xcto: cab['x-content-type-options'], rp: cab['referrer-policy'], csp: (cab['content-security-policy'] ?? '').slice(0, 50) }));
+}
+{
+  const html = respostas['/'].corpo;
+  const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const hashes = inline.map((t) => createHash('sha256').update(t).digest('base64'));
+  const csp = respostas['/'].cab['content-security-policy'] ?? '';
+  checar('B', 'CSP: um script inline só, e o hash dele está na política', inline.length === 1 && hashes.every((h) => csp.includes(`'sha256-${h}'`)), `${inline.length} script(s) inline · ${hashes.join(',')}`);
+  checar('B', 'CSP: nenhum host de terceiro permitido', !/https?:\/\//.test(csp), csp);
+  checar('B', "CSP: script-src sem 'unsafe-inline'", !/script-src[^;]*unsafe-inline/.test(csp));
+}
+const meta = (h, n) => (h.match(new RegExp(`<meta[^>]+(?:name|property)="${n}"[^>]+content="([^"]*)"`)) ?? h.match(new RegExp(`<meta[^>]+content="([^"]*)"[^>]+(?:name|property)="${n}"`)))?.[1];
+for (const [rota, r] of todasAsPaginas) {
+  const h = r.corpo;
+  const title = h.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+  checar('B', `título da aba entre 10 e 75 caracteres · ${rota}`, title.length >= 10 && title.length <= 75, `${title.length}: ${title}`);
+  checar('B', `theme-color e twitter:card · ${rota}`, /name="theme-color"/.test(h) && meta(h, 'twitter:card') === 'summary_large_image');
+  checar('C', `nenhum recurso de terceiro no HTML · ${rota}`, !/googleapis|gstatic|cdn\.|unpkg|jsdelivr/.test(h));
+  checar('C', `fontes em preload · ${rota}`, /rel="preload"[^>]+newsreader-latin\.woff2/.test(h) && /rel="preload"[^>]+plex-sans-latin\.woff2/.test(h));
+}
+for (const [rota, r] of htmlOk) {
+  const h = r.corpo;
+  const desc = meta(h, 'description') ?? '';
+  const og = meta(h, 'og:image') ?? '';
+  checar('B', `descrição entre 50 e 160 caracteres · ${rota}`, desc.length >= 50 && desc.length <= 160, `${desc.length}: ${desc.slice(0, 60)}…`);
+  checar('B', `og:image absoluta, com largura e altura · ${rota}`, /^https?:\/\//.test(og) && !!meta(h, 'og:image:width') && !!meta(h, 'og:image:height'), og);
+  checar('B', `canônica e og:url presentes · ${rota}`, /rel="canonical"/.test(h) && !!meta(h, 'og:url'));
+}
+{
+  const ogs = new Set(htmlOk.map(([, r]) => meta(r.corpo, 'og:image')).filter(Boolean).map((u) => u.replace(/^https?:\/\/[^/]+/, '')));
+  medidas.imagensOg = ogs.size;
+  for (const caminho of ogs) {
+    const r = await pegar(caminho);
+    checar('A', `og:image servida como imagem · ${caminho}`, r.status === 200 && /^image\//.test(r.cab['content-type'] ?? ''), `${r.status} ${r.cab['content-type'] ?? ''}`);
+  }
+}
+const tiposLd = (h) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap((m) => { try { return [JSON.parse(m[1])['@type']].flat(); } catch { return ['INVÁLIDO']; } });
+checar('B', 'JSON-LD válido em toda página', htmlOk.every(([, r]) => !tiposLd(r.corpo).includes('INVÁLIDO')));
+checar('B', 'capa declara Organization e WebSite', ['Organization', 'WebSite'].every((t) => tiposLd(respostas['/'].corpo).includes(t)), tiposLd(respostas['/'].corpo).join(','));
+checar('B', '/noticias declara CollectionPage e BreadcrumbList', ['CollectionPage', 'BreadcrumbList'].every((t) => tiposLd(respostas['/noticias'].corpo).includes(t)), tiposLd(respostas['/noticias'].corpo).join(','));
+checar('B', '/blueprints declara Dataset', tiposLd(respostas['/blueprints'].corpo).includes('Dataset'));
+checar('B', '/glossario declara DefinedTermSet', tiposLd(respostas['/glossario'].corpo).includes('DefinedTermSet'));
+checar('B', '/agenda declara ItemList e BreadcrumbList', ['ItemList', 'BreadcrumbList'].every((t) => tiposLd(respostas['/agenda'].corpo).includes(t)));
+for (const p of pecas) {
+  const t = tiposLd(respostas[`/${p.secao}/${p.slug}`].corpo);
+  const esperado = p.secao === 'noticias' ? 'NewsArticle' : 'Article';
+  checar('B', `peça declara ${esperado} e BreadcrumbList · ${p.slug}`, t.includes(esperado) && t.includes('BreadcrumbList'), t.join(','));
+}
+for (const [rota, r] of todasAsPaginas) {
+  const niveis = [...r.corpo.matchAll(/<h([1-6])\b/g)].map((m) => Number(m[1]));
+  let salto = false;
+  for (let i = 1; i < niveis.length; i++) if (niveis[i] > niveis[i - 1] + 1) salto = true;
+  checar('C', `títulos sem salto de nível · ${rota}`, !salto && niveis[0] === 1, niveis.join('>'));
+}
+for (const [caminho, tipo] of [['/fontes/newsreader-latin.woff2', 'font/woff2'], ['/fontes/plex-sans-latin.woff2', 'font/woff2'], ['/manifest.webmanifest', 'manifest'], ['/icones/icone-180.png', 'image/png'], ['/icones/icone-512.png', 'image/png'], ['/og/padrao.png', 'image/png']]) {
+  const r = await pegar(caminho);
+  checar('A', `servido · ${caminho}`, r.status === 200 && (r.cab['content-type'] ?? '').includes(tipo), `${r.status} ${r.cab['content-type'] ?? ''}`);
+}
+{
+  const r = await pegar('/noticias/');
+  checar('A', 'barra final não vira 404 (/noticias/)', r.status === 200, String(r.status));
+  const c404 = respostas['/qualquer-coisa'];
+  checar('B', 'a 404 pede noindex e devolve à capa', /name="robots" content="noindex/.test(c404.corpo) && /href="\/"/.test(c404.corpo));
+  const fonte = await pegar('/fontes/plex-mono-latin-400.woff2');
+  if (!/immutable/.test(fonte.cab['cache-control'] ?? '')) avisar('_headers dos assets não visto em dev', `cache-control: ${fonte.cab['cache-control'] ?? '(vazio)'} — em produção a borda aplica publico/_headers`);
+  else checar('A', 'fontes com cache imutável (publico/_headers)', true);
+}
 
 titulo('C · Qualidade — as suítes de unidade');
 try {

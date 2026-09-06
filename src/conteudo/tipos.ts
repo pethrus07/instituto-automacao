@@ -34,6 +34,9 @@ export type Imagem = {
   licenca: LicencaImagem;
   /** o que há na imagem, para quem não a vê */
   alt: string;
+  /** medidas lidas do arquivo pelo compilador — vão no og:image e no JSON-LD */
+  largura: number;
+  altura: number;
 };
 
 export type Fonte = {
@@ -51,6 +54,8 @@ export type Peca = {
   tema: Tema;
   formato: Formato;
   titulo: string;
+  /** o título da aba e do resultado de busca (≤ 70 caracteres); o inteiro fica no h1 */
+  tituloCurto?: string;
   lead: string;
   autor: string;
   /** YYYY-MM-DD */
@@ -63,6 +68,13 @@ export type Peca = {
   imagem?: Imagem;
   /** nome do arquivo em conteudo/arte/, sem caminho — o desenho nosso */
   arte?: string;
+  /** a peça que abre a capa; no máximo uma, decidida por gente */
+  destaque?: boolean;
+  /**
+   * o caminho da imagem de compartilhamento (og:image): a foto, quando há;
+   * senão o PNG que o compilador rasterizou da arte (ou da capa gerada)
+   */
+  og: string;
   /** o markdown, sem o frontmatter */
   corpo: string;
   /** palavras do corpo, para o tempo de leitura */

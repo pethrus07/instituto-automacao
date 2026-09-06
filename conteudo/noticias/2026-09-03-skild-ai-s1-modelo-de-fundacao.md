@@ -1,5 +1,6 @@
 ---
 titulo:    Skild AI apresenta o S1, um modelo de fundação que ensina robô por vídeo
+titulo_curto: Skild AI lança o S1, modelo de fundação para robôs
 secao:     noticias
 tema:      industria
 formato:   contexto

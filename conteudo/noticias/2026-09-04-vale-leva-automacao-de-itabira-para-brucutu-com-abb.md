@@ -1,5 +1,6 @@
 ---
 titulo:    Vale leva para Brucutu a automação testada em Itabira, e a ABB segue como integradora
+titulo_curto: Vale leva a automação de Itabira para Brucutu
 secao:     noticias
 tema:      industria
 formato:   contexto

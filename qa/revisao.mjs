@@ -152,9 +152,11 @@ async function medirPagina(context, nome, rota, largura) {
 }
 
 /* ------------------------------------------------------------------ páginas × larguras */
+/* bypassCSP: a CSP do site só libera o script do tema, e a revisão injeta o
+   axe-core na página. A ferramenta de medir precisa passar; o leitor, não. */
 const browser = await chromium.launch();
 for (const [largura, vp] of Object.entries(LARGURAS)) {
-  const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, colorScheme: 'light', locale: 'pt-BR' });
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, colorScheme: 'light', locale: 'pt-BR' });
   await context.addInitScript(INIT);
   for (const [nome, rota] of PAGINAS) {
     const m = await medirPagina(context, nome, rota, largura);
@@ -166,7 +168,7 @@ for (const [largura, vp] of Object.entries(LARGURAS)) {
 
 /* ------------------------------------------------------------------ escuro: capa e peça */
 {
-  const context = await browser.newContext({ viewport: LARGURAS.desktop, colorScheme: 'dark', locale: 'pt-BR' });
+  const context = await browser.newContext({ bypassCSP: true, viewport: LARGURAS.desktop, colorScheme: 'dark', locale: 'pt-BR' });
   await context.addInitScript(INIT);
   for (const [nome, rota] of [['capa', '/'], ['peca-foto', '/noticias/nvidia-compra-hugging-face'], ['agenda', '/agenda']]) {
     const m = await medirPagina(context, nome + '-escuro', rota, 'desktop');
@@ -193,7 +195,7 @@ for (const [largura, vp] of Object.entries(LARGURAS)) {
 /* ------------------------------------------------------------------ fluxos de uso */
 const fluxos = medidas.fluxos;
 {
-  const context = await browser.newContext({ viewport: LARGURAS.desktop, colorScheme: 'light', locale: 'pt-BR' });
+  const context = await browser.newContext({ bypassCSP: true, viewport: LARGURAS.desktop, colorScheme: 'light', locale: 'pt-BR' });
   const page = await context.newPage();
 
   // 1. tema: alterna e persiste

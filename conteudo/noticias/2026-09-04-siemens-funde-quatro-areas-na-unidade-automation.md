@@ -1,5 +1,6 @@
 ---
 titulo:    Siemens funde quatro áreas numa unidade Automation a partir de 1º de outubro, sob Rainer Brehm, que já dirigiu a operação em São Paulo
+titulo_curto: Siemens funde quatro áreas na unidade Automation
 secao:     noticias
 tema:      industria
 formato:   curta

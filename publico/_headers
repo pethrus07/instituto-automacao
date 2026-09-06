@@ -1,0 +1,32 @@
+# Cabeçalhos dos assets estáticos (Workers Static Assets lê este arquivo).
+# O Worker não vê estes pedidos — quem responde é a borda — então o que vale
+# para eles tem de estar aqui.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Fonte, marca, ícone e imagem OG têm nome estável e conteúdo estável:
+# cache de um ano, imutável.
+/fontes/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/marca/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/icones/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/og/*
+  Cache-Control: public, max-age=604800
+
+# Foto de peça e dataset podem ser corrigidos mantendo o nome: um dia.
+/imagens/*
+  Cache-Control: public, max-age=86400
+
+/dados/*
+  Cache-Control: public, max-age=86400
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400

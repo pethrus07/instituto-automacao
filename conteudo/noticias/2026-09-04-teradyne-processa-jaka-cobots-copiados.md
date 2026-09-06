@@ -1,5 +1,6 @@
 ---
 titulo:    Dona da Universal Robots processa a JAKA na Europa por patente, o segundo caso do ano contra fabricante chinês de cobots
+titulo_curto: Dona da Universal Robots processa a JAKA por patente
 secao:     noticias
 tema:      industria
 formato:   contexto

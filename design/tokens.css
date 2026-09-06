@@ -43,11 +43,12 @@
      IBM Plex Sans FLUXO  — interface, radar, agenda, navegação.
      IBM Plex Mono DADO   — relógio, carimbos, termos do glossário.
      --------------------------------------------------------------------- */
-  --face-obra:  "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
-  --face-fluxo: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --face-dado:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --face-obra:  "Newsreader", "Newsreader Fallback", ui-serif, Georgia, "Times New Roman", serif;
+  --face-fluxo: "IBM Plex Sans", "IBM Plex Sans Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --face-dado:  "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  --step--2: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
+  /* piso de 12 px: abaixo disso o rótulo vira ruído no celular (medido: 386 elementos a 11,1 px) */
+  --step--2: clamp(0.75rem, 0.72rem + 0.14vw, 0.8125rem);
   --step--1: clamp(0.8125rem, 0.78rem + 0.16vw, 0.875rem);
   --step-0:  clamp(1.0625rem, 1.03rem + 0.18vw, 1.125rem);
   --step-1:  clamp(1.1875rem, 1.13rem + 0.28vw, 1.3125rem);
@@ -223,7 +224,7 @@
 
   --ink:          #fafafa;
   --ink-muted:    #a1a1aa;
-  --ink-faint:    #71717a;
+  --ink-faint:    #8b8b96;   /* 4,02:1 era pouco para rótulo pequeno; agora ~5,7:1 */
   --ink-invert:   #111113;
 
   --rule:         #27272a;

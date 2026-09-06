@@ -1,5 +1,6 @@
 ---
 titulo:    Controlador aberto com segurança funcional certificada encurtou um projeto de robô de cinco anos para dois, diz a NexCOBOT
+titulo_curto: NexCOBOT: controlador aberto encurta projeto de robô
 secao:     noticias
 tema:      industria
 formato:   contexto

@@ -1,5 +1,6 @@
 ---
 titulo:    ISA e OTCC assinam acordo para levar a ISA/IEC 62443 da folha de especificação para a operação
+titulo_curto: ISA e OTCC assinam acordo pela norma ISA/IEC 62443
 secao:     noticias
 tema:      industria
 formato:   curta

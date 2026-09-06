@@ -1,5 +1,7 @@
 ---
 titulo:    NVIDIA compra o Hugging Face por US$ 12,9 bilhões e promete manter a plataforma aberta
+titulo_curto: NVIDIA compra o Hugging Face por US$ 12,9 bilhões
+destaque:  true
 secao:     noticias
 tema:      processos
 formato:   contexto
