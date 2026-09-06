@@ -149,7 +149,7 @@ titulo('A · Funcional — rotas');
 
 const rotas = [
   ['/', 200], ['/noticias', 200], ['/relatorios', 200], ['/giro', 200],
-  ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/saude', 200],
+  ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/marca', 200], ['/saude', 200],
   ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
   ...pecas.map((p) => [`/${p.secao}/${p.slug}`, 200]),
   ['/noticias/nao-existe', 404], ['/relatorios/nao-existe', 404], ['/qualquer-coisa', 404], ['/feed/inventado.xml', 404],
@@ -494,6 +494,18 @@ for (const p of comImagem) {
 }
 checar('C', 'nenhum hotlink: toda <img> das páginas é servida deste domínio', todasAsPaginas.every(([, r]) => !/<img[^>]+src="https?:\/\//i.test(r.corpo)));
 checar('C', 'toda <img> de toda página tem alt', todasAsPaginas.every(([, r]) => !/<img(?![^>]*\balt=)/.test(r.corpo)));
+
+titulo('B · Conformidade — a marca prototipal está inteira e servida');
+const pastaMarca = join(RAIZ, 'publico', 'marca');
+const arquivosMarca = existsSync(pastaMarca) ? readdirSync(pastaMarca).filter((n) => n.endsWith('.svg')) : [];
+medidas.arquivosMarca = arquivosMarca.length;
+checar('B', 'a prancha lista os 11 arquivos da marca', arquivosMarca.length === 11 && arquivosMarca.every((n) => respostas['/marca'].corpo.includes(`/marca/${n}`)), arquivosMarca.join(', '));
+for (const nome of arquivosMarca) {
+  const r = await pegar(`/marca/${nome}`);
+  checar('A', `arquivo da marca servido · ${nome}`, r.status === 200 && /svg/.test(r.cab['content-type'] ?? '') && /^<svg/.test(r.corpo.trim()), `${r.status} ${r.cab['content-type'] ?? ''}`);
+  checar('C', `arquivo da marca sem <script> e com <title> · ${nome}`, !/<script/i.test(r.corpo) && /<title>/.test(r.corpo));
+}
+checar('B', 'a prancha diz que a marca é prototipal', /prototipal/i.test(respostas['/marca'].corpo));
 
 titulo('C · Qualidade — dataset público');
 const pastaDados = join(RAIZ, 'publico', 'dados');

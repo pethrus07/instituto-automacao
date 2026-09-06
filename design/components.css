@@ -107,6 +107,9 @@
   transition: background-color var(--duration) var(--ease);
 }
 .botao-acao:hover { background: var(--acao-forte); color: var(--acao-texto); }
+/* Dentro da navegação, `.navbar a` (mais específico) pintava o texto do botão
+   de cinza sobre laranja — 2,9:1, e o axe pegou. O botão vence sempre. */
+.navbar .botao-acao, .navbar .botao-acao:hover { color: var(--acao-texto); }
 
 /* -------------------------------------------------------------------------
    RÓTULOS
@@ -572,3 +575,30 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
    Transição de página sem SPA (Chrome/Edge; degrada em silêncio)
    ------------------------------------------------------------------------- */
 @view-transition { navigation: auto; }
+
+/* ------------------------------------------------------------ prancha da marca */
+/* A marca mostrada sobre os dois fundos em que pode viver. A caixa escura usa o
+   mesmo azul das capas, para a prancha não inventar um terceiro fundo. */
+.prancha { display: grid; gap: var(--space-m); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.prancha__caixa {
+  display: grid; gap: var(--space-s); align-content: start;
+  padding: var(--space-l); border: 1px solid var(--rule); border-radius: var(--radius-m);
+  background: var(--paper);
+}
+.prancha__caixa--escura { background: var(--capa-fundo); border-color: transparent; color: var(--capa-texto-suave); }
+.prancha__caixa--larga { grid-column: 1 / -1; }
+.prancha__caixa img, .prancha__caixa svg { display: block; max-inline-size: 100%; block-size: auto; }
+.prancha__legenda { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.prancha__caixa--escura .prancha__legenda { color: var(--capa-texto-suave); }
+.prancha__mono { color: var(--ink); }
+.tamanhos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-l); }
+.tamanhos > figure { margin: 0; display: grid; gap: var(--space-2xs); justify-items: center; }
+.tamanhos figcaption { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-faint); }
+.amostras { display: grid; gap: var(--space-s); grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.amostra { display: grid; gap: var(--space-2xs); }
+.amostra__cor { block-size: 4.5rem; border-radius: var(--radius-s); border: 1px solid var(--rule); }
+.amostra__nome { font-family: var(--face-fluxo); font-size: var(--step--1); font-weight: var(--weight-medium); }
+.amostra__hex { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-muted); }
+.regras { display: grid; gap: var(--space-s); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.regras li { list-style: none; padding-inline-start: var(--space-m); border-inline-start: 2px solid var(--marca); }
+.regras li strong { display: block; font-family: var(--face-fluxo); }

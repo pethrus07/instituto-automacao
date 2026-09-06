@@ -17,3 +17,6 @@ src/conteudo.gerado.ts
 
 # Saida do dry-run do wrangler que o QA usa para conferir o bundle (P1).
 dist/
+
+# saída da revisão por medição (screenshots + medidas), regenerável
+qa/revisao/

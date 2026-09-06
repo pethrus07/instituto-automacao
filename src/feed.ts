@@ -72,6 +72,7 @@ export async function sitemap(env: Env): Promise<string> {
     { loc: `${base}/agenda` },
     { loc: `${base}/glossario` },
     { loc: `${base}/blueprints` },
+    { loc: `${base}/marca` },
   ];
 
   for (const p of todas()) urls.push({ loc: base + caminho(p), mod: p.data });

@@ -240,3 +240,24 @@ conferidos em screenshot a 1440 px. Nenhum defeito visual.
 4. **`destaque:` no frontmatter** para a capa não depender do alfabeto.
 5. **Coletor registrar `Content-Signal`** por fonte.
 6. Docs v1 · fontes self-hosted.
+
+---
+
+## 10. Sessão 4 (06/09) — a marca prototipal e a revisão com Playwright
+
+> `npm run qa` · **561 asserções · 0 falhas** · `npm run revisao` · **42 medições · axe 0 violações**
+
+- **Marca prototipal** em `publico/marca/` (11 SVGs: horizontal, vertical, símbolo, ícone; cor,
+  negativo, mono) e prancha pública em `/marca`. O símbolo é o de `src/ui/marca.ts`; o nome é
+  Newsreader convertida em caminhos (fontTools), sem kerning — é o que a separa da definitiva.
+  Regras e construção em `design/marca/MARCA.md`. Trocar a marca = trocar dois lugares.
+- **Revisão completa** em `qa/REVISAO-2026-09-06.md`: média 7,9; notas por aspecto com evidência;
+  17 achados por prioridade. Dois P0 corrigidos na hora: o botão da nav com texto cinza sobre
+  laranja (regra `.navbar a` mais específica que `.botao-acao`; 2,9:1, axe pegou em 42 de 42) e o
+  toggle de tema cujo primeiro clique não fazia nada para quem tem o sistema em escuro (o script
+  partia do sistema; o CSS, por decisão documentada, parte do claro).
+- **O que a medição ensinou:** CLS de 0,20 no tablet vem da fonte web chegando e alargando a nav;
+  texto a 11,1 px no celular vem do piso de `--step--2`; 157 alvos de 19 px são links de rodapé e
+  lista; nenhuma página tem `og:image`; só `Cache-Control` nos cabeçalhos; sem folha de impressão.
+  Nada disso apareceria nas 561 asserções — elas afirmam o que sabemos; o Playwright mede o que
+  não sabíamos.

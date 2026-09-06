@@ -12,7 +12,7 @@ type Props = {
   titulo: string;
   descricao?: string;
   /** a seção atual, para o estado ativo da navegação */
-  secao?: Secao | 'agenda' | 'glossario' | 'blueprints';
+  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca';
   url?: string;
   /** JSON-LD já serializado e escapado (ver ui/jsonld.ts). */
   ld?: string;
@@ -138,6 +138,7 @@ export const Documento = (p: Props) => {
                 <span class="rodape__rotulo">O método</span>
                 <a href="/blueprints">Blueprints e fontes</a>
                 <a href="/glossario">Glossário</a>
+                <a href="/marca">Marca</a>
                 <a href="/feed.xml">RSS</a>
               </div>
             </div>
@@ -153,7 +154,7 @@ export const Documento = (p: Props) => {
         {/* A única linha de JS do site. Tudo o mais é HTML. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var r=document.documentElement;try{var t=localStorage.getItem('tema');if(t==='dark'||t==='light')r.dataset.theme=t}catch(e){}var b=document.getElementById('tema');if(!b)return;b.addEventListener('click',function(){var e=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;var n=e?'light':'dark';r.dataset.theme=n;try{localStorage.setItem('tema',n)}catch(e){}})})()`,
+            __html: `(function(){var r=document.documentElement;try{var t=localStorage.getItem('tema');if(t==='dark'||t==='light')r.dataset.theme=t}catch(e){}var b=document.getElementById('tema');if(!b)return;b.addEventListener('click',function(){var e=r.dataset.theme==='dark';var n=e?'light':'dark';r.dataset.theme=n;try{localStorage.setItem('tema',n)}catch(e){}})})()`,
           }}
         />
       </body>

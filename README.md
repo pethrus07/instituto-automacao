@@ -37,6 +37,7 @@ npm run qa            # 213 asserções contra o site rodando — sai com códig
 | **2 · Decidir** | Pedro | lê a pauta e marca o que vira peça; `npm run lavrado` esvazia |
 | **3 · Escrever** | — | `npm run ler -- <url>` traz o artigo; `npm run nova -- noticias <slug> --url <url>` cria o arquivo |
 | **4 · Publicar** | git | `npm run compilar` → `npm run qa` → commit → `npm run deploy` |
+| **revisão** | — | `npm run revisao` — Playwright: 13 páginas × 3 larguras, axe, fluxos, screenshots em `qa/revisao/` |
 | **semanal** | — | `npm run dossie` traz os números; o Giro é escrito em cima |
 
 O conteúdo mora em `conteudo/**.md` com frontmatter. O compilador **aborta** sem autor, sem
@@ -77,7 +78,9 @@ src/ui/              Documento, primitivas, marca, capa gerada, JSON-LD
 publico/             assets estáticos do Worker (fora do bundle): imagens/ com licença · dados/ (CSV)
 design/              tokens, base, componentes — o sistema de design
 scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
-qa/verificar.mjs     o QA por medição; qa/SPRINT-*.md o que cada rodada revelou
+qa/verificar.mjs     o QA por medição (afirma e falha); qa/SPRINT-*.md o que cada rodada revelou
+qa/revisao.mjs       a revisão com Playwright (mede e registra); qa/REVISAO-*.md as notas
+design/marca/        MARCA.md — a marca prototipal; os arquivos ficam em publico/marca/ e a prancha em /marca
 schema.sql           o D1 (fonte, item, assunto, evento, glossário, correção, assinante)
 migracoes/           ALTER TABLE para banco que já tem dado
 ```
