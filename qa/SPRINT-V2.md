@@ -325,3 +325,30 @@ conferidos em screenshot a 1440 px. Nenhum defeito visual.
    (o compilador rasteriza `publico/og/`).
 2. **Primeiro Giro** — segunda-feira 07/09.
 3. Docs v1 · lint · Search Console e envio do sitemap (dependem de estar no ar).
+
+---
+
+## 12. Sessão 6 (06/09, noite) — o tour narrado
+
+> `npm run tour` · **15 cenas, todas executaram · 1 min 41 s · 8,1 MB · legendas WebVTT + capítulos** · QA 913 · 0 falhas
+
+- O motor é o dos tutoriais do Mettria (`qa-parresia/tutoriais/motor`, método em
+  `sinapse/03-PROJETOS/tutoriais-em-video.md`), copiado para `tour/motor/` sem mudar uma linha do que é
+  genérico: narração com tempo por palavra (edge-tts, `WordBoundary`), ponteiro desenhado que anda no
+  compasso da voz, desconto do atraso do screencast, montagem em ffmpeg por npm.
+- O que é deste projeto está em `tour/roteiro-site.mjs`: 5 partes (capa · peça · agenda · blueprints e
+  glossário · fecho), 15 cenas, voz Thalita a −8% (escolha do Pedro no Mettria). Grava o site local, só
+  leitura, sem trava de escrita porque nada é enviado.
+- **O site embute o tour** em `/blueprints#tour`: `<video>` com poster (a OG padrão), `<track>` de legendas
+  em pt-BR gerado do mesmo roteiro, e link para os capítulos. O QA confere vídeo (aceita `Range`),
+  legendas (≥ 12 deixas) e capítulos servidos, e a `<track>` na página.
+- **Breve de verdade:** a primeira versão saiu com 2 min 18 s. Cortar metade das palavras e manter as
+  cenas deu 1 min 41 s — o que se vê é o mesmo, o que se diz é o essencial. `crf 23` em vez de 20: tela de
+  site é plana, e o arquivo caiu de 12,4 para 8,1 MB.
+- **Regra do roteiro:** nenhum número na narração. Os números da capa mudam todo dia; a voz não pode
+  desmentir a tela de amanhã.
+
+### Em aberto
+- Revisão da narração pelo Pedro (mudar frase antes de dublar é de graça; depois é regenerar — e
+  regenerar custa 3 minutos).
+- Versão para celular (tela `celular` já existe no motor) quando houver por quê.

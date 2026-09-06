@@ -59,6 +59,26 @@ blueprints.get('/blueprints', async (c) => {
           </p>
         </header>
 
+        {/* --- o tour narrado: gerado do site rodando (tour/gerar.mjs), com legendas --- */}
+        <section class="bloco" id="tour" style="scroll-margin-top: var(--space-l)">
+          <Secao titulo="O site em menos de dois minutos" />
+          <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
+            Um tour narrado, gerado do próprio site em funcionamento — quando uma tela muda, o vídeo é
+            refeito, não regravado. Com legendas.
+          </p>
+          <figure class="tour">
+            <video class="tour__video" controls preload="metadata" playsinline poster="/og/padrao.png" width="1280" height="720">
+              <source src="/tour/instituto-automacao-tour.mp4" type="video/mp4" />
+              <track kind="captions" src="/tour/instituto-automacao-tour.vtt" srclang="pt-BR" label="Português" default />
+              Seu navegador não toca vídeo. <a href="/tour/instituto-automacao-tour.mp4">Baixe o tour</a>.
+            </video>
+            <figcaption class="tour__legenda">
+              Narração em voz neural em português; nenhuma cena é encenada — é o site de verdade, dirigido por
+              automação. <a href="/tour/instituto-automacao-tour-capitulos.txt">Capítulos</a>.
+            </figcaption>
+          </figure>
+        </section>
+
         {/* --- como o Instituto funciona --- */}
         <section class="bloco">
           <Secao titulo="Como funciona" />

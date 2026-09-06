@@ -23,3 +23,6 @@ qa/revisao/
 
 # imagens de compartilhamento rasterizadas pelo compilador (regeneráveis)
 publico/og/
+
+# arquivos de trabalho do tour narrado (áudio, gravação bruta, partes) — o vídeo final fica em publico/tour/
+tour/.trabalho/

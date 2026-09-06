@@ -507,6 +507,20 @@ for (const nome of arquivosMarca) {
 }
 checar('B', 'a prancha diz que a marca é prototipal', /prototipal/i.test(respostas['/marca'].corpo));
 
+titulo('B · Conformidade — o tour narrado está no ar, com legendas');
+{
+  const blue = respostas['/blueprints'].corpo;
+  checar('B', 'blueprints embute o tour com legendas (video + track pt-BR + poster)', /<video[^>]+poster="\/og\/padrao\.png"/.test(blue) && /<track[^>]+kind="captions"[^>]+srclang="pt-BR"/.test(blue));
+  for (const [caminho, tipo] of [['/tour/instituto-automacao-tour.mp4', 'video/mp4'], ['/tour/instituto-automacao-tour.vtt', 'text/vtt'], ['/tour/instituto-automacao-tour-capitulos.txt', 'text/plain']]) {
+    const r = await fetch(BASE + caminho, { method: 'GET', headers: { Range: 'bytes=0-15' } });
+    checar('A', `tour servido · ${caminho}`, (r.status === 200 || r.status === 206) && (r.headers.get('content-type') ?? '').includes(tipo), `${r.status} ${r.headers.get('content-type') ?? ''}`);
+  }
+  const vtt = await pegar('/tour/instituto-automacao-tour.vtt');
+  const deixas = (vtt.corpo.match(/-->/g) ?? []).length;
+  checar('B', 'legendas com uma deixa por cena (≥ 12)', vtt.corpo.startsWith('WEBVTT') && deixas >= 12, `${deixas} deixas`);
+  medidas.deixasDoTour = deixas;
+}
+
 titulo('C · Qualidade — dataset público');
 const pastaDados = join(RAIZ, 'publico', 'dados');
 const datasets = existsSync(pastaDados) ? readdirSync(pastaDados).filter((n) => n.endsWith('.csv')) : [];

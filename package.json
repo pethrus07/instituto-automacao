@@ -21,6 +21,7 @@
     "test": "node --experimental-strip-types scripts/testar-feed.ts && node --experimental-strip-types scripts/testar-robots.ts && node --experimental-strip-types scripts/testar-giro.ts",
     "qa": "node qa/verificar.mjs",
     "revisao": "node qa/revisao.mjs",
+    "tour": "node tour/gerar.mjs",
     "sondar": "node --experimental-strip-types scripts/sondar-fontes.ts",
     "sondar:vozes": "node --experimental-strip-types scripts/sondar-vozes.ts",
     "colher": "node --experimental-strip-types scripts/colher.ts",
@@ -34,6 +35,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
     "axe-core": "^4.13.0",
     "playwright": "1.62",
     "typescript": "^5.9.0",

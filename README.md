@@ -38,6 +38,7 @@ npm run qa            # 213 asserções contra o site rodando — sai com códig
 | **3 · Escrever** | — | `npm run ler -- <url>` traz o artigo; `npm run nova -- noticias <slug> --url <url>` cria o arquivo |
 | **4 · Publicar** | git | `npm run compilar` → `npm run qa` → commit → `npm run deploy` |
 | **revisão** | — | `npm run revisao` — Playwright: 13 páginas × 3 larguras, axe, fluxos, screenshots em `qa/revisao/` |
+| **tour** | — | `npm run tour` — regenera o tour narrado (`publico/tour/`): voz pt-BR + Playwright dirigindo o site + ffmpeg; legendas WebVTT e capítulos saem juntos |
 
 Frontmatter opcional que a busca e a capa usam: `titulo_curto:` (≤ 53 caracteres; vira o `<title>`
 e o headline do JSON-LD — o título inteiro fica no h1) e `destaque: true` (a peça que abre a
@@ -86,6 +87,7 @@ design/              tokens, base, componentes — o sistema de design
 scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
 qa/verificar.mjs     o QA por medição (afirma e falha); qa/SPRINT-*.md o que cada rodada revelou
 qa/revisao.mjs       a revisão com Playwright (mede e registra); qa/REVISAO-*.md as notas
+tour/                o tour narrado: roteiro-site.mjs (conteúdo) + motor/ (narrar, gravar, montar — copiado dos tutoriais do Mettria) + gerar.mjs
 design/marca/        MARCA.md — a marca prototipal; os arquivos ficam em publico/marca/ e a prancha em /marca
 schema.sql           o D1 (fonte, item, assunto, evento, glossário, correção, assinante)
 migracoes/           ALTER TABLE para banco que já tem dado
@@ -126,6 +128,9 @@ documento antes do código descreve intenção, e esse era o defeito.
   `design/base.css`, calculadas por fontTools). Trocar fonte = recalcular; é o que mantém o CLS em zero.
 - **`publico/og/` é gerado e está fora do git.** `dev` e `deploy` rodam o compilador, que rasteriza o
   que falta; a máquina do deploy precisa do Chromium do Playwright.
+- **O tour é regenerável, não editável.** Mudou uma tela, `npm run tour` com o dev de pé. Precisa de
+  internet na hora (edge-tts) e do Chromium do Playwright; o ffmpeg vem por npm. Roteiro sem número
+  na fala: os números da capa mudam todo dia e a voz não pode desmentir a tela de amanhã.
 - **Imagem sem licença declarada não existe.** A regra do texto vale para a imagem: a licença
   governa, não o formato. "Peguei da matéria" não é licença.
 - **Mudou `wrangler.toml`? Reinicie o `dev`.** `[assets]` não recarrega a quente.

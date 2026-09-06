@@ -30,3 +30,7 @@
 
 /manifest.webmanifest
   Cache-Control: public, max-age=86400
+
+/tour/*
+  Cache-Control: public, max-age=86400
+  Accept-Ranges: bytes
