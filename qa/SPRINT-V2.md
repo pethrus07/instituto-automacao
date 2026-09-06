@@ -380,7 +380,7 @@ reservada à conta do sócio. O que a subida exigiu e o que ela mostrou:
 - **`ERR_ABORTED` no tour não é falha:** `<video preload="metadata">` lê o cabeçalho e o navegador
   aborta o resto do arquivo. A revisão passou a ignorar abort de mídia.
 - **PageSpeed Insights** ficou para depois: a cota anônima da API estava esgotada.
-- **O cron** ainda não tinha batido no fechamento desta sessão; conferir `/saude` (`coleta.ultima`).
+- **O cron bateu no primeiro quarto de hora depois do deploy (20:15):** 45 itens de 3 fontes, robots conferido em 4, zero erros — o `ctx.waitUntil` do coletor funciona em produção, que era o defeito que só apareceria lá. Curiosidade da borda: o `workers.dev` devolve 403 ao `User-Agent` padrão do `urllib` do Python (proteção de bot); `curl` e navegador passam.
 
 ### Em aberto
 1. Produção na conta do sócio (A2) — `wrangler deploy` sem `--env`, com `database_id` e
