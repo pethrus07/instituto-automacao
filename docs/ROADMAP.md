@@ -1,239 +1,199 @@
-# Instituto Automação — Roadmap
+# Instituto Automação — Roadmap · v2
 
-> Marco atual: **P0 · protótipo mínimo funcional → 14/09/2026.**
-> Compromisso contratado: máquina rodando até **31/12/2026** (acordo interno).
-
-## Sprints
-
-Sprints de uma semana. **São 7 até o site público**, mais uma em dezembro para o Panorama.
-Entre a 7 e a 8 não há construção: são ~6 semanas de **operação**, e é ela que faz a base do
-Panorama existir. Essa parte não acelera.
-
-| Sprint | Semana | Entrega | Marco |
-|---|---|---|---|
-| **0** ✅ | 30/08 | conceito · sistema de design · planning · Worker + schema + rotas · **coletor** | feito |
-| **1** ✅ | 31/08 – 06/09 | 30 fontes reais · **robots.txt obedecido** · sitemap de notícias · **Giro da Semana** · **10 vozes** · robustez do coletor | feito em 01/09 |
-| **2** | 07/09 – 13/09 | ⚠️ **depende da chave do sócio**: ligar a IA de verdade, medir a taxa de triagem, aferir o custo real contra a estimativa | 🎯 **P0 · 14/09** |
-| **3** | 14/09 – 20/09 | agenda nos 4 núcleos · filtro por URL · `schema.org/Event` | |
-| **4** | 21/09 – 27/09 | WhatsApp como backoffice: fila, aprovar/descartar/editar, Leitura | |
-| **5** | 28/09 – 04/10 | obra assinada: Análise, Caso, Leitura | |
-| **6** | 05/10 – 11/10 | glossário como tabela · OG image · RSS · sitemap | |
-| **7** | 12/10 – 18/10 | os 4 núcleos no ar · política editorial · captura de e-mail · polimento | 🎯 **v0 · 18/10** |
-| **8** | 1ª quinzena dez | Panorama nº 1 · dataset no Zenodo com DOI | 🎯 **31/12** |
-
-A sprint 0 rendeu mais que o previsto — o coletor, que era da sprint 1, entrou junto. A folga
-foi para a sprint 1, que absorve a parte imprevisível: **fonte real quebra de jeitos que
-fixture nenhuma prevê** — e quebrou, em cinco lugares diferentes (ver
-[qa/SPRINT-1.md](../qa/SPRINT-1.md) e [qa/SPRINT-1B.md](../qa/SPRINT-1B.md)).
-
-A sprint 1 fechou em **dois dias**, e por isso absorveu o Giro da Semana, que não estava no
-plano. **A sprint 2 é a que não acelera:** o pipeline já está construído e testado, mas até
-a chave da conta do sócio chegar ele roda em simulação — e o que falta medir (taxa de
-aprovação da triagem, custo real por item) só existe com chamada de verdade.
-
-```mermaid
-gantt
-    dateFormat YYYY-MM-DD
-    axisFormat %d/%m
-    title  Do protótipo à renegociação
-    section P0 · protótipo
-    Esqueleto (Worker + D1 + rota)      :p1, 2026-08-31, 3d
-    Coletor (fetch, dedup, cron)        :p2, after p1, 3d
-    Pipeline de IA + teto de custo      :p3, after p2, 3d
-    Assunto + atraso + fontes BR        :p4, after p3, 3d
-    Página real + deploy                :p5, after p4, 3d
-    section v0 · público
-    Agenda nos 4 núcleos                :v1, 2026-09-17, 14d
-    WhatsApp como backoffice            :v2, after v1, 10d
-    Obra, glossário, OG, RSS            :v3, after v2, 10d
-    section Operação
-    Coleta contínua (base do Panorama)  :o1, 2026-09-15, 107d
-    Panorama nº 1                       :o2, 2026-12-01, 14d
-    Renegociação                        :milestone, 2026-12-31, 0d
-```
+> **Estado em 08/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
+> Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
+> **31/12/2026** (acordo interno).
+>
+> Este arquivo substitui o roadmap da v1. Em 03/09 morreram a IA em produção, os quatro
+> núcleos, o teto de custo e a chave de API; o que sobreviveu está na seção 7. O `roadmap.html`
+> ao lado continua descrevendo a v1 e não foi refeito.
 
 ---
 
-## P0 · Protótipo mínimo funcional — **14/09/2026**
+## 1 · Onde estamos
 
-> **Estado em 01/09:** os cinco blocos estão **funcionalmente prontos**, e a sprint 1
-> entregou por cima deles o `robots.txt`, o sitemap de notícias, as vozes e o Giro da Semana.
-> Faltam duas coisas, e **nenhuma é código**: a chave da IA da conta do sócio (hoje tudo
-> roda em simulação) e o acesso à Cloudflare para o deploy.
-
-| Bloco | Estado | Sobrou o quê |
-|---|---|---|
-| 1 · Esqueleto | ✅ | — |
-| 2 · Coletor | ✅ **passou do previsto** | robots.txt obedecido, sitemap-news, 30 fontes ativas |
-| 3 · Pipeline | ⚠️ **em simulação** | a esteira roda inteira; falta a chave para o texto ser real |
-| 4 · O atraso | ✅ | mede; o agrupamento por título é fraco e agora tem número público |
-| 5 · Página | ✅ os quatro núcleos, não só Indústria | falta o deploy |
-
-**O que é "funcional":** o radar coletando de verdade, traduzindo de verdade e publicando
-numa página de verdade — com o relógio do atraso já rodando por baixo.
-
-**O que NÃO entra no P0, de propósito:** WhatsApp, agenda, obra assinada, glossário como
-tabela, OG image, RSS, os outros três núcleos, transparência. Tudo isso é v0.
-
-| Bloco | Dias | Entrega |
-|---|---|---|
-| **1 · Esqueleto** | 1–3 | Worker + Hono + JSX no ar; schema D1 **completo** aplicado (inclusive `assunto`); rota `/industria` renderizando dado semente com o sistema de design |
-| **2 · Coletor** | 4–6 | fetch + parse de RSS, dedup por `url_canonica`, `ctx.waitUntil`, Cron Trigger, 8–10 salas de imprensa `liberada` classificadas |
-| **3 · Pipeline** | 7–9 | triagem (Haiku) → classificação → tradução integral (Sonnet) → contexto BR; glossário semente no código; `custo_dia` com teto que pausa |
-| **4 · O atraso** | 10–12 | 3–4 fontes BR com `marca_relogio`; agrupamento em `assunto`; cálculo de `atraso_br_dias` |
-| **5 · Página** | 13–15 | `/industria` e `/industria/<slug>` com conteúdo real; cache na borda; deploy; ajuste do design contra notícia de verdade |
-
-⚠️ **O schema entra inteiro no bloco 1, mesmo sem tela.** Classificação rica e medição de
-atraso não são reconstituíveis: notícia sai do ar e feed guarda só as últimas dezenas de
-itens. Cada dia sem coletar é um dia perdido para sempre.
-
-### Riscos do P0
-
-| Risco | Mitigação |
+| Existe | Não existe ainda |
 |---|---|
-| **Acesso à Cloudflare do sócio** — a infra é dele e sem isso não há deploy | resolver **antes do dia 1**; é a única dependência externa bloqueante |
-| Feed que não é RSS (raspagem) | no P0, só fonte com feed. Raspagem fica para o v0 |
-| Conta de IA estourando | teto no bloco 3, antes de ligar volume |
-| 15 dias com Parresia e faculdade no meio | os blocos são de 3 dias e independentes: se um atrasar, o marco desliza mas nada quebra |
+| 21 peças reais (20 notícias, 1 análise), 20 eventos conferidos, 33 termos, dataset CSV | **Produção** e domínio (A2) |
+| Seções Notícias, **Artigos** (vazia, honesta), Relatórios, Giro, Agenda, Glossário, Blueprints | **Primeiro artigo** e as instruções para autores |
+| **Autores** com página própria (1 autor), faixa "Quem escreve", convite "Escreva no Instituto" | **Primeiro Giro** (a s36 ficou sem edição) |
+| Espaço de **parceiro** na capa + `/apoie` (lista vazia) | **Primeiro parceiro** |
+| Cadastro com atuação e empresa (migração 006), tabela `contato` | **Página de privacidade** e a finalidade escrita no cadastro |
+| Marca prototipal e prancha em `/marca` | **Logo** definitiva |
+| Tour narrado, QA 1004 asserções, revisão Playwright 8,8 | Formulário de **submissão de artigo** (texto, imagens, arquivos) |
+| Relógio medindo sobre 21 fontes, cron vivo na homologação | Redes sociais e comunidade |
 
 ---
 
-## v0 · Público — proposta: **31/10/2026**
+## 2 · O que a reunião de 08/09 decidiu
 
-O que transforma o protótipo em veículo.
+Ata: `atas/atas-salvas/2026-09-08_0056_Reunião 08_09_2026 00_24.md` (89 min). Todos os
+"Participante N" da transcrição são o sócio.
 
-| # | Entrega | Por quê agora |
+| Decisão ou pedido | Dono | Estado |
 |---|---|---|
-| 1 | **Agenda nos 4 núcleos** com `schema.org/Event` | é o ativo mais durável e o que traz tráfego recorrente e inbound |
-| 2 | **WhatsApp como backoffice** (aprovar, publicar, Leitura do sócio) | sem isso o sócio não publica e o núcleo Indústria não tem voz |
-| 3 | **Obra assinada** (Análise, Leitura, Caso) | é o que constrói autoridade — o radar sozinho não constrói |
-| 4 | **Glossário** como tabela + página | a qualidade de tradução para de depender de sorte |
-| 5 | **OG image** gerada + **RSS** por núcleo | distribuição; o link precisa circular com cara de veículo |
-| 6 | Os outros três núcleos (Operação e Edificações em Radar) | o guarda-chuva prometido passa a existir |
-| 7 | Página de política editorial e correções | o que separa veículo de blog |
-| 8 | Captura de e-mail (sem envio ainda) | começar a lista o quanto antes; ela é o único ativo próprio |
+| **Artigos são o coração; notícia dá movimento.** Os dois concordaram | — | seção criada em 08/09 |
+| Capa com **um artigo fixo** que notícia nova não empurra ("um artigo e duas notícias") | Pedro decide o formato; eu faço | a fazer |
+| **Casar artigo com notícia** do mesmo assunto (artigo sobre CLP Siemens ao lado da notícia da Siemens) | editorial | vira regra nas instruções para autores |
+| **Cadência:** Pedro publica aos domingos e aprova semanalmente; sócio quer ao menos a capa atualizada todo dia | Pedro | decidir |
+| **Autores:** sócio recruta (especialista em CLP Siemens, profissional de TI, vendedor com método, ele mesmo) | sócio | em curso |
+| sócio quer produzir **3 artigos para uma empresa** e perguntou "quanto fica" | os dois | precificar **e** rotular como conteúdo pago (seção 3) |
+| **Submissão de artigo:** formulário no site com texto, imagens e arquivos; eu diagramo; o autor aprova. Sem editor de texto nem backoffice. Autor quer preview | eu | a construir |
+| **Podcast mensal** com o convidado, entrevistando empreendedores da automação; cada episódio rende artigo e "aprendizado" | sócio | ideia |
+| **Redes:** comunidade WhatsApp, X e TikTok (Pedro quer). sócio não toca rede social | dono em aberto | decidir |
+| **Cadastro:** um só, com gatilhos por público; evitar a palavra "newsletter"; a lista é o ativo a monetizar em 6 meses | os dois | depende da LGPD (seção 3) |
+| Números do relógio em **destaque azul**; explicar "atraso mediano" | eu | a fazer |
+| Botão **"Enviar um evento" sair da capa**, ficar só na agenda | Pedro decide | decidir |
+| **Notas internas de Blueprints** (cinzas) saem antes de publicar | eu | a fazer |
+| Glossário: sócio não quer sair do texto para ler; a tradução já vai inline e o glossário é complemento | — | como está |
+| **Logo:** o radar não diz "instituto" nem "educação"; sócio propõe bússola fundida com I e A; ele gera opções e manda | sócio → Pedro | em curso |
+| sócio fechou um projeto e vai **separar um valor para manter a infra** | sócio | aguardar |
+| "Somos o site mais rápido do Brasil" como propaganda | — | só com medição publicada e reproduzível |
+
+O que o sócio disse do visual antes da sprint de 08/09 ("cru, poucos detalhes", "escuro ficou
+melhor", "banner dá vida", "linhas organizam") foi respondido no mesmo dia: `qa/SPRINT-V2.md`
+§14.
 
 ---
 
-## Depois do v0
+## 3 · O juridiquês, por escrito
+
+Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência
+por escrito. Está aqui. Não é parecer de advogado; os fatos abaixo são pacíficos.
+
+| Afirmação | O que vale | Base |
+|---|---|---|
+| "Só jornalista pode assinar notícia" | **Não.** O STF derrubou o diploma obrigatório em 2009. Qualquer pessoa escreve e assina notícia; a assinatura atribui responsabilidade, não exige credencial | STF, RE 511.961 (17/06/2009); DL 972/1969, art. 4º, V, não recepcionado; ADPF 130 |
+| "Por isso chamamos de peça" | Pode chamar de notícia. "Peça" fica por escolha editorial, não por obrigação | idem |
+| "Só formado escreve artigo; meu primeiro será o TCC" | **Não há lei.** Artigo é gênero de texto; só periódico científico impõe titulação, e cada um decide a sua. A seção Artigos pode ter esse nome | nenhuma norma restringe o gênero |
+| "Reescrever notícia de outro precisa de liberação" | Fatos e informações **não têm** direito autoral; a forma do texto tem. Texto próprio sobre o fato, com crédito e link, é lícito sem pedir. É o método do site | Lei 9.610/1998, art. 8º, I e VII; art. 46, III |
+| "Traduzir pode" | **Tradução integral é obra derivada** e exige autorização. Reescrita e resumo próprios, não. O site reescreve; deve continuar assim | Lei 9.610, art. 29, IV |
+| "O robots.txt é a permissão que o site dá" | **Não é.** É convenção técnica para robôs de coleta, sem efeito sobre direito autoral. Respeitar evita briga por termos de uso; não licencia nada | RFC 9309 |
+| "Plágio é copiar sem citar" (sócio) | Quase. Citar não autoriza reproduzir o texto inteiro; trecho curto com fonte, sim | Lei 9.610, art. 24; art. 46, III e VIII |
+| Cláusula da imprensa | A lei permite a periódico reproduzir notícia de outro periódico com menção de autor e publicação; para site é disputada. O caminho seguro segue sendo texto próprio | Lei 9.610, art. 46, I, a |
+| Imagens | Foto de veículo é obra protegida mesmo com crédito; material de imprensa vem com licença de republicação. Regra do site desde 04/09 | Lei 9.610, art. 7º, VII |
+| Artigos pagos; "notícia boa" para a IP virar parceira | Conteúdo pago ou de interesse comercial **tem de ser identificado como publicidade**. Notícia favorável para conquistar cliente, sem rótulo, é publicidade velada e contradiz a regra publicada em `/apoie` | CDC, art. 36; CONAR, art. 28 |
+| "Banco de 2 mil pessoas" para anunciante | **LGPD:** a finalidade se declara na coleta. Mandar oferta de terceiro só se constar; repassar ou vender a base, não | Lei 13.709/2018, arts. 6º, 7º, 9º, 18 |
+| "Site mais rápido do Brasil" | Só com medição publicada e reproduzível; sem prova é publicidade enganosa | CDC, art. 37 |
+| Nome "Instituto Automação" | A palavra é livre. Conferir a marca no **INPI** antes de fechar a logo; ao formalizar, associação sem fins lucrativos | Lei 9.279/1996; CC, art. 53 |
+| Responsabilidade | Quem assina responde civil e penalmente por calúnia, difamação e injúria; publicação periódica está sujeita a direito de resposta. O registro de correções ajuda | CC, arts. 186 e 927; CP, arts. 138–140; Lei 13.188/2015 |
+
+**Resumo:** nenhuma trava citada existe. As obrigações reais são três: **identificar
+publicidade**, **declarar a finalidade do cadastro**, e **não reproduzir texto nem imagem
+alheia inteira**. As três já estão ou cabem no método atual.
+
+---
+
+## 4 · Marcos
+
+| Quando | Marco | Depende de |
+|---|---|---|
+| **14/09** (segunda) | **Primeiro Giro** (s37), com `npm run dossie`. Decidir se a s36 sai atrasada ou fica registrada como pulada | Pedro |
+| até **20/09** | Página de privacidade + finalidade no cadastro · notas internas fora de Blueprints · relógio com números em destaque e "atraso mediano" explicado · artigo fixo na capa · botão de evento | Pedro decide, eu faço |
+| **setembro** | **Logo:** opções do sócio → escolha do Pedro → prancha e ícones refeitos (`/marca`, favicon, OG) | sócio, depois eu |
+| **setembro** | **Instruções para autores** publicadas em `/autores#escrever` (o que se pede já está; falta formato, tamanho, fonte, imagem, revisão) | os dois |
+| **set–out** | **Primeiro artigo** — de um autor do sócio ou do Pedro | sócio, Pedro |
+| **outubro** | **Formulário de submissão de artigo** (texto, imagens, arquivos) → eu diagramo → autor aprova | eu |
+| **outubro** | **Produção na conta do sócio:** acesso + domínio (A2), `wrangler deploy` sem `--env`, `db:remoto` + sementes + `db:migrar:remoto`, tirar o `noindex`, Search Console, sitemap | **sócio** (A2) |
+| **outubro** | **Primeiro parceiro**, por commit em `src/parceiros.ts`, rotulado | sócio |
+| **novembro** | Definir quem toca redes e comunidade; começar por uma | Pedro |
+| **1ª quinzena de dez** | **Panorama nº 1** com ~3 meses de base + **dataset no Zenodo com DOI** (CC-BY) | coleta contínua desde set |
+| **31/12/2026** | **Renegociação** com o sócio, chegando com base, Panorama e artigos publicados | acordo interno |
+
+---
+
+## 5 · Backlog por dono
+
+### Pedro — decisões
+
+- [ ] Voltar a chamar notícia de **notícia**; "peça" fica termo interno de Blueprints.
+- [ ] **Relógio:** manter (é a tese) ou tirar (o sócio duvida da medida).
+- [ ] `link:` do currículo e texto da bio em `conteudo/autores/pedro-oliveira.md`.
+- [ ] Qual peça leva `destaque: true` (hoje NVIDIA × Hugging Face).
+- [ ] Fonte brasileira dentro de Notícias, com a tagline dizendo "lá fora".
+- [ ] Artigo fixo na capa: slot próprio ou destaque alternado.
+- [ ] Botão "Enviar um evento" fora da capa?
+- [ ] Cadência: semanal, ou capa diária?
+- [ ] Quem toca redes e comunidade.
+- [ ] Preço dos 3 artigos que o sócio quer vender, e a regra do rótulo.
+
+### Eu — código
+
+- [ ] Página de privacidade; finalidade escrita ao lado do cadastro.
+- [ ] Tirar as notas internas de Blueprints; alongar o "Como funciona".
+- [ ] Relógio: números em destaque, explicar "atraso mediano", nota de amostra (feita).
+- [ ] Artigo fixo na capa (quando decidido).
+- [ ] Formulário de submissão de artigo com upload → `contato` ou tabela própria → eu diagramo.
+- [ ] Regra de publicidade no código: peça com `patrocinada: true` sai rotulada, sempre.
+- [ ] Reescrever ou arquivar os docs da v1 (`CONCEITO`, `ARQUITETURA`, `FLUXOS`, `MODELO-DADOS`, `CAPACIDADE`, `ORGANOGRAMA`, `roadmap.html`).
+- [ ] Lint e formatação.
+- [ ] PageSpeed Insights quando a cota liberar; cartão OG no WhatsApp e LinkedIn a partir da homologação.
+- [ ] Diarizador do gravador de atas: limiar baixo fatiou um falante em 78; ajustar antes da próxima reunião.
+
+### sócio
+
+- [ ] **A2:** acesso à Cloudflare + domínio e DNS.
+- [ ] **A3:** os pontos do acordo interno por escrito (sem o custo de API, que deixou de existir).
+- [ ] Opções de **logo** (bússola + I/A) para o Pedro escolher.
+- [ ] Autores: trazer o primeiro texto, com nome e sobrenome.
+- [ ] Primeiro parceiro, com contrato e rótulo.
+- [ ] Podcast com o convidado, se for adiante: quem, quando, e o que vira artigo.
+- [ ] O valor de infra que ele disse que vai separar.
+
+### Os dois — conversa
+
+- [ ] **Publicidade identificada:** artigo pago e "notícia boa" para cliente saem rotulados ou não saem. Isso precisa ser dito antes da primeira venda.
+- [ ] **Política editorial em uma página:** artigo não é opinião (método replicável, dados), parceiro não escreve nem escolhe pauta, toda peça tem autor, correções registradas.
+- [ ] O papel do sócio mudou com a v2 (infra + comercial + autores); a Leitura semanal dele não existe mais.
+
+---
+
+## 6 · Depois
 
 | Fase | Foco | Métrica | Quando |
 |---|---|---|---|
-| 1 | autoridade → leads | conversas qualificadas | mês 1–6 |
-| 2 | ativo de mídia | assinantes da newsletter | mês 6–12 |
-| 3 | comunidade e eventos | gente na sala | ano 2 |
+| 1 | autoridade → leads | conversas qualificadas e autores publicando | até dez/2026 |
+| 2 | ativo de mídia | cadastros com finalidade declarada; primeiro parceiro pagando | 2027, 1º semestre |
+| 3 | comunidade | gente na sala: podcast, WhatsApp, evento | 2027 |
 
-**Marcos que não podem escorregar:**
-
-- **Uma peça original com dado próprio por trimestre.** É a única coisa não automatizável e
-  a única que constrói o que o projeto quer. Sem ela, o radar bonito não vira nada.
-- **Panorama nº 1 em dezembro**, com ~3 meses de base. Chega na renegociação de 31/12 com
-  obra publicada, não com promessa.
-- **Dataset no Zenodo com DOI e CC-BY**, junto do Panorama nº 1. É o que torna o Instituto
-  citável em TCC, dissertação e artigo — e é subir um CSV.
+**Marcos que não escorregam:** uma peça original com dado próprio por trimestre; Panorama nº 1
+em dezembro; dataset com DOI junto dele.
 
 ---
 
-## Backlog (sem data)
+## 7 · O que continua valendo da v1
+
+| Decisão | Data |
+|---|---|
+| Fonte internacional, público brasileiro; **só português, para sempre** | 30/08 |
+| **Pergunta-assinatura:** o atraso entre a fronteira e o chão de fábrica daqui | 30/08 |
+| Tema azul + laranja; **página branca, estrutura por fio e ar** | 30/08 · 03/09 |
+| **Nunca republicar imagem de terceiro** sem licença; a licença governa, não o formato | 30/08 · 04/09 |
+| **O `robots.txt` manda, e não há contorno** | 01/09 |
+| Sitemap de notícias como caminho legítimo para quem fecha o RSS | 01/09 |
+| Voz é um eixo da fonte, não um tipo | 01/09 |
+| Giro semanal com destaque por fórmula publicada; **a auditoria de números aborta** | 01/09 |
+| Repositório privado agora, público depois | 30/08 |
+| **Zero IA em produção; toda peça tem autor; o git é o CMS** | 03/09 |
+| **Escuro não segue o sistema**; só no botão | 05/09 |
+| Evento só com data conferida no site oficial | 04/09 |
+
+## 8 · Backlog sem data
 
 | Item | Nota |
 |---|---|
-| Busca (FTS5 do D1) | quando houver conteúdo o bastante para procurar |
-| Fila (Cloudflare Queues) | se o coletor passar de ~30 s por invocação |
-| Embeddings para agrupar assunto | **deixou de ser dívida técnica.** O Giro publica toda semana quantos assuntos ficaram com uma fonte só (49 na primeira edição) — o número está na cara do leitor, e boa parte dele é a mesma notícia que o título não juntou |
-| Envio da newsletter | quando houver lista que justifique |
-| Diretório de fornecedores | fase 2, é receita |
-| Página de "perguntas abertas" para orientadores | junto do dataset com DOI |
-| Espanhol nas fontes | depois de EN e DE estarem estáveis |
-| Repositório público | quando estiver apresentável **e** o acordo do código estiver escrito |
-| **Marca gráfica (logotipo)** | **futuro breve.** Hoje o wordmark centralizado do cabeçalho faz o papel — é assim que jornal e revista acadêmica vivem sem símbolo. Quando entrar, o símbolo deve nascer no mesmo vocabulário das capas geradas (varredura de radar, malha de pontos), porque aí ele já vem com sistema em vez de virar um desenho solto. Serve também de favicon e de assinatura na OG image |
-| **Newsletter do Giro** | a lista de e-mail já existe e não tem envio; o Giro é o conteúdo óbvio para ela, e é semanal por natureza |
-| **Mais vozes brasileiras** | hoje só uma (Rodrigo Ghedin), e nenhuma de automação industrial. É o buraco mais visível da lista de fontes |
-| **Coletor por API com credencial** | GitHub REST, Reddit OAuth, YouTube Data API. São as saídas legítimas das 4 fontes que o `robots.txt` recusa — e o robots do GitHub literalmente oferece a API no comentário do topo. É JSON, não RSS: coletor novo, não um parser a mais |
-| **Pedido de acesso às publicações** | Control Engineering, Automation World, WEG. Não é código, é uma mensagem — e o Control Engineering merece segunda medição: o `robots.txt` dele permite, o 403 veio do WAF |
-| Sitemap onde o feed é pobre | hoje o sitemap-news é saída para quem proíbe o RSS; algumas fontes têm sitemap mais completo que o próprio feed |
-| OG image rasterizada | ⚠️ não é trivial num Worker: `og:image` em SVG não é aceito pelo WhatsApp nem pelo LinkedIn, e rasterizar exige biblioteca wasm (`workers-og`). O desenho já existe — falta só o encoder |
+| Embeddings para agrupar assunto | o relógio mede 552 assuntos para 554 itens: o agrupamento por título quase não agrupa |
+| Mais vozes brasileiras de automação industrial | o buraco mais visível da lista de fontes |
+| Coletor por API com credencial (GitHub, Reddit, YouTube) | saída legítima para as fontes que o robots recusa |
+| Pedido de acesso a Control Engineering, Automation World, WEG | é mensagem, não código |
+| Envio da newsletter | quando a lista justificar, e com a finalidade declarada |
+| Busca (FTS5) | quando houver o que procurar |
+| Diretório de quem opera, integra e ensina | só com base legal e rótulo comercial; a ideia do sócio de "sua empresa aqui" mora aqui |
+| Página de perguntas abertas para orientadores | junto do dataset com DOI |
+| Espanhol nas fontes | depois de EN e DE estáveis |
+| Repositório público | quando o acordo do código estiver escrito |
 
----
+## 9 · Mortos — não voltar sem fato novo
 
-## Próximos passos — 01/09/2026
-
-**O código deixou de ser o gargalo.** O que falta agora se divide em três pilhas, e a
-primeira depende de outra pessoa.
-
-### A · Destrava o deploy (com o sócio — nada disso é código)
-
-| # | O quê | Trava o quê |
-|---|---|---|
-| **A1** | **Chave da API na conta do sócio** (`ANTHROPIC_API_KEY` + `IA_CONTA`) | **tudo o que é texto real.** Pipeline e Giro rodam em simulação hoje. Sem isso o site tem estrutura e não tem conteúdo |
-| **A2** | **Acesso à conta Cloudflare** + domínio exato (TLD) e onde está o DNS | o deploy inteiro |
-| **A3** | **Fechar o acordo por escrito** | escopo de "manter rodando", quem paga a API, de quem é o código, cópia do dataset. Não trava código; trava dormir tranquilo em novembro |
-
-### B · Três decisões que são do Pedro ([CAPACIDADE.md](CAPACIDADE.md))
-
-| # | Decisão | Por que agora |
-|---|---|---|
-| **B1** | **O arXiv fica, sai ou vira fluxo separado?** | é 54% do volume (1.596 itens/semana de 2 fontes) e sozinho **estoura o teto diário** antes de o site publicar uma linha |
-| **B2** | **R$ 3,00/dia é o teto certo?** | ele define a cadência do site mais que qualquer outra coisa: 10% de aprovação na triagem → ~180 peças/semana; 30% → ~440. Quem paga é o sócio |
-| **B3** | `ENTRADAS_POR_FONTE = 25` **precisa ser por fonte** | hoje 178 itens/dia do arXiv entram no radar e são **descartados em silêncio**. Sai junto com B1 — as duas se resolvem no mesmo lugar |
-
-### C · O que eu toco assim que B estiver decidido
-
-1. **Corte ou filtro do arXiv** + `ENTRADAS_POR_FONTE` por fonte (B1 + B3).
-2. **Classificar salas de imprensa como `liberada`**, com `licenca_evidencia` — é o trabalho
-   braçal que libera a tradução integral. **Nenhuma das 30 fontes é `liberada` hoje**, então
-   o site inteiro está limitado a resumo próprio ([FONTES.md](FONTES.md)).
-3. **Pedido de acesso** a Control Engineering, Automation World e WEG. O Control Engineering
-   merece segunda medição: o `robots.txt` dele permite e o 403 veio do WAF.
-4. **Mais vozes brasileiras** — hoje só uma (Rodrigo Ghedin) e **nenhuma de automação
-   industrial**. É o buraco mais visível da lista de fontes.
-5. **Embeddings para agrupar assunto.** Deixou de ser dívida técnica: o Giro publica toda
-   semana quantos assuntos ficaram com uma fonte só (49 na primeira edição), e boa parte é a
-   mesma notícia que o título não juntou.
-6. **Deploy** (depende de A2): criar Worker + D1, `npm run db:remoto`, `npm run db:migrar:remoto`.
-
-### Como saber que não quebrou
-
-Antes de qualquer deploy: `npm test` (94 conferências) e `npm run qa` (199 asserções, sai com
-código 1 se falhar). Quando a lista de fontes mudar, `npm run cadencia` refaz a conta de
-capacidade.
-
----
-
-## Decisões travadas
-
-| # | Decisão | Data |
-|---|---|---|
-| 1 | Guarda-chuva de 4 núcleos + camada institucional | 30/08 |
-| 2 | Fonte internacional, público brasileiro, tradução em primeira mão | 30/08 |
-| 3 | Impessoal no fluxo, assinado na obra | 30/08 |
-| 4 | Transparência por gatilho | 30/08 |
-| 5 | Indústria (sócio) e Observatório (Pedro) quentes | 30/08 |
-| 6 | Operação recebe o formato Casos | 30/08 |
-| 7 | Licença da fonte como regra no código, negando por padrão | 30/08 |
-| 8 | Um Worker só · Hono + JSX · D1 · WhatsApp como backoffice | 30/08 |
-| 9 | Tema azul + laranja; paleta curta de duas cores | 30/08 |
-| 10 | **Só português, para sempre** — rota sem prefixo de idioma | 30/08 |
-| 11 | **Repositório privado agora**, público depois | 30/08 |
-| 12 | **Pergunta-assinatura: o atraso entre a fronteira e o chão de fábrica daqui** | 30/08 |
-| 13 | **P0 em 15 dias — 14/09/2026** | 30/08 |
-| 14 | Analytics sem cookie · nunca republicar imagem de terceiro | 30/08 |
-| 15 | **O `robots.txt` manda, e não há contorno** — sem trocar User-Agent, sem proxy, sem navegador disfarçado. Robots ilegível também fica de fora | 01/09 |
-| 16 | **Sitemap de notícias** é o caminho legítimo para quem fecha o RSS e anuncia o sitemap no mesmo arquivo | 01/09 |
-| 17 | **Voz é um eixo (`fonte.pessoa`), não um valor de `tipo`** — meio e assinatura são coisas diferentes | 01/09 |
-| 18 | **Giro da Semana semanal, com o destaque escolhido por fórmula publicada** e piso de 2 fontes independentes | 01/09 |
-| 19 | **A auditoria do Giro aborta**: edição que inventa número não vai ao ar, e o motivo é publicado em `/blueprints` | 01/09 |
-
-## Ainda em aberto
-
-| # | Pergunta | Bloqueia |
-|---|---|---|
-| 1 | Domínio exato (TLD) e onde está o DNS | deploy |
-| 2 | Acesso à conta Cloudflare do sócio | deploy |
-| 3 | Data da 2ª parcela | nada técnico |
-| 4 | Data-alvo do v0 (proposta: 31/10) | planejamento |
-| 5 | Identidade visual além do sistema de design (marca, logotipo) | nada técnico no P0 |
-| 6 | **Chave da API na conta do sócio** | **todo texto real** — pipeline e Giro simulam sem ela |
-| 7 | **O arXiv fica, sai ou vira fluxo separado?** | o teto de custo, e o quanto o radar publica |
-| 8 | **O teto de R$ 3,00/dia é o certo?** | a cadência do site |
-| 9 | Nenhuma fonte é `liberada` ainda | a tradução integral — o "primeira mão" não existe até isso |
+IA em produção · quatro núcleos · teto de custo e chave de API (o antigo A1) · tradução
+integral de terceiro · backoffice fora do git · o "Tema" no rodapé · a coluna lateral da peça.

@@ -122,11 +122,12 @@ migracoes/           ALTER TABLE para banco que já tem dado — 006 (07/09): as
 | [docs/CONCEPCAO-V2.md](docs/CONCEPCAO-V2.md) | **a concepção vigente**: princípio, três eixos, todas as decisões |
 | [docs/EXECUCAO-V2.md](docs/EXECUCAO-V2.md) | o plano de obra e os treze critérios de "perfeito" |
 | [qa/SPRINT-V2.md](qa/SPRINT-V2.md) | o que esta construção entregou e os defeitos que revelou |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | **o roadmap vigente** (reescrito em 08/09): onde estamos, o que a reunião com o sócio decidiu, o juridiquês por escrito, marcos e backlog por dono |
 | acordo interno | o combinado com o sócio |
 
 ⚠️ **Descrevem a v1 e ainda não foram reescritos:** `CONCEITO.md`, `docs/ARQUITETURA.md`,
-`docs/FLUXOS.md`, `docs/MODELO-DADOS.md`, `docs/ORGANOGRAMA.md`, `docs/ROADMAP.md`,
-`docs/CAPACIDADE.md`, `docs/roadmap.html`. O que sobreviveu neles (robots, canonicalização,
+`docs/FLUXOS.md`, `docs/MODELO-DADOS.md`, `docs/ORGANOGRAMA.md`, `docs/CAPACIDADE.md`,
+`docs/roadmap.html`. O que sobreviveu neles (robots, canonicalização,
 sistema de design, método do QA) continua certo; o resto — pipeline de IA, quatro núcleos,
 teto de custo — morreu em 03/09/2026. A reescrita é a última etapa da execução, de propósito:
 documento antes do código descreve intenção, e esse era o defeito.
