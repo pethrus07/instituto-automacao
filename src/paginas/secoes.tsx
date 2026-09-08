@@ -1,14 +1,14 @@
 /**
- * As seções (Notícias, Relatórios, Giro) e a página de cada peça.
+ * As seções (Notícias, Artigos, Relatórios, Giro) e a página de cada peça.
  */
 import { raw } from 'hono/html';
 import type { Context } from 'hono';
 import { Documento } from '../ui/Documento';
-import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa } from '../ui/pecas';
+import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa } from '../ui/pecas';
 import { ldJson, colecaoLd, pecaLd, trilhaLd } from '../ui/jsonld';
 import { renderizarObra } from '../ui/markdown';
 import { CACHE, type Env } from '../config';
-import { porSecao, obter, caminho, ROTULO_SECAO, SECOES, type Secao as ChaveSecao, type Peca } from '../conteudo';
+import { porSecao, obter, caminho, autorDe, pecasDoAutor, ROTULO_SECAO, SECOES, type Secao as ChaveSecao, type Peca } from '../conteudo';
 import { novaApp, pagina, type Ambiente } from './app';
 
 export const secoes = novaApp();
@@ -16,15 +16,27 @@ export const secoes = novaApp();
 const DESCRICAO_SECAO: Record<ChaveSecao, string> = {
   noticias:
     'O que o setor de automação publicou lá fora, lido na fonte e escrito em português — com o que cada coisa muda para quem opera no Brasil.',
+  artigos:
+    'O que ensina: guias e conceitos de automação escritos por quem faz, para quem opera no Brasil. A notícia diz o que aconteceu; o artigo explica como funciona e como se faz.',
   relatorios:
     'O que apuramos com dado próprio: casos com custo aberto, análises a partir da nossa base, e o Panorama do relógio.',
   giro: 'O balanço da semana: o que aconteceu, o que importou, o que ficou de fora e por quê.',
 };
 
-const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: string }> = {
+const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: unknown }> = {
   noticias: {
     titulo: 'A primeira notícia está a caminho.',
     texto: 'Lemos as fontes todo dia. A peça só sai depois de escolhida, escrita e lida — e a primeira está nessa fila.',
+  },
+  artigos: {
+    titulo: 'O primeiro artigo está sendo escrito.',
+    texto: (
+      <>
+        Artigo aqui é um guia ou um conceito, assinado por quem faz automação: com página de autor,
+        bio e link para o currículo. Escreve sobre o assunto?{' '}
+        <a href="/autores#escrever">Publique no Instituto</a>.
+      </>
+    ),
   },
   relatorios: {
     titulo: 'O primeiro relatório sai com dado próprio, não com opinião.',
@@ -37,6 +49,7 @@ const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: string }> = {
 };
 
 secoes.get('/noticias', (c) => secao(c, 'noticias'));
+secoes.get('/artigos', (c) => secao(c, 'artigos'));
 secoes.get('/relatorios', (c) => secao(c, 'relatorios'));
 secoes.get('/giro', (c) => secao(c, 'giro'));
 
@@ -61,6 +74,7 @@ function secao(c: Context<Ambiente>, s: ChaveSecao) {
         ]}
       >
         <header class="cabeca-secao">
+          <span class="kicker">Seção</span>
           <h1>{ROTULO_SECAO[s]}</h1>
           <p class="cabeca-secao__lead">{DESCRICAO_SECAO[s]}</p>
         </header>
@@ -104,9 +118,18 @@ for (const s of SECOES) {
   });
 }
 
+/**
+ * A página da peça: coluna única, centrada, na medida de leitura; a arte
+ * sangra até a largura da página. Embaixo do texto, a FICHA — o veredito com
+ * o critério, a fonte, quem escreveu. Era uma coluna lateral; o sócio achou
+ * que ela roubava espaço da notícia ("precisa dessa parte lateral direita?"),
+ * e não precisava: o que ela dizia cabe melhor no fim, quando o leitor já
+ * leu e quer conferir.
+ */
 export function paginaDaPeca(p: Peca, env: Env) {
   const html = renderizarObra(p.corpo);
   const outras = porSecao(p.secao).filter((x) => x.slug !== p.slug).slice(0, 3);
+  const autor = autorDe(p);
   const base = env.SITE_URL;
   const url = base + caminho(p);
 
@@ -138,20 +161,21 @@ export function paginaDaPeca(p: Peca, env: Env) {
         <div class="peca__corpo">
           <div class="obra">{raw(html)}</div>
 
-          <div class="peca__lateral">
+          <div class="peca__ficha">
             {p.secao === 'noticias' && <VereditoCaixa valor={p.veredito} />}
             <FonteCaixa peca={p} />
+            {autor && <AutorCaixa autor={autor} pecas={pecasDoAutor(autor).length} />}
           </div>
-        </div>
 
-        <footer class="peca__pe">
-          <Aviso>
-            <strong>Como esta peça foi feita.</strong>{' '}
-            {p.fonte
-              ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
-              : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
-          </Aviso>
-        </footer>
+          <footer class="peca__pe">
+            <Aviso>
+              <strong>Como esta peça foi feita.</strong>{' '}
+              {p.fonte
+                ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
+                : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
+            </Aviso>
+          </footer>
+        </div>
       </article>
 
       {outras.length > 0 && (

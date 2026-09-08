@@ -7,10 +7,10 @@
  *
  * O git é o CMS. Estas funções são só o índice.
  */
-import { ARTES, PECAS } from '../conteudo.gerado';
-import type { Peca, Secao } from './tipos';
+import { ARTES, AUTORES, PECAS } from '../conteudo.gerado';
+import type { Autor, Peca, Secao } from './tipos';
 
-export type { Peca, Secao, Tema, Formato, Veredito } from './tipos';
+export type { Autor, Peca, Secao, Tema, Formato, Veredito } from './tipos';
 export { SECOES, TEMAS, VEREDITOS } from './tipos';
 
 /** Todas, da mais recente para a mais antiga. */
@@ -38,9 +38,9 @@ export function destaque(): Peca | null {
   return PECAS.find((p) => p.destaque) ?? porSecao('noticias')[0] ?? porSecao('relatorios')[0] ?? PECAS[0] ?? null;
 }
 
-/** As seguintes, sem repetir o destaque. */
+/** As seguintes, sem repetir o destaque. Só notícia: artigo e relatório têm bloco próprio na capa. */
 export function recentes(n: number, excluir?: Peca | null): Peca[] {
-  return PECAS.filter((p) => p !== excluir && p.secao !== 'giro').slice(0, n);
+  return PECAS.filter((p) => p !== excluir && p.secao === 'noticias').slice(0, n);
 }
 
 export function ultimoGiro(): Peca | null {
@@ -56,8 +56,35 @@ export function caminho(p: Peca): string {
   return `/${p.secao}/${p.slug}`;
 }
 
+/* ---------------------------------------------------------------- autores */
+
+/** Todos, na ordem do arquivo (`ordem:`; o editor primeiro). */
+export function autores(): readonly Autor[] {
+  return AUTORES;
+}
+
+export function autorPorSlug(slug: string): Autor | null {
+  return AUTORES.find((a) => a.slug === slug) ?? null;
+}
+
+/** O autor de uma peça. O compilador garante que existe; o `?? null` é só para o tipo. */
+export function autorDe(p: Peca): Autor | null {
+  return AUTORES.find((a) => a.nome === p.autor) ?? null;
+}
+
+export function pecasDoAutor(a: Autor): Peca[] {
+  return PECAS.filter((p) => p.autor === a.nome);
+}
+
+export function caminhoAutor(a: Autor): string {
+  return `/autores/${a.slug}`;
+}
+
+/* ---------------------------------------------------------------- rótulos */
+
 export const ROTULO_SECAO: Record<Secao, string> = {
   noticias: 'Notícias',
+  artigos: 'Artigos',
   relatorios: 'Relatórios',
   giro: 'Giro da Semana',
 };
@@ -70,6 +97,8 @@ export const ROTULO_TEMA: Record<Peca['tema'], string> = {
 export const ROTULO_FORMATO: Record<Peca['formato'], string> = {
   curta: 'Nota',
   contexto: 'Notícia',
+  guia: 'Guia',
+  conceito: 'Conceito',
   caso: 'Caso',
   analise: 'Análise',
   panorama: 'Panorama',

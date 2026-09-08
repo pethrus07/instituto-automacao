@@ -163,14 +163,17 @@ const peca = {
     },
     {
       id: "peca-muda",
-      narracao: "No fim de toda notícia, o que isso muda aqui. Na lateral, o critério do veredito e a fonte, para você conferir.",
+      narracao: "No fim de toda notícia, o que isso muda aqui. Logo abaixo, o critério do veredito, a fonte, e quem escreveu, para você conferir.",
       async acao(c) {
         await c.rolarAte("h2:has-text('O que isso muda aqui')");
         await c.olharPara("h2:has-text('O que isso muda aqui')");
-        await c.aos("lateral");
-        await c.olharPara(".peca__lateral .veredito-caixa");
+        await c.aos("abaixo");
+        await c.rolarAte(".peca__ficha", { fracao: 0.22 });
+        await c.olharPara(".peca__ficha .veredito-caixa");
         await c.aos("fonte");
-        await c.olharPara(".peca__lateral .fonte-caixa");
+        await c.olharPara(".peca__ficha .fonte-caixa");
+        await c.aos("escreveu");
+        await c.olharPara(".peca__ficha .autor-caixa");
       },
     },
   ],

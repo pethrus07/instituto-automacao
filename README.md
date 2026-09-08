@@ -76,13 +76,16 @@ O cron roda a cada 15 min na homologação — é onde o coletor é testado de v
 
 | Rota | O que é |
 |---|---|
-| `/` | capa: uma peça manda, as seguintes, o relógio, agenda, lista |
+| `/` | capa: parceiro, uma peça manda, as seguintes, a lista, artigos, o relógio, relatórios e agenda, quem escreve |
 | `/noticias` · `/noticias/<slug>` | o que o setor publicou lá fora, lido e escrito em português |
+| `/artigos` · `/artigos/<slug>` | o que ensina: guias e conceitos, assinados (seção criada em 07/09, ainda sem peça) |
 | `/relatorios` · `/relatorios/<slug>` | o que apuramos com dado próprio |
 | `/giro` · `/giro/<ano>-s<NN>` | o balanço da semana |
 | `/agenda` · `/agenda/<slug>` | eventos, com filtro por URL e `schema.org/Event` |
 | `/blueprints` | método, veredito, fontes e o robots de cada uma |
 | `/glossario` | como escrevemos os termos |
+| `/autores` · `/autores/<slug>` | quem escreve: página de cada autor (papel, bio, peças, link para o currículo) e o convite "Escreva no Instituto" (POST `/autores/escrever`) |
+| `/apoie` | a única página comercial: o espaço de parceiro da capa, o que ele não compra, e o formulário (POST `/apoie/enviar`) |
 | `/feed.xml` · `/feed/<secao>.xml` · `/sitemap.xml` · `/robots.txt` · `/favicon.svg` | — |
 | `/saude` | healthcheck: banco, peças, última coleta |
 
@@ -91,23 +94,25 @@ Todo caminho da v1 (`/industria`, `/panorama`, `/analise/...`) redireciona com 3
 ## Estrutura
 
 ```
-conteudo/            AS PEÇAS. noticias/ relatorios/ giro/ arte/ — markdown + SVG
+conteudo/            AS PEÇAS. noticias/ artigos/ relatorios/ giro/ arte/ — markdown + SVG
+conteudo/autores/    QUEM ESCREVE. um .md por pessoa (nome, papel, ordem, link?, foto?) + bio no corpo; toda peça aponta para um deles pelo nome
 colheita/            a pauta e os ledgers (fora do git, exceto lidos.json)
 src/index.tsx        monta as páginas, os cabeçalhos de segurança (CSP por hash), a 404 e o cron
-src/paginas/         uma página por arquivo: capa · secoes (e a peça) · agenda · glossario · blueprints · marca · formularios · redirects · estatico
+src/paginas/         uma página por arquivo: capa · secoes (e a peça) · agenda · glossario · blueprints · marca · autores · apoie · formularios · redirects · estatico
+src/parceiros.ts     quem apoia (lista no código, entra por commit); vazia → o espaço da capa diz de quem é
 src/conteudo/        tipos e o índice do conteúdo compilado
 src/coletor/         feed · robots · sitemap · canonicalização
 src/giro/            semana ISO e a auditoria de números
 src/ui/              Documento, primitivas, marca, capa gerada, JSON-LD
-publico/             assets estáticos (fora do bundle): imagens/ com licença · dados/ (CSV) · fontes/ (woff2 self-hosted) · marca/ · icones/ · og/ (gerado) · _headers (cache e segurança dos assets) · manifest.webmanifest
+publico/             assets estáticos (fora do bundle): imagens/ com licença · autores/ (retratos, quadrados) · parceiros/ (logos) · dados/ (CSV) · fontes/ (woff2 self-hosted) · marca/ · icones/ · og/ (gerado) · _headers (cache e segurança dos assets) · manifest.webmanifest
 design/              tokens, base, componentes — o sistema de design
 scripts/             colher · lavrado · ler · nova · dossie · compilar · sondar · cadência
 qa/verificar.mjs     o QA por medição (afirma e falha); qa/SPRINT-*.md o que cada rodada revelou
 qa/revisao.mjs       a revisão com Playwright (mede e registra); qa/REVISAO-*.md as notas
 tour/                o tour narrado: roteiro-site.mjs (conteúdo) + motor/ (narrar, gravar, montar — copiado dos tutoriais do Mettria) + gerar.mjs
 design/marca/        MARCA.md — a marca prototipal; os arquivos ficam em publico/marca/ e a prancha em /marca
-schema.sql           o D1 (fonte, item, assunto, evento, glossário, correção, assinante)
-migracoes/           ALTER TABLE para banco que já tem dado
+schema.sql           o D1 (fonte, item, assunto, evento, glossário, correção, assinante, contato)
+migracoes/           ALTER TABLE para banco que já tem dado — 006 (07/09): assinante.atuacao/empresa + tabela contato
 ```
 
 ## Documentação — o que vale e o que está velho
@@ -137,6 +142,9 @@ documento antes do código descreve intenção, e esse era o defeito.
 - **`npm run compilar` antes de tudo.** `dev` e `deploy` fazem sozinhos; editar um `.md` com
   o dev rodando exige rodar de novo.
 - **Nada em `conteudo/arte/` com cor crua.** As artes vestem os tokens, e o QA confere.
+- **Autor novo = arquivo novo em `conteudo/autores/`** antes da primeira peça dele. O compilador aborta se o `autor:` da peça não bate com um `nome:` de lá. Peça sem autor de verdade não sai — é a promessa do rodapé.
+- **Banco que já existe precisa da migração 006** (`npm run db:migrar` local, `db:migrar:homolog` na homologação, `db:migrar:remoto` na produção). Sem ela, a lista falha ao gravar `atuacao` e os formulários de autor/parceiro não têm tabela.
+- **Parceiro entra em `src/parceiros.ts`, por commit.** Logo em `publico/parceiros/`. Com a lista vazia a capa mostra o espaço reservado — isso é intencional, não é bug.
 - **Mudou `src/ui/tema.ts`? Rode `npm run compilar`.** A CSP só libera o script inline pelo hash
   SHA-256 que o compilador grava no módulo gerado; o QA recalcula do HTML servido e compara.
 - **Ferramenta que injeta script na página precisa de `bypassCSP`.** A revisão Playwright injeta o

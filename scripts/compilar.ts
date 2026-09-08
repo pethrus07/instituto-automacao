@@ -14,10 +14,11 @@
  *   - a imagem padrão do site e os ícones PNG (apple-touch-icon, manifesto);
  *   - o hash SHA-256 do único script inline, que a Content-Security-Policy exige.
  *
- * ⚠️ ELE ABORTA. Peça sem autor, notícia sem fonte, veredito fora da
- * categoria, arte que não existe, imagem sem crédito ou sem licença, dois
- * destaques, Giro com número que não está no dossiê — qualquer uma dessas
- * para o build com o arquivo e o motivo na tela.
+ * ⚠️ ELE ABORTA. Peça sem autor, autor que não existe em conteudo/autores/,
+ * notícia sem fonte, veredito fora da categoria, arte que não existe, imagem
+ * sem crédito ou sem licença, dois destaques, Giro com número que não está
+ * no dossiê — qualquer uma dessas para o build com o arquivo e o motivo na
+ * tela.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -33,6 +34,7 @@ import {
   SECOES,
   TEMAS,
   VEREDITOS,
+  type Autor,
   type LicencaImagem,
   type Peca,
   type Secao,
@@ -42,8 +44,10 @@ import {
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTEUDO = join(RAIZ, 'conteudo');
 const ARTE = join(CONTEUDO, 'arte');
+const AUTORES_DIR = join(CONTEUDO, 'autores');
 const PUBLICO = join(RAIZ, 'publico');
 const IMAGENS = join(PUBLICO, 'imagens');
+const FOTOS = join(PUBLICO, 'autores');
 const OG = join(PUBLICO, 'og');
 const ICONES = join(PUBLICO, 'icones');
 const SAIDA = join(RAIZ, 'src', 'conteudo.gerado.ts');
@@ -196,8 +200,14 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     if (!/^##\s*O que isso muda aqui/m.test(corpo)) {
       falhar(caminho, 'notícia sem a seção "## O que isso muda aqui" — é a camada que separa leitura de tradução');
     }
-  } else if (typeof meta['veredito'] === 'string') {
-    falhar(caminho, `"${secao}" não leva veredito — ele é categoria da notícia`);
+  } else {
+    if (typeof meta['veredito'] === 'string') falhar(caminho, `"${secao}" não leva veredito — ele é categoria da notícia`);
+    /* artigo e relatório podem partir de uma publicação — e aí creditam do mesmo jeito */
+    if (meta['fonte'] !== undefined) {
+      const f = bloco(meta, 'fonte', ['nome', 'url', 'idioma'], caminho);
+      if (!/^https?:\/\//.test(f['url']!)) falhar(caminho, `"fonte.url" precisa ser http(s): ${f['url']}`);
+      peca.fonte = { nome: f['nome']!, url: f['url']!, idioma: f['idioma']!, publicado: f['publicado'] };
+    }
   }
 
   /* Imagem real só entra com crédito e licença. "Peguei da matéria" não é
@@ -246,6 +256,51 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
   return peca;
 }
 
+/* ---------------------------------------------------------------- autores */
+
+/**
+ * Um arquivo por pessoa. O nome é a chave: a peça diz `autor: Pedro Oliveira`
+ * e aqui tem de existir um `nome: Pedro Oliveira`. O corpo é a bio.
+ */
+function compilarAutor(caminho: string): Autor {
+  const nome = basename(caminho);
+  const mNome = /^([a-z0-9-]+)\.md$/.exec(nome);
+  if (!mNome) falhar(caminho, 'o nome do arquivo do autor tem de ser slug-em-minusculas.md');
+  const { meta, corpo } = lerFrontmatter(readFileSync(caminho, 'utf8'), caminho);
+
+  const nomeCompleto = texto(meta, 'nome', caminho);
+  const partes = nomeCompleto.split(/\s+/).filter(Boolean);
+  if (partes.length < 2) falhar(caminho, `"nome: ${nomeCompleto}" — nome e sobrenome, é assinatura`);
+  if (corpo.length < 40) falhar(caminho, 'a bio (o corpo do arquivo) tem menos de 40 caracteres — diga quem é a pessoa');
+
+  const autor: Autor = {
+    slug: mNome![1]!,
+    nome: nomeCompleto,
+    papel: texto(meta, 'papel', caminho),
+    bio: corpo,
+    iniciais: (partes[0]![0]! + partes[partes.length - 1]![0]!).toUpperCase(),
+    ordem: typeof meta['ordem'] === 'string' ? Number(meta['ordem']) : 99,
+  };
+  if (!Number.isFinite(autor.ordem)) falhar(caminho, `"ordem: ${meta['ordem']}" não é número`);
+
+  if (typeof meta['link'] === 'string') {
+    if (!/^https?:\/\//.test(meta['link'] as string)) falhar(caminho, `"link" precisa ser http(s): ${meta['link']}`);
+    autor.link = meta['link'] as string;
+    autor.linkRotulo = typeof meta['link_rotulo'] === 'string' ? (meta['link_rotulo'] as string) : 'Currículo';
+  }
+  if (typeof meta['foto'] === 'string') {
+    const arquivo = join(FOTOS, meta['foto'] as string);
+    if (!existsSync(arquivo)) falhar(caminho, `"foto: ${meta['foto']}" não existe em publico/autores/`);
+    if (!/\.(jpe?g|png)$/i.test(meta['foto'] as string)) falhar(caminho, '"foto" tem de ser jpg ou png');
+    if (statSync(arquivo).size > 200_000) falhar(caminho, 'foto com mais de 200 KB — é um retrato, redimensione para 480 px');
+    const medidas = medidasDaImagem(arquivo);
+    if (!medidas) falhar(caminho, `não consegui ler largura e altura de "${meta['foto']}"`);
+    if (Math.abs(medidas!.largura - medidas!.altura) > 2) falhar(caminho, `a foto tem de ser quadrada (${medidas!.largura}×${medidas!.altura})`);
+    autor.foto = { arquivo: meta['foto'] as string, ...medidas! };
+  }
+  return autor;
+}
+
 /* --------------------------------------------------------------- a leitura */
 
 function listar(pasta: string): string[] {
@@ -265,6 +320,19 @@ for (const secao of SECOES) {
   for (const p of pecas.filter((x) => x.secao === secao)) {
     if (vistos.has(p.slug)) falhar(join(CONTEUDO, secao), `slug repetido na seção: "${p.slug}"`);
     vistos.add(p.slug);
+  }
+}
+const autores: Autor[] = listar(AUTORES_DIR).map(compilarAutor).sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome));
+{
+  const nomes = new Set<string>();
+  for (const a of autores) {
+    if (nomes.has(a.nome)) falhar(AUTORES_DIR, `dois arquivos com "nome: ${a.nome}"`);
+    nomes.add(a.nome);
+  }
+  if (!autores.length) falhar(AUTORES_DIR, 'não há nenhum autor em conteudo/autores/ — toda peça precisa de um');
+  /* toda peça aponta para gente que existe: é o que faz "toda peça tem autor" ser verificável */
+  for (const p of pecas) {
+    if (!nomes.has(p.autor)) falhar(join(CONTEUDO, p.secao, `${p.data}-${p.slug}.md`), `autor "${p.autor}" não tem arquivo em conteudo/autores/ (nomes conhecidos: ${[...nomes].join(', ')})`);
   }
 }
 {
@@ -377,11 +445,13 @@ const modulo = `/* eslint-disable */
  * O conteúdo mora em conteudo/**.md. Este arquivo é a versão compilada que
  * entra no bundle do Worker. Editar aqui é perder a edição no próximo build.
  *
- * ${pecas.length} peça(s) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · gerado em ${new Date().toISOString()}
+ * ${pecas.length} peça(s) · ${autores.length} autor(es) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · gerado em ${new Date().toISOString()}
  */
-import type { Peca } from './conteudo/tipos';
+import type { Autor, Peca } from './conteudo/tipos';
 
 export const PECAS: readonly Peca[] = ${JSON.stringify(pecas, null, 2)};
+
+export const AUTORES: readonly Autor[] = ${JSON.stringify(autores, null, 2)};
 
 export const ARTES: Readonly<Record<string, string>> = ${JSON.stringify(artes, null, 2)};
 
@@ -393,5 +463,5 @@ mkdirSync(dirname(SAIDA), { recursive: true });
 writeFileSync(SAIDA, modulo, 'utf8');
 
 const porSecao = SECOES.map((s) => `${s} ${pecas.filter((p) => p.secao === s).length}`).join(' · ');
-console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · ${alvos.length} PNG(s) renderizado(s)`);
+console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${autores.length} autor(es) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · ${alvos.length} PNG(s) renderizado(s)`);
 console.log(`→ ${SAIDA.replace(RAIZ, '.')}`);

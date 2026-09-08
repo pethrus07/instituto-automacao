@@ -11,8 +11,8 @@
  * penalizado, e com razão.
  */
 import type { Evento, TermoPublico } from '../db';
-import type { Peca } from '../conteudo';
-import { caminho, ROTULO_SECAO, ROTULO_TEMA } from '../conteudo';
+import type { Autor, Peca } from '../conteudo';
+import { autorDe, caminho, caminhoAutor, ROTULO_SECAO, ROTULO_TEMA } from '../conteudo';
 import { NOME_SITE, absoluta } from './seo';
 
 /**
@@ -83,7 +83,7 @@ export function pecaLd(p: Peca, base: string) {
       : { '@type': 'ImageObject', url: imagem, width: 1200, height: 630 },
     datePublished: p.data,
     dateModified: p.data,
-    author: { '@type': 'Person', name: p.autor },
+    author: pessoa(autorDe(p), p.autor, base),
     publisher: { '@id': `${base}/#organizacao` },
     articleSection: ROTULO_SECAO[p.secao],
     keywords: [ROTULO_TEMA[p.tema], 'automação'].join(', '),
@@ -95,6 +95,42 @@ export function pecaLd(p: Peca, base: string) {
     citation: p.fonte
       ? { '@type': 'CreativeWork', name: p.fonte.nome, url: p.fonte.url, inLanguage: p.fonte.idioma, datePublished: p.fonte.publicado }
       : undefined,
+  };
+}
+
+/* ----------------------------------------------------------------- quem escreve */
+
+/** A pessoa como o Google a vê: com a página dela aqui e o currículo lá fora. */
+function pessoa(a: Autor | null, nome: string, base: string) {
+  if (!a) return { '@type': 'Person', name: nome };
+  return {
+    '@type': 'Person',
+    '@id': `${absoluta(base, caminhoAutor(a))}#pessoa`,
+    name: a.nome,
+    jobTitle: a.papel,
+    url: absoluta(base, caminhoAutor(a)),
+    sameAs: a.link ? [a.link] : undefined,
+    image: a.foto ? absoluta(base, `/autores/${a.foto.arquivo}`) : undefined,
+  };
+}
+
+/** A página do autor: ProfilePage com a Person dentro — é o que a busca mostra como "quem é". */
+export function perfilLd(a: Autor, pecas: readonly Peca[], base: string) {
+  const url = absoluta(base, caminhoAutor(a));
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': url,
+    url,
+    name: `${a.nome} — ${NOME_SITE}`,
+    inLanguage: 'pt-BR',
+    isPartOf: { '@id': `${base}/#site` },
+    mainEntity: {
+      ...pessoa(a, a.nome, base),
+      description: a.bio.replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 300),
+      worksFor: { '@id': `${base}/#organizacao` },
+    },
+    hasPart: pecas.slice(0, 50).map((p) => ({ '@type': p.secao === 'noticias' ? 'NewsArticle' : 'Article', '@id': absoluta(base, caminho(p)), headline: p.tituloCurto ?? p.titulo, datePublished: p.data })),
   };
 }
 

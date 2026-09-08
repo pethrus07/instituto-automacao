@@ -387,3 +387,68 @@ reservada à conta do sócio. O que a subida exigiu e o que ela mostrou:
    `account_id` dele, `db:remoto` + sementes, Search Console, sitemap.
 2. Abrir a homologação no celular e colar o link no WhatsApp para ver o cartão (og:image).
 3. Primeiro Giro — segunda 07/09.
+
+---
+
+## 14. Sessão 8 (07–08/09) — o primeiro feedback do sócio, e o "cru"
+
+> QA: **1004 ok · 0 falhas** (era 913) · revisão: **54 páginas medidas · axe 0 · CLS 0 · LCP máx. 260 ms · 75 links, 0 quebrados · zero terceiro** · migração **006**
+
+O sócio viu a homologação e mandou 11 pontos num Google Doc, mais um juízo geral: "um pouco
+cru, com poucos detalhes". Tudo foi lido como pedido de quem é do ramo — e o que contrariava a
+tese do site (tirar o relógio) ficou registrado como decisão do Pedro, não foi apagado.
+
+### O que cada ponto virou
+
+| # | Pedido | O que virou |
+|---|---|---|
+| 1 | logo de acordo com o instituto | nada de código: a marca continua prototipal, por decisão |
+| 2 | banner de parceiro entre cabeçalho e 1ª notícia | faixa **Parceiro do Instituto** (`src/parceiros.ts`, lista vazia → o espaço diz de quem é) + página **/apoie** com as regras (parceiro não escreve, não escolhe pauta nem veredito) e formulário → `contato` |
+| 3 | as 3 notícias abaixo estão boas | mantidas; ganharam ordinal 01/02/03 |
+| 4 | "difícil quantificar o relógio; usar a área para outra coisa" | **mantido**. A faixa agora diz "a medida vale para as N fontes que acompanhamos, não para toda a imprensa"; e sem par medido mostra itens lidos e assuntos agrupados — **nunca um `0` fingindo medida** (o local mostrava "0 assuntos", e era isso que enfraquecia o bloco) |
+| 5 | "o que são os relatórios e como é montada a agenda?" | `Secao` ganhou `nota`: uma linha sob o rótulo dizendo o que o bloco é. Se quem é do ramo pergunta, a página responde no lugar — não em Blueprints |
+| 6 | tema no cabeçalho | botão **Tema** (ícone lua/sol + palavra) na navegação; saiu do rodapé. Era decisão pendente do Pedro; o sócio empurrou |
+| 7 | cadastro muito embaixo; pedir o que a pessoa faz | a lista subiu para logo depois das 3 notícias; campos opcionais **atuação** (fechado: opera · integra · ensina · estuda · outra) e **empresa**. Sem promessa de diretório: o que não existe não se anuncia |
+| 8 | "precisa dessa lateral direita?" | não. A peça virou **coluna única centrada (52 rem)** com a arte sangrando até a página (`100cqi`, o `<main>` é contêiner) e a **ficha** embaixo do texto: veredito com critério, fonte, quem escreveu |
+| 9 | carrossel de autores → currículo | `conteudo/autores/*.md` (nome, papel, ordem, link?, foto?; bio no corpo). O compilador **recusa peça cujo autor não tem arquivo**. Páginas **/autores** (lista + "Escreva no Instituto") e **/autores/<slug>** (papel, bio, todas as peças, link para fora), faixa **Quem escreve** na capa (rolagem com encaixe, sem JS, termina no convite), assinatura com `rel=author`, `ProfilePage` + `Person` no JSON-LD, `og:type profile` |
+| 10 | mais artigos didáticos que notícias | seção **Artigos** (formatos `guia` e `conceito`, sem veredito, fonte opcional) na nav, na capa, no feed e no sitemap. Vazia e honesta: "o primeiro artigo está sendo escrito", com o convite a escrever |
+| 11 | eventos são interessantes | mantidos; a data virou folha de calendário |
+
+### O "cru": detalhe de jornal, sem caixa cinza
+
+A decisão da página branca (v4, em `tokens.css`) ficou. O que entrou foi o que uma publicação
+impressa tem por hábito: o **fio laranja de topo**, a **linha de data** ("Terça-feira, 8 de
+setembro de 2026" · a promessa · RSS), a **régua dupla** sob o nome e nas cabeças de seção, a
+**ordinal** nos cartões, o fio entre arte e texto do destaque, a **capitular** e o fio curto nos
+intertítulos da peça, os **anéis de radar** na faixa escura (a marca em escala de faixa), a
+lavagem azul com **marca-d'água** na lista, o **colofão** no rodapé. CSS foi de 39 para 45 KB sem
+comprimir (teto do QA subiu para 48; na borda vai em brotli).
+
+### O que a medição pegou depois de pronto
+
+- **axe: 3 sérias na capa**, todas a mesma: `--ink-faint` (#71717a) sobre a lavagem azul da lista
+  (#e8f0fb) dá 4,2:1. Dentro da lista o miúdo passou para `--ink-muted`. O token continua
+  certo sobre o papel; foi o fundo que mudou.
+- **transbordo 2 no tablet:** a marca-d'água saía 14 px pela direita da caixa. `overflow: hidden`
+  esconde, mas o retângulo conta. Ficou dentro na horizontal; só vaza para baixo.
+- **O `wrangler dev` caiu** no meio da primeira revisão (erro vazio do ProxyController do
+  miniflare, depois de 1,5 h de pé). Subiu de novo e a segunda revisão passou inteira. Não foi
+  o site — mas revisão longa pede dev recém-subido.
+- **Sem regressão:** CLS 0, LCP máx. 260 ms, nenhum texto abaixo de 12 px, alvos pequenos só o
+  skip link (por desenho) e os já conhecidos de Blueprints.
+
+### Banco
+
+Migração `006-leitor-e-contato.sql`: `assinante.atuacao`, `assinante.empresa`, tabela `contato`
+(`tipo` autor|parceiro). `schema.sql` acompanha para instalação limpa. Scripts: `db:migrar`
+(local), `db:migrar:homolog`, `db:migrar:remoto`. O QA confere 8 tabelas e testa os dois
+formulários novos só no dev local, apagando o rastro.
+
+### Em aberto
+1. **Decisões do Pedro:** manter o relógio (o sócio duvida da medida); `link:` do currículo em
+   `conteudo/autores/pedro-oliveira.md` (LinkedIn? Lattes?) e o texto da bio; fonte BR em
+   Notícias; `destaque: true`.
+2. **O primeiro artigo.** A seção existe e convida; quem escreve é gente.
+3. **Primeiro parceiro** entra por commit em `src/parceiros.ts` — e aí define, com a gente, o
+   que o espaço mostra.
+4. Produção na conta do sócio (A2), com `db:migrar:remoto` depois do `db:remoto`.

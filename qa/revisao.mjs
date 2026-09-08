@@ -42,6 +42,10 @@ const PAGINAS = [
   ['peca-arte', '/noticias/bndes-financia-robo-inspetor-da-tractian'],
   ['analise', '/relatorios/oito-dias-de-medicao-imprensa-brasileira-e-automacao'],
   ['evento', '/agenda/robobusiness-2026'],
+  ['artigos', '/artigos'],
+  ['autores', '/autores'],
+  ['autor', '/autores/pedro-oliveira'],
+  ['apoie', '/apoie'],
   ['404', '/nao-existe'],
 ];
 const LARGURAS = {

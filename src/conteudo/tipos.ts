@@ -7,9 +7,15 @@
  * o módulo gerado (é saída do compilador) e o site (lê o módulo gerado).
  */
 
-export type Secao = 'noticias' | 'relatorios' | 'giro';
+/**
+ * As quatro seções. `artigos` entrou em 07/09/2026, pelo feedback do sócio:
+ * o coração do Instituto é o que ENSINA, e a notícia é o que mantém o site
+ * vivo entre um artigo e outro. Artigo não tem veredito (não é sobre
+ * terceiro) e pode ou não ter fonte.
+ */
+export type Secao = 'noticias' | 'artigos' | 'relatorios' | 'giro';
 export type Tema = 'industria' | 'processos';
-export type Formato = 'curta' | 'contexto' | 'caso' | 'analise' | 'panorama' | 'giro';
+export type Formato = 'curta' | 'contexto' | 'guia' | 'conceito' | 'caso' | 'analise' | 'panorama' | 'giro';
 export type Veredito = 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito';
 
 /**
@@ -57,12 +63,13 @@ export type Peca = {
   /** o título da aba e do resultado de busca (≤ 70 caracteres); o inteiro fica no h1 */
   tituloCurto?: string;
   lead: string;
+  /** o NOME do autor, igual ao `nome` de um arquivo em conteudo/autores/ */
   autor: string;
   /** YYYY-MM-DD */
   data: string;
-  /** obrigatório em notícia; ausente em relatório e giro */
+  /** obrigatório em notícia; ausente em artigo, relatório e giro */
   veredito?: Veredito;
-  /** obrigatório em notícia: toda peça sobre terceiro credita e linka */
+  /** obrigatório em notícia: toda peça sobre terceiro credita e linka; opcional nas outras */
   fonte?: Fonte;
   /** imagem real, com licença — vence a arte quando existe */
   imagem?: Imagem;
@@ -81,7 +88,34 @@ export type Peca = {
   palavras: number;
 };
 
-export const SECOES: readonly Secao[] = ['noticias', 'relatorios', 'giro'];
+/**
+ * Quem escreve. Um arquivo por pessoa em conteudo/autores/; toda peça tem de
+ * apontar para um deles pelo nome — o compilador recusa autor que não existe.
+ *
+ * A página do autor é o currículo dele dentro do Instituto: o papel, a bio,
+ * as peças, e o link para fora (LinkedIn, Lattes, site) quando ele quiser.
+ */
+export type Autor = {
+  /** do nome do arquivo: `pedro-oliveira.md` → `pedro-oliveira` */
+  slug: string;
+  nome: string;
+  /** o que a pessoa é aqui: "Editor", "Colaborador", "Engenheiro de automação" */
+  papel: string;
+  /** a bio, em markdown — o corpo do arquivo */
+  bio: string;
+  /** o currículo lá fora, se houver */
+  link?: string;
+  /** como chamar o link: "LinkedIn", "Lattes", "Site" */
+  linkRotulo?: string;
+  /** foto em publico/autores/, opcional — sem ela, o monograma */
+  foto?: { arquivo: string; largura: number; altura: number };
+  /** as iniciais, para o monograma */
+  iniciais: string;
+  /** posição na lista; o editor vem primeiro */
+  ordem: number;
+};
+
+export const SECOES: readonly Secao[] = ['noticias', 'artigos', 'relatorios', 'giro'];
 export const TEMAS: readonly Tema[] = ['industria', 'processos'];
 export const VEREDITOS: readonly Veredito[] = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
 export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria'];
@@ -89,6 +123,7 @@ export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'ced
 /** Que formatos cabem em cada seção. Notícia não vira caso; giro não vira nota. */
 export const FORMATOS_POR_SECAO: Record<Secao, readonly Formato[]> = {
   noticias: ['curta', 'contexto'],
+  artigos: ['guia', 'conceito'],
   relatorios: ['caso', 'analise', 'panorama'],
   giro: ['giro'],
 };

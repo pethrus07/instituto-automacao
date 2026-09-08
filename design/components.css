@@ -7,6 +7,15 @@
    espaço generoso, uma peça que manda, arte com presença, tipografia que
    carrega o peso que a quantidade não carrega.
 
+   v2.1 · 07/09/2026 — "está um pouco cru, com poucos detalhes" (sócio).
+   A página continua branca e a estrutura continua vindo de fio e de ar
+   (decisão do dono, em tokens.css) — o que entrou foi DETALHE de jornal, não
+   caixa: o fio laranja no topo, a linha de data, a régua dupla sob o nome, a
+   régua dupla nas cabeças de seção, a ordinal nos cartões, a capitular na
+   peça, os anéis de radar na faixa escura, a folha de calendário na agenda, o
+   colofão no rodapé. Cada um é pequeno; juntos são a diferença entre um
+   protótipo e uma publicação.
+
    Nenhuma cor crua fora de tokens.css. Nenhum componente sabe de núcleo:
    não há mais núcleo.
    ========================================================================= */
@@ -24,9 +33,28 @@
 
 /* -------------------------------------------------------------------------
    CABEÇALHO DE REVISTA
-   Símbolo e nome no centro, a linha de propósito, a régua, e a navegação —
-   que é a única parte que gruda ao rolar.
+   O fio laranja no topo (a única ação do site, dita antes de tudo), a linha
+   de data, símbolo e nome no centro, a linha de propósito, a régua dupla, e
+   a navegação — que é a única parte que gruda ao rolar.
    ------------------------------------------------------------------------- */
+.cabecalho { border-block-start: 3px solid var(--acao); }
+
+/* A linha de data: o que um jornal tem e um site quase nunca. */
+.dateline {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  padding-block: var(--space-2xs);
+  border-block-end: var(--border-hair);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+}
+.dateline__data { color: var(--ink-muted); font-family: var(--face-dado); font-variant-numeric: tabular-nums; }
+.dateline__nota { letter-spacing: var(--tracking-wide); }
+.dateline__link { text-decoration: none; color: var(--ink-faint); letter-spacing: var(--tracking-kicker); text-transform: uppercase; }
+.dateline__link:hover { color: var(--marca); }
+@media (max-width: 40rem) { .dateline__nota { display: none; } }
+
 .marca {
   text-align: center;
   padding-block: var(--space-xl) var(--space-m);
@@ -58,7 +86,13 @@
   margin-block-start: var(--space-s);
   text-wrap: balance;
 }
-.marca__regua { block-size: 2px; background: var(--marca); }
+/* A régua dupla: grossa em cima, fina embaixo — o fio de masthead. */
+.marca__regua {
+  block-size: 0;
+  border-block-start: 2px solid var(--marca);
+  border-block-end: 1px solid var(--marca);
+  padding-block-start: 2px;
+}
 
 .navbar {
   position: sticky; top: 0; z-index: 20;
@@ -98,6 +132,28 @@
    vazando por cima — defeito que o QA não vê e o screenshot viu. */
 .navbar__acao .botao-acao { border-bottom: 0; margin-block-end: 0; }
 
+/* O botão de tema, na navegação (era no rodapé — "ficou pouco visível").
+   Ícone e palavra: ícone sozinho é adivinhação. */
+.navbar__tema {
+  display: inline-flex; align-items: center; gap: var(--space-3xs);
+  padding: var(--space-3xs) var(--space-xs);
+  border: var(--border-hair);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-muted);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  cursor: pointer;
+  transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease);
+}
+.navbar__tema:hover { color: var(--marca); border-color: var(--marca); }
+.tema-icone { display: block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+.tema-icone__lua { fill: currentColor; stroke: none; }
+/* no claro, a lua (para onde o clique leva); no escuro, o sol */
+.tema-icone__sol { display: none; }
+:root[data-theme="dark"] .tema-icone__sol { display: block; }
+:root[data-theme="dark"] .tema-icone__lua { display: none; }
+
 /* O botão é o único preenchimento sólido do cabeçalho — por isso o olho vai
    para ele. Laranja = ação, e há uma ação só. */
 .botao-acao {
@@ -116,6 +172,20 @@
 /* Dentro da navegação, `.navbar a` (mais específico) pintava o texto do botão
    de cinza sobre laranja — 2,9:1, e o axe pegou. O botão vence sempre. */
 .navbar .botao-acao, .navbar .botao-acao:hover { color: var(--acao-texto); }
+
+/* O botão secundário: contorno azul. Para o link de fora (currículo do autor). */
+.botao-secundario {
+  display: inline-flex; align-items: center; gap: var(--space-2xs);
+  border: 1px solid var(--marca);
+  color: var(--marca);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--1);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-3xs) var(--space-s);
+  border-radius: var(--radius-s);
+  text-decoration: none;
+}
+.botao-secundario:hover { background: var(--marca-clara); color: var(--marca-forte); }
 
 /* -------------------------------------------------------------------------
    RÓTULOS
@@ -185,6 +255,8 @@
   color: var(--ink-muted);
 }
 .assinatura__autor { font-weight: var(--weight-semibold); color: var(--ink); }
+a.assinatura__autor { text-decoration-color: var(--rule-strong); }
+a.assinatura__autor:hover { color: var(--marca); }
 .assinatura__fonte { display: inline-flex; align-items: baseline; gap: var(--space-2xs); }
 .assinatura__fonte .selo { align-self: center; }
 
@@ -196,12 +268,17 @@
   border-radius: var(--radius-m);
   background: var(--capa-fundo);
   aspect-ratio: 16 / 9;
+  /* o fio interno: separa a foto clara do papel branco sem moldura pesada */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .arte svg { display: block; inline-size: 100%; block-size: 100%; }
 /* A imagem real preenche a moldura sem distorcer; o crédito fica sobre ela,
    no canto, legível e discreto — é atribuição, não legenda. */
 .arte--foto { position: relative; margin: 0; }
-.arte--foto img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.arte--foto img {
+  display: block; inline-size: 100%; block-size: 100%; object-fit: cover;
+  transition: transform 600ms var(--ease);
+}
 .arte__credito {
   position: absolute; inset-inline-end: var(--space-2xs); inset-block-end: var(--space-2xs);
   padding: 0.15rem var(--space-2xs);
@@ -232,9 +309,39 @@
 .moldura-capa { aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--radius-s); background: var(--capa-fundo); }
 
 /* -------------------------------------------------------------------------
+   O ESPAÇO DO PARCEIRO — entre o cabeçalho e a primeira notícia
+   Uma faixa fina, com fio em cima e embaixo, rótulo à esquerda e o link
+   "como apoiar" à direita. Sem parceiro, diz de quem é o espaço.
+   ------------------------------------------------------------------------- */
+.parceiro {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+  gap: var(--space-s) var(--space-l);
+  padding-block: var(--space-s);
+  margin-block-end: var(--space-xl);
+  border-block: var(--border-hair);
+  font-family: var(--face-fluxo);
+}
+@media (max-width: 48rem) { .parceiro { grid-template-columns: 1fr; gap: var(--space-2xs); } }
+.parceiro__rotulo {
+  font-size: var(--step--2); font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-kicker); text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-inline-end: var(--space-l);
+  border-inline-end: var(--border-hair);
+}
+@media (max-width: 48rem) { .parceiro__rotulo { border: 0; padding: 0; } }
+.parceiro__corpo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-3xs) var(--space-m); margin: 0; text-decoration: none; color: inherit; }
+.parceiro__logo { block-size: 2.25rem; inline-size: auto; }
+.parceiro__nome { font-family: var(--face-obra); font-size: var(--step-0); font-weight: var(--weight-semibold); color: var(--ink); }
+.parceiro__frase { font-size: var(--step--1); color: var(--ink-muted); }
+a.parceiro__corpo:hover .parceiro__nome { color: var(--marca); }
+.parceiro__acao { font-size: var(--step--1); color: var(--marca); text-decoration-color: var(--marca-clara); white-space: nowrap; }
+.parceiro__acao::after { content: " →"; }
+
+/* -------------------------------------------------------------------------
    O DESTAQUE — a peça que manda
-   Arte grande à esquerda, texto com espaço à direita. Em tela estreita,
-   arte em cima.
+   Arte grande à esquerda, texto com espaço à direita, um fio entre os dois.
+   Em tela estreita, arte em cima.
    ------------------------------------------------------------------------- */
 .destaque {
   display: grid;
@@ -245,9 +352,10 @@
 }
 @media (min-width: 56rem) {
   .destaque { grid-template-columns: 7fr 5fr; gap: var(--space-2xl); }
+  .destaque__texto { border-inline-start: var(--border-hair); padding-inline-start: var(--space-xl); }
 }
 .destaque__arte { display: block; text-decoration: none; }
-.destaque__arte .arte { aspect-ratio: 3 / 2; border-radius: var(--radius-m); }
+.destaque__arte .arte { aspect-ratio: 3 / 2; border-radius: var(--radius-m); box-shadow: var(--shadow-raised), inset 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent); }
 .destaque__texto { display: grid; gap: var(--space-m); align-content: center; }
 .destaque__titulo {
   font-family: var(--face-obra);
@@ -269,10 +377,21 @@
 
 /* -------------------------------------------------------------------------
    A GRADE DE PEÇAS
+   Cada cartão com a ordinal em cima (01, 02, 03) e um fio: é o detalhe que
+   diz "isto foi posto em ordem por alguém".
    ------------------------------------------------------------------------- */
-.grade { display: grid; gap: var(--space-xl) var(--space-l); grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+.grade { display: grid; gap: var(--space-xl) var(--space-l); grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); counter-reset: peca; }
 
-.card { display: grid; gap: var(--space-s); align-content: start; position: relative; }
+.card { display: grid; gap: var(--space-s); align-content: start; position: relative; counter-increment: peca; }
+.card::before {
+  content: counter(peca, decimal-leading-zero);
+  font-family: var(--face-dado);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-wide);
+  color: var(--ink-faint);
+  padding-block-end: var(--space-2xs);
+  border-block-end: var(--border-firm);
+}
 .card__arte { display: block; text-decoration: none; }
 .card__texto { display: grid; gap: var(--space-2xs); }
 .card__titulo {
@@ -286,6 +405,7 @@
 .card__titulo a { text-decoration: none; }
 .card__titulo a::after { content: ""; position: absolute; inset: 0; }
 .card:hover .card__titulo { color: var(--marca); }
+.card:hover .arte--foto img { transform: scale(1.025); }
 .card__lead { font-size: var(--step--1); color: var(--ink-muted); line-height: var(--leading-normal); }
 .card__pe { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-s); font-size: var(--step--2); color: var(--ink-faint); margin-block-start: var(--space-3xs); }
 .card__pe > span:first-child { color: var(--ink-muted); font-weight: var(--weight-medium); }
@@ -312,11 +432,12 @@
 
 /* -------------------------------------------------------------------------
    A PÁGINA DA PEÇA
-   Cabeça larga, arte de ponta a ponta do miolo, corpo na medida de leitura
-   com a coluna lateral da fonte e do veredito.
+   Coluna única, centrada, na medida de leitura. A arte sangra até a largura
+   da página (100cqi: o <main> é o contêiner). Embaixo do texto, a ficha —
+   veredito, fonte, quem escreveu — em colunas. A lateral saiu (07/09/2026).
    ------------------------------------------------------------------------- */
-.peca { display: grid; gap: var(--space-xl); }
-.peca__cabeca { display: grid; gap: var(--space-m); max-width: 52rem; }
+.peca { display: grid; gap: var(--space-xl); max-width: 52rem; margin-inline: auto; }
+.peca__cabeca { display: grid; gap: var(--space-m); }
 .peca__titulo {
   font-family: var(--face-obra);
   font-size: var(--step-5);
@@ -333,15 +454,36 @@
   max-width: var(--measure-lead);
 }
 .peca__arte.arte { aspect-ratio: 21 / 9; }
-.peca__corpo { display: grid; gap: var(--space-xl); align-items: start; }
-@media (min-width: 64rem) {
-  .peca__corpo { grid-template-columns: minmax(0, var(--width-prose)) 18rem; gap: var(--space-2xl); }
-  .peca__lateral { position: sticky; top: calc(var(--space-2xl) + 1rem); }
+@supports (inline-size: 100cqi) {
+  .peca__arte.arte { inline-size: 100cqi; margin-inline: calc(50% - 50cqi); }
 }
-.peca__lateral { display: grid; gap: var(--space-l); }
+.peca__corpo { display: grid; gap: var(--space-xl); }
+.peca__ficha {
+  display: grid; gap: var(--space-l);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  padding-block-start: var(--space-l);
+  border-block-start: var(--border-hair);
+}
 .peca__pe { max-width: var(--width-prose); }
 
-.fonte-caixa, .veredito-caixa {
+/* A capitular: a primeira letra da peça, grande, na cor da instituição. */
+.peca .obra > p:first-child::first-letter {
+  font-family: var(--face-obra);
+  font-weight: var(--weight-semibold);
+  font-size: 3.4em;
+  line-height: 0.8;
+  float: left;
+  margin-inline-end: 0.1em;
+  margin-block-start: 0.08em;
+  color: var(--marca);
+}
+/* O fio curto acima de cada intertítulo. */
+.peca .obra > h2::before { content: ""; display: block; inline-size: 2rem; block-size: 2px; background: var(--marca); margin-block-end: var(--space-s); }
+/* A regra horizontal vira ornamento. */
+.peca .obra > hr { border: 0; text-align: center; margin-block: var(--space-xl); }
+.peca .obra > hr::after { content: "· · ·"; letter-spacing: 0.6em; color: var(--ink-faint); font-family: var(--face-obra); }
+
+.fonte-caixa, .veredito-caixa, .autor-caixa {
   display: grid; gap: var(--space-2xs);
   padding-block: var(--space-s);
   border-block-start: 2px solid var(--ink);
@@ -356,7 +498,67 @@
   color: var(--ink-faint);
 }
 .fonte-caixa__nome { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs); font-family: var(--face-obra); font-size: var(--step-1); font-weight: var(--weight-semibold); }
+.fonte-caixa__nome a { text-decoration: none; }
+.fonte-caixa__nome a:hover { color: var(--marca); }
 .fonte-caixa__texto { color: var(--ink-muted); }
+.autor-caixa { grid-template-columns: auto 1fr; gap: var(--space-s); align-items: start; }
+.autor-caixa > div { display: grid; gap: var(--space-2xs); }
+
+/* -------------------------------------------------------------------------
+   AUTORES — gente, com nome e caminho para o currículo
+   ------------------------------------------------------------------------- */
+.monograma {
+  display: inline-grid; place-items: center;
+  inline-size: 3.25rem; block-size: 3.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--capa-fundo);
+  color: var(--capa-texto);
+  font-family: var(--face-obra);
+  font-weight: var(--weight-semibold);
+  font-size: var(--step-1);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.monograma--grande { inline-size: 6rem; block-size: 6rem; font-size: var(--step-4); }
+.monograma--convite { background: var(--marca-clara); color: var(--marca); }
+.autor__foto { inline-size: 3.25rem; block-size: 3.25rem; border-radius: var(--radius-pill); object-fit: cover; }
+.autor__foto--grande { inline-size: 6rem; block-size: 6rem; }
+
+/* a faixa que rola: cada cartão encaixa; o dedo e a roda já sabem usar */
+.autores-faixa {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(15rem, 18rem);
+  gap: var(--space-m);
+  overflow-x: auto; overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  padding-block: var(--space-3xs) var(--space-s);
+  scrollbar-width: thin;
+}
+.autores-faixa > div { scroll-snap-align: start; display: grid; }
+.grade--autores { grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--space-m); }
+.autor-card {
+  display: grid;
+  border: var(--border-hair);
+  border-radius: var(--radius-m);
+  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+.autor-card:hover { border-color: var(--rule-strong); box-shadow: var(--shadow-raised); }
+.autor-card__link { display: grid; gap: var(--space-2xs); justify-items: start; padding: var(--space-m); text-decoration: none; color: inherit; block-size: 100%; }
+.autor-card__link > .monograma, .autor-card__link > .autor__foto { margin-block-end: var(--space-2xs); }
+.autor-card__nome { font-family: var(--face-obra); font-size: var(--step-1); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
+.autor-card:hover .autor-card__nome { color: var(--marca); }
+.autor-card__papel { font-size: var(--step--1); color: var(--ink-muted); line-height: var(--leading-normal); }
+.autor-card__pecas { font-size: var(--step--2); color: var(--ink-faint); margin-block-start: var(--space-3xs); }
+.autor-card--convite { background: var(--marca-clara); border-color: transparent; }
+
+/* a página do autor */
+.perfil { display: grid; gap: var(--space-l); align-items: start; padding-block-end: var(--space-xl); border-block-end: var(--border-hair); }
+@media (min-width: 40rem) { .perfil { grid-template-columns: auto 1fr; gap: var(--space-xl); } }
+.perfil__texto { display: grid; gap: var(--space-s); }
+.perfil__nome { font-size: var(--step-5); letter-spacing: -0.022em; }
+.perfil__bio.obra { font-size: var(--step-0); line-height: var(--leading-relaxed); }
+.perfil__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-m); font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.perfil__meta strong { color: var(--ink); }
+.lista-regras__titulo { font-family: var(--face-fluxo); font-size: var(--step--1); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--ink-faint); margin-block-end: var(--space-s); }
 
 /* -------------------------------------------------------------------------
    CABEÇA DE SEÇÃO E BLOCOS
@@ -369,13 +571,17 @@
 .bloco--curto { padding-block-start: var(--space-m); }
 .duas-colunas { display: grid; gap: var(--space-2xl); }
 @media (min-width: 56rem) { .duas-colunas { grid-template-columns: 1fr 1fr; gap: var(--space-3xl); } }
+.duas-colunas--justas { gap: var(--space-l); }
+@media (min-width: 56rem) { .duas-colunas--justas { gap: var(--space-2xl); } }
 
-.secao {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+/* A cabeça do bloco: rótulo, ação, régua dupla — e a nota, quando o bloco
+   não se explica sozinho. */
+.secao { display: grid; gap: var(--space-2xs); margin-block-end: var(--space-m); }
+.secao__cabeca {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
   gap: var(--space-s);
   padding-block-end: var(--space-2xs);
-  border-bottom: 2px solid var(--marca);
-  margin-block-end: var(--space-m);
+  border-bottom: 3px double var(--marca);
 }
 /* é um h2: zera o que base.css dá a título e veste o rótulo */
 .secao__titulo {
@@ -388,6 +594,7 @@
   color: var(--marca);
 }
 .secao__acao { font-size: var(--step--1); color: var(--ink-muted); }
+.secao__nota { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); max-width: 64ch; line-height: var(--leading-normal); }
 
 /* O estado vazio que não parece abandono: tem o peso de uma peça. */
 .vazio {
@@ -415,15 +622,23 @@
 
 /* -------------------------------------------------------------------------
    A FAIXA DO RELÓGIO — a pergunta-assinatura, medida
-   O único bloco escuro da página. É o que o Instituto tem que ninguém tem.
+   O único bloco escuro da página, com os anéis do radar ao fundo — o mesmo
+   desenho da marca, em escala de faixa. É o que o Instituto tem que ninguém tem.
    ------------------------------------------------------------------------- */
 .sangra { margin-inline: calc(50% - 50vw); padding-inline: var(--gutter); }
 .faixa-relogio {
-  background: var(--capa-fundo);
+  position: relative;
+  background-color: var(--capa-fundo);
+  background-image:
+    repeating-radial-gradient(circle at 82% 50%,
+      transparent 0, transparent calc(4.5rem - 1px),
+      color-mix(in srgb, var(--capa-texto) 9%, transparent) calc(4.5rem - 1px),
+      color-mix(in srgb, var(--capa-texto) 9%, transparent) 4.5rem);
   color: var(--capa-texto);
   margin-block-start: var(--space-3xl);
+  overflow: hidden;
 }
-.faixa-relogio__miolo { display: grid; gap: var(--space-xl); padding-block: var(--space-2xl); align-items: center; }
+.faixa-relogio__miolo { display: grid; gap: var(--space-xl); padding-block: var(--space-2xl); align-items: center; position: relative; }
 @media (min-width: 56rem) { .faixa-relogio__miolo { grid-template-columns: 5fr 6fr; gap: var(--space-3xl); } }
 .faixa-relogio__kicker {
   display: inline-flex; align-items: center; gap: var(--space-2xs);
@@ -442,9 +657,11 @@
   text-wrap: balance;
 }
 .faixa-relogio__lead { color: var(--capa-texto-suave); margin-block-start: var(--space-m); max-width: 46ch; line-height: var(--leading-normal); }
+.faixa-relogio__metodo { color: var(--capa-texto-fraco); margin-block-start: var(--space-s); max-width: 46ch; font-size: var(--step--1); line-height: var(--leading-normal); }
 .faixa-relogio__link { display: inline-block; margin-block-start: var(--space-m); color: var(--capa-texto); text-decoration-color: var(--capa-texto-fraco); font-size: var(--step--1); }
 .faixa-relogio__link:hover { color: var(--capa-texto); text-decoration-color: var(--acao); }
 .faixa-relogio__numeros { display: grid; gap: var(--space-l) var(--space-m); grid-template-columns: repeat(2, 1fr); }
+.faixa-relogio .numero { padding-block-start: var(--space-s); border-block-start: 1px solid color-mix(in srgb, var(--capa-texto) 22%, transparent); }
 .faixa-relogio .numero__valor { color: var(--capa-texto); }
 .faixa-relogio .numero__rotulo { color: var(--capa-texto-fraco); }
 
@@ -470,23 +687,37 @@
 
 /* -------------------------------------------------------------------------
    A LISTA — site é aluguel, lista é propriedade
-   Clara, com fio: a faixa escura da página já é o relógio.
+   Lavada de azul-claro, com o símbolo em marca-d'água: é o único convite da
+   página, e tem de parecer convite.
    ------------------------------------------------------------------------- */
 .lista {
-  display: grid; gap: var(--space-m);
+  position: relative; overflow: hidden;
+  display: grid; gap: var(--space-l);
   padding: var(--space-l) var(--space-m);
-  border: var(--border-firm);
+  border: var(--border-hair);
   border-radius: var(--radius-m);
+  background: var(--marca-clara);
 }
-@media (min-width: 56rem) { .lista { grid-template-columns: 1fr 1fr; gap: var(--space-2xl); align-items: center; } }
+@media (min-width: 56rem) { .lista { grid-template-columns: 5fr 6fr; gap: var(--space-2xl); align-items: start; padding: var(--space-xl) var(--space-l); } }
+/* a marca-d'água fica DENTRO da caixa na horizontal (rect fora do viewport conta como transbordo na revisão); só vaza para baixo, onde o overflow corta */
+.lista__marca { position: absolute; inset-inline-end: var(--space-m); inset-block-end: -3.5rem; opacity: 0.08; pointer-events: none; }
+.lista__marca .marca-simbolo { display: block; }
+.lista__texto { position: relative; display: grid; gap: var(--space-s); align-content: start; }
 .lista__titulo { font-family: var(--face-obra); font-size: var(--step-2); font-weight: var(--weight-semibold); line-height: var(--leading-snug); text-wrap: balance; }
-.lista__nota { color: var(--ink-muted); font-size: var(--step--1); margin-block-start: var(--space-2xs); max-width: 48ch; }
-.lista__form { display: flex; flex-wrap: wrap; gap: var(--space-2xs); align-items: center; }
-.lista__form .campo { inline-size: auto; flex: 1 1 14rem; }
-.lista__rodape { flex-basis: 100%; font-size: var(--step--2); color: var(--ink-muted); }
+.lista__nota { color: var(--ink-muted); font-size: var(--step--1); max-width: 48ch; }
+.lista__form { position: relative; display: grid; gap: var(--space-s); }
+.lista__linha { display: flex; flex-wrap: wrap; gap: var(--space-2xs); align-items: center; }
+.lista__linha .campo { inline-size: auto; flex: 1 1 14rem; }
+.lista__linha--opcional { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-s); }
+.lista__linha--opcional .campo { inline-size: 100%; flex: none; }
+/* sobre a lavagem azul, o cinza fraco dá 4,2:1 (axe); aqui o miúdo usa o muted */
+.lista__pe { font-size: var(--step--2); color: var(--ink-muted); max-width: 52ch; }
+.lista .u-faint { color: var(--ink-muted); }
+.lista__rodape { font-size: var(--step--2); color: var(--ink-muted); }
 
 /* -------------------------------------------------------------------------
    AGENDA
+   A data como folha de calendário: a faixa azul em cima é o que a torna folha.
    ------------------------------------------------------------------------- */
 .evento {
   display: grid;
@@ -501,6 +732,7 @@
   inline-size: 4.5rem;
   padding: var(--space-2xs);
   border: var(--border-firm);
+  border-block-start: 4px solid var(--marca);
   border-radius: var(--radius-s);
   background: var(--paper-raised);
   font-family: var(--face-dado);
@@ -551,6 +783,7 @@
 textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .campo-rotulo { display: grid; gap: var(--space-3xs); }
 .campo-rotulo > span { font-size: var(--step--1); font-weight: var(--weight-medium); }
+.campo-rotulo em { font-style: normal; font-weight: var(--weight-regular); }
 .campo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-s); }
 
 /* -------------------------------------------------------------------------
@@ -566,18 +799,20 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 
 /* -------------------------------------------------------------------------
    RODAPÉ
+   Régua dupla em cima, três colunas, e o colofão — o que se usou para fazer.
    ------------------------------------------------------------------------- */
-.rodape { border-block-start: var(--border-hair); padding-block: var(--space-2xl) var(--space-l); font-size: var(--step--1); color: var(--ink-muted); }
+.rodape { border-block-start: 3px double var(--marca); padding-block: var(--space-2xl) var(--space-l); font-size: var(--step--1); color: var(--ink-muted); }
 .rodape__grade { display: grid; gap: var(--space-xl); }
-@media (min-width: 56rem) { .rodape__grade { grid-template-columns: 1.2fr 1fr; gap: var(--space-3xl); } }
+@media (min-width: 56rem) { .rodape__grade { grid-template-columns: 1fr 1.4fr; gap: var(--space-3xl); } }
 .rodape__marca { display: inline-flex; align-items: center; gap: var(--space-2xs); text-decoration: none; color: var(--marca); font-family: var(--face-obra); font-weight: var(--weight-bold); font-size: var(--step-1); }
 .rodape__texto { margin-block-start: var(--space-s); max-width: 52ch; line-height: var(--leading-normal); }
-.rodape__colunas { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-l); }
+.rodape__colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-l); }
 .rodape__colunas > div { display: grid; gap: var(--space-2xs); align-content: start; }
 .rodape__colunas a { text-decoration: none; color: var(--ink-muted); }
 .rodape__colunas a:hover { color: var(--marca); }
 .rodape__rotulo { font-family: var(--face-fluxo); font-size: var(--step--2); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--ink-faint); margin-block-end: var(--space-3xs); }
 .rodape__pe { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-s); margin-block-start: var(--space-xl); padding-block-start: var(--space-m); border-block-start: var(--border-hair); font-size: var(--step--2); color: var(--ink-faint); }
+.rodape__colofao { font-family: var(--face-dado); }
 
 /* -------------------------------------------------------------------------
    Transição de página sem SPA (Chrome/Edge; degrada em silêncio)
@@ -607,16 +842,17 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .amostra__cor { block-size: 4.5rem; border-radius: var(--radius-s); border: 1px solid var(--rule); }
 .amostra__nome { font-family: var(--face-fluxo); font-size: var(--step--1); font-weight: var(--weight-medium); }
 .amostra__hex { font-family: var(--face-dado); font-size: var(--step--2); color: var(--ink-muted); }
-.regras { display: grid; gap: var(--space-s); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
-.regras li { list-style: none; padding-inline-start: var(--space-m); border-inline-start: 2px solid var(--marca); }
-.regras li strong { display: block; font-family: var(--face-fluxo); }
+.regras { display: grid; gap: var(--space-s); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); padding: 0; }
+.regras li { list-style: none; padding-inline-start: var(--space-m); border-inline-start: 2px solid var(--marca); font-size: var(--step--1); color: var(--ink-muted); line-height: var(--leading-normal); }
+.regras li strong { display: block; font-family: var(--face-fluxo); color: var(--ink); margin-block-end: var(--space-3xs); }
 
 /* ------------------------------------------------------------ alvo de toque
    Onde o dedo manda, link de 19 px é sorte. Padding vertical leva rodapé,
    listas e ações de bloco a ≥ 24 px (WCAG 2.5.8) sem mexer no desktop. */
 @media (pointer: coarse) {
-  .rodape__colunas a, .secao__acao a, .evento__nome a, .lista li a, .card__pe a, .linha__pe a,
-  .assinatura a, .fonte-caixa a, .termo__nota a, .cabeca-secao__lead a, .aviso a, .vazio a {
+  .rodape__colunas a, .secao__acao a, .secao__nota a, .evento__nome a, .lista li a, .card__pe a, .linha__pe a,
+  .assinatura a, .fonte-caixa a, .autor-caixa a, .termo__nota a, .cabeca-secao__lead a, .aviso a, .vazio a,
+  .parceiro__acao, .dateline__link, .perfil__meta a {
     display: inline-block; padding-block: 0.375rem; margin-block: -0.375rem;
   }
   .rodape__colunas a { margin-block: 0; }

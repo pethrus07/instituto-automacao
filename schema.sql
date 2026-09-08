@@ -13,6 +13,7 @@
 -- em vez deste arquivo — ele começa com DROP TABLE, e item colhido não volta.
 -- =========================================================================
 
+DROP TABLE IF EXISTS contato;
 DROP TABLE IF EXISTS correcao;
 DROP TABLE IF EXISTS item;
 DROP TABLE IF EXISTS assunto;
@@ -195,5 +196,20 @@ CREATE TABLE assinante (
   nucleos    TEXT,
   origem     TEXT,
   confirmado INTEGER NOT NULL DEFAULT 0,
-  criado_em  TEXT NOT NULL DEFAULT (datetime('now'))
+  criado_em  TEXT NOT NULL DEFAULT (datetime('now')),
+  -- 006 (07/09/2026): o que a pessoa faz — para saber para quem se escreve
+  atuacao    TEXT,     -- opera | integra | ensina | estuda | outra
+  empresa    TEXT
+);
+
+-- Quem se apresentou pelos formulários "Escreva no Instituto" e "Apoie".
+-- É caixa de entrada, não cadastro: lido por gente, respondido por gente.
+CREATE TABLE contato (
+  id        TEXT PRIMARY KEY,
+  tipo      TEXT NOT NULL CHECK (tipo IN ('autor', 'parceiro')),
+  nome      TEXT NOT NULL,
+  email     TEXT NOT NULL,
+  empresa   TEXT,
+  mensagem  TEXT,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );

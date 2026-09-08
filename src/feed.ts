@@ -6,7 +6,7 @@
  * compilado — zero banco, zero espera.
  */
 import type { Env } from './config';
-import { caminho, porSecao, ROTULO_SECAO, todas, type Peca, type Secao } from './conteudo';
+import { autores, caminho, caminhoAutor, pecasDoAutor, porSecao, ROTULO_SECAO, todas, type Peca, type Secao } from './conteudo';
 import { listarAgenda } from './db';
 
 /** XML não perdoa `&` solto — nem em título de notícia alemã. */
@@ -67,15 +67,20 @@ export async function sitemap(env: Env): Promise<string> {
   const urls: { loc: string; mod?: string | null }[] = [
     { loc: `${base}/` },
     { loc: `${base}/noticias` },
+    { loc: `${base}/artigos` },
     { loc: `${base}/relatorios` },
     { loc: `${base}/giro` },
     { loc: `${base}/agenda` },
+    { loc: `${base}/autores` },
     { loc: `${base}/glossario` },
     { loc: `${base}/blueprints` },
+    { loc: `${base}/apoie` },
     { loc: `${base}/marca` },
   ];
 
   for (const p of todas()) urls.push({ loc: base + caminho(p), mod: p.data });
+  // só quem já assinou algo tem página que vale indexar
+  for (const a of autores()) if (pecasDoAutor(a).length) urls.push({ loc: base + caminhoAutor(a), mod: pecasDoAutor(a)[0]?.data });
   // Só eventos à frente: sitemap com evento passado gasta rastreio à toa.
   for (const e of await listarAgenda(env.DB, {}, 200)) urls.push({ loc: `${base}/agenda/${e.slug}` });
 
@@ -91,8 +96,11 @@ export function robots(env: Env): string {
   return `User-agent: *
 Allow: /
 
-# O envio de evento é POST e não tem o que indexar.
+# Só POST — não há o que indexar.
 Disallow: /agenda/enviar
+Disallow: /assinar
+Disallow: /autores/escrever
+Disallow: /apoie/enviar
 
 Sitemap: ${env.SITE_URL}/sitemap.xml
 `;

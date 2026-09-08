@@ -44,6 +44,27 @@ export function ehTema(v: string): v is Tema {
 }
 
 /**
+ * O que a pessoa que assina FAZ. Perguntado no cadastro (feedback do sócio,
+ * 07/09/2026), opcional, fechado: cinco respostas dizem para quem se escreve;
+ * texto livre não diria.
+ */
+export type Atuacao = 'opera' | 'integra' | 'ensina' | 'estuda' | 'outra';
+
+export const ATUACOES: Record<Atuacao, string> = {
+  opera: 'Opero uma planta, uma linha ou uma empresa',
+  integra: 'Integro, vendo ou represento automação',
+  ensina: 'Pesquiso ou ensino',
+  estuda: 'Estudo',
+  outra: 'Outra coisa',
+};
+
+export const ORDEM_ATUACOES: Atuacao[] = ['opera', 'integra', 'ensina', 'estuda', 'outra'];
+
+export function ehAtuacao(v: string): v is Atuacao {
+  return Object.prototype.hasOwnProperty.call(ATUACOES, v);
+}
+
+/**
  * Os caminhos da v1 que continuam chegando por link antigo, e para onde vão.
  * 301 em todos: link que alguém guardou é contrato, e 404 quebra o contrato
  * de todo mundo de uma vez.

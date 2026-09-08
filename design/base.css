@@ -231,6 +231,9 @@ th {
   margin-inline: auto;
 }
 .wrap--prose { width: min(100% - var(--gutter) * 2, var(--width-prose)); }
+/* O <main> é contêiner: quem quiser sangrar até a largura da página (a arte
+   da peça) mede em cqi, e não em vw — vw conta a barra de rolagem e vaza. */
+main.wrap { container-type: inline-size; }
 .scroll-x { overflow-x: auto; overscroll-behavior-inline: contain; }
 
 
@@ -238,12 +241,14 @@ th {
    Quem imprime uma peça quer a peça: sem navegação, sem rodapé, sem
    formulário, com a URL da fonte escrita porque link não se clica no papel. */
 @media print {
-  .navbar, .rodape, .lista, form, .botao-acao, #tema, .faixa-relogio, .filtro, .u-visually-hidden { display: none !important; }
+  .navbar, .rodape, .lista, form, .botao-acao, #tema, .faixa-relogio, .filtro, .u-visually-hidden,
+  .dateline, .parceiro, .autores-faixa, .autor-card--convite { display: none !important; }
   body { background: white; color: black; font-size: 11pt; line-height: 1.45; }
   .wrap { width: auto; max-width: none; }
   main { padding-block: 0 !important; }
   .peca__corpo { display: block; }
-  .peca__lateral { position: static; margin-block-start: 1.5rem; }
+  .peca__ficha { display: block; margin-block-start: 1.5rem; }
+  .peca__arte.arte { inline-size: auto; margin-inline: 0; }
   .arte, .destaque__arte { max-block-size: 70mm; }
   .arte img, .arte svg { max-block-size: 70mm; object-fit: contain; }
   a { color: inherit; text-decoration: none; }

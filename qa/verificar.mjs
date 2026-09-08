@@ -113,7 +113,7 @@ function sql(comando) {
 /** As peças, lidas da FONTE (conteudo/**.md), não do site — o site é o que se testa. */
 function lerPecas() {
   const pecas = [];
-  for (const secao of ['noticias', 'relatorios', 'giro']) {
+  for (const secao of ['noticias', 'artigos', 'relatorios', 'giro']) {
     const pasta = join(RAIZ, 'conteudo', secao);
     if (!existsSync(pasta)) continue;
     for (const nome of readdirSync(pasta).filter((n) => n.endsWith('.md')).sort()) {
@@ -149,9 +149,10 @@ medidas.noticias = noticias.length;
 titulo('A · Funcional — rotas');
 
 const rotas = [
-  ['/', 200], ['/noticias', 200], ['/relatorios', 200], ['/giro', 200],
+  ['/', 200], ['/noticias', 200], ['/artigos', 200], ['/relatorios', 200], ['/giro', 200],
   ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/marca', 200], ['/saude', 200], ['/manifest.webmanifest', 200],
-  ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
+  ['/autores', 200], ['/autores/pedro-oliveira', 200], ['/autores/nao-existe', 404], ['/apoie', 200],
+  ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/feed/artigos.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
   ...pecas.map((p) => [`/${p.secao}/${p.slug}`, 200]),
   ['/noticias/nao-existe', 404], ['/relatorios/nao-existe', 404], ['/qualquer-coisa', 404], ['/feed/inventado.xml', 404],
 ];
@@ -200,7 +201,7 @@ try {
 titulo('B · Conformidade — o banco depois da cirurgia');
 
 const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf%' AND name NOT LIKE 'd1_%'`).map((r) => r.name).sort();
-const esperadas = ['assinante', 'assunto', 'correcao', 'evento', 'fonte', 'glossario', 'item'];
+const esperadas = ['assinante', 'assunto', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item'];
 checar('B', `as ${esperadas.length} tabelas da v2, e só elas`, JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
 for (const morta of ['obra', 'giro', 'custo_dia']) checar('B', `a tabela ${morta} não existe mais`, !tabelas.includes(morta));
 
@@ -392,7 +393,16 @@ if (LOCAL) {
   checar('B', 'e-mail válido entra, normalizado', Boolean(sql(`SELECT email FROM assinante WHERE email='${alvoQa}'`)[0]));
   const r2 = await postar('/assinar', `email=${encodeURIComponent(alvoQa)}`);
   checar('B', 'reenviar o mesmo e-mail responde IGUAL', r1.status === r2.status && r1.headers.get('location') === r2.headers.get('location'));
+  checar('B', 'a resposta volta para o bloco da lista (#assinar), não para o topo', /#assinar$/.test(r1.headers.get('location') ?? ''), r1.headers.get('location'));
   sql(`DELETE FROM assinante WHERE email='${alvoQa}'`);
+  /* 07/09: o que a pessoa faz. Fechado (config.ts → ATUACOES): valor fora da lista vira nulo, não vira texto livre. */
+  const alvoAtua = `qa.atua.${Date.now()}@exemplo.com`;
+  await postar('/assinar', `email=${encodeURIComponent(alvoAtua)}&atuacao=opera&empresa=${encodeURIComponent('QA Ltda')}`);
+  const linhaAtua = sql(`SELECT atuacao, empresa FROM assinante WHERE email='${alvoAtua}'`)[0];
+  checar('B', 'a lista guarda atuação e empresa quando a pessoa diz', linhaAtua?.atuacao === 'opera' && linhaAtua?.empresa === 'QA Ltda', JSON.stringify(linhaAtua));
+  const alvoFora = `qa.fora.${Date.now()}@exemplo.com`;
+  await postar('/assinar', `email=${encodeURIComponent(alvoFora)}&atuacao=hacker`);
+  checar('B', 'atuação fora da lista fechada vira nulo', sql(`SELECT atuacao FROM assinante WHERE email='${alvoFora}'`)[0]?.atuacao === null);
   sql(`DELETE FROM assinante WHERE email LIKE '%@exemplo.com'`);
 } else {
   avisar('assinatura não testada', 'o alvo é remoto — teste de escrita só roda no dev local, para não deixar assinante de QA no banco publicado');
@@ -478,7 +488,8 @@ checar('C', 'P9 · nenhuma arte com cor crua (todas vestem os tokens)', artesCru
 
 titulo('C · Qualidade — P10: peso e tempo');
 checar('C', 'P10 · HTML da capa abaixo de 60 KB', medidas.htmlCapa < 60000, `${(medidas.htmlCapa / 1024).toFixed(1)} KB`);
-checar('C', 'P10 · CSS abaixo de 40 KB', medidas.css < 40000, `${(medidas.css / 1024).toFixed(1)} KB`);
+// 48 KB sem comprimir (na borda vai em brotli, ~9 KB). Subiu de 40 em 07/09/2026 com autores, parceiro, ficha e a lista nova.
+checar('C', 'P10 · CSS abaixo de 48 KB', medidas.css < 48000, `${(medidas.css / 1024).toFixed(1)} KB`);
 checar('C', 'P10 · capa responde em menos de 300 ms local', medidas.msCapa < 300, `${medidas.msCapa} ms`);
 if (/fonts\.googleapis\.com/.test(capa)) avisar('fontes vindas do Google', 'pendência conhecida: self-hosting antes do deploy');
 
@@ -620,6 +631,98 @@ for (const [caminho, tipo] of [['/fontes/newsreader-latin.woff2', 'font/woff2'],
   const fonte = await pegar('/fontes/plex-mono-latin-400.woff2');
   if (!/immutable/.test(fonte.cab['cache-control'] ?? '')) avisar('_headers dos assets não visto em dev', `cache-control: ${fonte.cab['cache-control'] ?? '(vazio)'} — em produção a borda aplica publico/_headers`);
   else checar('A', 'fontes com cache imutável (publico/_headers)', true);
+}
+
+/* ------------------------------------------- B. FEEDBACK DE 07/09/2026 (SÓCIO) */
+titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navegação');
+{
+  const capaHtml = respostas['/'].corpo;
+  const pecaHtml = respostas[`/${noticias[0].secao}/${noticias[0].slug}`].corpo;
+  const autoresHtml = respostas['/autores'].corpo;
+  const autorHtml = respostas['/autores/pedro-oliveira'].corpo;
+  const apoieHtml = respostas['/apoie'].corpo;
+  const artigosHtml = respostas['/artigos'].corpo;
+
+  /* autores: todo autor de peça tem arquivo, e o arquivo tem nome e papel */
+  const arquivosAutor = readdirSync(join(RAIZ, 'conteudo', 'autores')).filter((n) => n.endsWith('.md'));
+  const nomesAutor = arquivosAutor.map((n) => /^nome:\s*(.+)$/m.exec(readFileSync(join(RAIZ, 'conteudo', 'autores', n), 'utf8'))?.[1]?.trim());
+  checar('B', 'há pelo menos um autor em conteudo/autores/', arquivosAutor.length >= 1, arquivosAutor.join(', '));
+  const semArquivo = [...new Set(pecas.map((p) => p.meta.autor))].filter((a) => !nomesAutor.includes(a));
+  checar('B', 'toda peça aponta para um autor que existe em conteudo/autores/', semArquivo.length === 0, semArquivo.join(', '));
+  for (const n of arquivosAutor) {
+    const t = readFileSync(join(RAIZ, 'conteudo', 'autores', n), 'utf8');
+    checar('B', `autores/${n}: nome, papel e bio`, /^nome:\s*\S/m.test(t) && /^papel:\s*\S/m.test(t) && (t.split(/\r?\n---\r?\n/)[1] ?? '').trim().length >= 40);
+  }
+
+  /* a página do autor: é o currículo dele aqui */
+  const pecasDoPedro = pecas.filter((p) => p.meta.autor === 'Pedro Oliveira').length;
+  checar('B', '/autores/pedro-oliveira lista TODAS as peças dele', (autorHtml.match(/class="linha"/g) ?? []).length === pecasDoPedro, `${(autorHtml.match(/class="linha"/g) ?? []).length} na página, ${pecasDoPedro} nos arquivos`);
+  checar('B', '/autores/pedro-oliveira tem h1 com o nome e o papel como kicker', /<h1[^>]*>Pedro Oliveira<\/h1>/.test(autorHtml) && /class="kicker">Editor</.test(autorHtml));
+  checar('B', '/autores/pedro-oliveira declara ProfilePage com Person', tiposLd(autorHtml).includes('ProfilePage') && /"@type":"Person"/.test(autorHtml));
+  checar('B', '/autores/pedro-oliveira é og:type profile', /property="og:type" content="profile"/.test(autorHtml));
+  checar('B', '/autores lista os autores e convida a escrever (#escrever com formulário)', /class="autor-card"/.test(autoresHtml) && /id="escrever"/.test(autoresHtml) && /action="\/autores\/escrever"/.test(autoresHtml));
+  checar('B', 'a assinatura da peça leva à página do autor (rel=author)', /<a href="\/autores\/pedro-oliveira" rel="author" class="assinatura__autor">/.test(pecaHtml));
+  checar('B', 'o JSON-LD da peça aponta o autor para a página dele', /"author":\{"@type":"Person","@id":"[^"]+\/autores\/pedro-oliveira#pessoa"/.test(pecaHtml));
+
+  /* a ficha: a lateral saiu, e o que ela dizia está embaixo do texto */
+  checar('B', 'a peça NÃO tem mais coluna lateral', !/peca__lateral/.test(pecaHtml));
+  checar('B', 'a peça tem a ficha com veredito, fonte e quem escreveu', /class="peca__ficha"/.test(pecaHtml) && /class="veredito-caixa"/.test(pecaHtml) && /class="fonte-caixa"/.test(pecaHtml) && /class="autor-caixa"/.test(pecaHtml));
+  checar('B', 'a ficha vem DEPOIS do corpo da peça', pecaHtml.indexOf('class="peca__ficha"') > pecaHtml.indexOf('class="obra"'));
+
+  /* artigos: a seção existe, honesta quando vazia */
+  const artigos = pecas.filter((p) => p.secao === 'artigos');
+  checar('B', '/artigos existe e está na navegação', /<a href="\/artigos"[^>]*>Artigos<\/a>/.test(capaHtml) && respostas['/artigos'].status === 200);
+  if (artigos.length === 0) {
+    checar('B', '/artigos vazio diz que o primeiro está sendo escrito e convida a escrever', /O primeiro artigo está sendo escrito/.test(artigosHtml) && /href="\/autores#escrever"/.test(artigosHtml));
+    checar('B', 'a capa tem o bloco Artigos com o convite mesmo sem artigo', /<h2 class="secao__titulo">Artigos<\/h2>/.test(capaHtml) && /href="\/autores#escrever"/.test(capaHtml));
+  }
+  checar('B', 'formato de artigo é guia ou conceito', artigos.every((p) => ['guia', 'conceito'].includes(p.meta.formato)));
+  checar('B', 'artigo não leva veredito', artigos.every((p) => !p.meta.veredito));
+
+  /* o parceiro: o espaço existe, com ou sem parceiro, e a página /apoie explica */
+  checar('B', 'a capa tem o espaço do parceiro antes do destaque', /class="parceiro"/.test(capaHtml) && capaHtml.indexOf('class="parceiro"') < capaHtml.indexOf('class="destaque"'));
+  checar('B', 'o espaço do parceiro está rotulado e leva a /apoie', /Parceiro do Instituto/.test(capaHtml) && /class="parceiro__acao" href="\/apoie"/.test(capaHtml));
+  checar('B', '/apoie diz o que o parceiro NÃO compra (pauta, notícia, veredito)', /Não escreve notícia/.test(apoieHtml) && /Não escolhe pauta nem veredito/.test(apoieHtml));
+  checar('B', '/apoie tem formulário para /apoie/enviar', /action="\/apoie\/enviar"/.test(apoieHtml));
+  checar('B', 'link de parceiro, quando houver, é rel=sponsored', !/class="parceiro__corpo" href=/.test(capaHtml) || /class="parceiro__corpo" href="[^"]+" rel="sponsored/.test(capaHtml));
+
+  /* a capa: a lista subiu, as notas explicam, o tema mora na nav, a linha de data */
+  checar('B', 'a lista (#assinar) vem ANTES do relógio na capa', capaHtml.indexOf('id="assinar"') > 0 && capaHtml.indexOf('id="assinar"') < capaHtml.indexOf('faixa-relogio'));
+  checar('B', 'a lista pergunta o que a pessoa faz (fechado) e a empresa (opcional)', /name="atuacao"/.test(capaHtml) && /name="empresa"/.test(capaHtml) && (capaHtml.match(/<option value="(opera|integra|ensina|estuda|outra)"/g) ?? []).length === 5);
+  checar('B', 'Relatórios e Agenda têm nota dizendo o que são', (capaHtml.match(/class="secao__nota"/g) ?? []).length >= 3 && /conferida no site oficial/.test(capaHtml) && /dado próprio/.test(capaHtml));
+  checar('B', 'o botão de tema está na navegação, não no rodapé', /<nav class="navbar"[\s\S]*id="tema"[\s\S]*<\/nav>/.test(capaHtml) && !/<footer[\s\S]*id="tema"/.test(capaHtml));
+  checar('B', 'o botão de tema tem texto além do ícone', /class="navbar__tema-texto">Tema</.test(capaHtml));
+  checar('B', 'a linha de data está no alto de toda página', ['/', '/agenda', '/autores', '/apoie'].every((r) => /class="dateline__data">[A-Z][a-zç-]+(-feira)?, \d{1,2} de [a-zç]+ de \d{4}</.test(respostas[r].corpo)));
+  checar('B', 'o rodapé tem a coluna do Instituto (quem escreve, escreva, apoie) e o colofão', /Quem escreve<\/a>/.test(capaHtml) && /Escreva no Instituto<\/a>/.test(capaHtml) && /href="\/apoie">Apoie<\/a>/.test(capaHtml) && /class="rodape__colofao"/.test(capaHtml));
+  checar('B', 'a faixa "Quem escreve" está na capa e termina no convite', /class="autores-faixa"/.test(capaHtml) && /autor-card--convite/.test(capaHtml));
+
+  /* o relógio: nunca um "0" fingindo medida; e diz sobre quais fontes mede */
+  checar('B', 'o relógio não mostra "0" como valor de medida', !/numero__valor">0</.test(capaHtml));
+  checar('B', 'o relógio diz que a medida vale para as fontes acompanhadas (amostra)', /class="faixa-relogio__metodo"/.test(capaHtml) && /não para toda a imprensa/.test(capaHtml));
+
+  /* distribuição */
+  const sm = respostas['/sitemap.xml'].corpo;
+  checar('B', 'sitemap tem /artigos, /autores, /apoie e a página do autor', ['/artigos', '/autores', '/apoie', '/autores/pedro-oliveira'].every((r) => sm.includes(`${r}</loc>`)));
+  const rb = respostas['/robots.txt'].corpo;
+  if (!/Disallow: \/$/m.test(rb)) checar('B', 'robots fecha só os POSTs novos', /Disallow: \/assinar/.test(rb) && /Disallow: \/autores\/escrever/.test(rb) && /Disallow: \/apoie\/enviar/.test(rb));
+
+  /* o contato: só no dev local, e apaga o rastro */
+  if (LOCAL) {
+    const antesContato = sql(`SELECT COUNT(*) n FROM contato`)[0].n;
+    const rRobo = await postar('/autores/escrever', 'nome=Robo&email=robo.qa@exemplo.com&sitio=x');
+    checar('B', 'contato: honeypot não grava e responde 303', rRobo.status === 303 && sql(`SELECT COUNT(*) n FROM contato`)[0].n === antesContato);
+    const rInvalido = await postar('/autores/escrever', 'nome=QA&email=nao-e-email');
+    checar('B', 'contato: e-mail inválido é 400 e não grava', rInvalido.status === 400 && sql(`SELECT COUNT(*) n FROM contato`)[0].n === antesContato);
+    const rSemEmpresa = await postar('/apoie/enviar', 'nome=QA&email=qa.parceiro@exemplo.com');
+    checar('B', 'apoie: sem empresa é 400', rSemEmpresa.status === 400);
+    const alvo = `qa.contato.${Date.now()}@exemplo.com`;
+    const rOk = await postar('/autores/escrever', `nome=QA%20Teste&email=${encodeURIComponent(alvo)}&mensagem=${encodeURIComponent('teste do QA')}`);
+    const linha = sql(`SELECT tipo, nome, mensagem FROM contato WHERE email='${alvo}'`)[0];
+    checar('B', 'contato: envio válido grava como tipo autor e volta para #escrever', rOk.status === 303 && /#escrever$/.test(rOk.headers.get('location') ?? '') && linha?.tipo === 'autor' && linha?.nome === 'QA Teste', JSON.stringify(linha));
+    const rPar = await postar('/apoie/enviar', `nome=QA&email=${encodeURIComponent(alvo)}&empresa=QA%20Ltda`);
+    checar('B', 'apoie: envio válido grava como tipo parceiro', rPar.status === 303 && sql(`SELECT COUNT(*) n FROM contato WHERE email='${alvo}' AND tipo='parceiro'`)[0].n === 1);
+    sql(`DELETE FROM contato WHERE email LIKE '%@exemplo.com'`);
+  }
 }
 
 titulo('C · Qualidade — as suítes de unidade');

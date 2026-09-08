@@ -224,16 +224,55 @@ export async function listarCorrecoes(db: D1Database): Promise<Correcao[]> {
   return results ?? [];
 }
 
+export type NovaAssinatura = {
+  email: string;
+  /** de onde veio: 'capa', 'peca' */
+  origem: string;
+  /** o que a pessoa faz (config.ts → ATUACOES), quando disse */
+  atuacao?: string | null;
+  empresa?: string | null;
+};
+
 /** Guarda o e-mail. Devolve false se já estava lá — sem dizer isso a quem enviou. */
-export async function assinar(db: D1Database, email: string, origem: string): Promise<boolean> {
+export async function assinar(db: D1Database, a: NovaAssinatura): Promise<boolean> {
   const r = await db
     .prepare(
-      `INSERT OR IGNORE INTO assinante (email, origem, criado_em)
-       VALUES (?1, ?2, datetime('now'))`,
+      `INSERT OR IGNORE INTO assinante (email, origem, atuacao, empresa, criado_em)
+       VALUES (?1, ?2, ?3, ?4, datetime('now'))`,
     )
-    .bind(email.toLowerCase(), origem)
+    .bind(a.email.toLowerCase(), a.origem, a.atuacao ?? null, a.empresa ?? null)
     .run();
   return (r.meta?.changes ?? 0) > 0;
+}
+
+/* ========================================================================= */
+/* Contato — quem quer escrever, quem quer apoiar                             */
+/* ========================================================================= */
+
+export type NovoContato = {
+  tipo: 'autor' | 'parceiro';
+  nome: string;
+  email: string;
+  empresa?: string | null;
+  mensagem?: string | null;
+};
+
+/** Caixa de entrada. Nunca responde sozinha: alguém lê e escreve de volta. */
+export async function registrarContato(db: D1Database, c: NovoContato): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO contato (id, tipo, nome, email, empresa, mensagem, criado_em)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, datetime('now'))`,
+    )
+    .bind(crypto.randomUUID(), c.tipo, c.nome, c.email.toLowerCase(), c.empresa ?? null, c.mensagem ?? null)
+    .run();
+}
+
+export async function contarContatos(db: D1Database): Promise<{ autor: number; parceiro: number }> {
+  const { results } = await db.prepare(`SELECT tipo, COUNT(*) n FROM contato GROUP BY tipo`).all<{ tipo: string; n: number }>();
+  const r = { autor: 0, parceiro: 0 };
+  for (const l of results ?? []) if (l.tipo === 'autor' || l.tipo === 'parceiro') r[l.tipo] = l.n;
+  return r;
 }
 
 export async function contarAssinantes(db: D1Database): Promise<number> {

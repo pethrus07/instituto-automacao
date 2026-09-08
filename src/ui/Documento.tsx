@@ -8,11 +8,17 @@
  * descrição de até 160 caracteres, imagem para compartilhar (Open Graph e
  * Twitter), JSON-LD, fontes self-hosted com preload, ícones e manifesto.
  * Nada aqui é afirmado sem existir na página.
+ *
+ * 07/09/2026, feedback do sócio: o botão de tema subiu do rodapé para a
+ * navegação ("ficou pouco visível onde muda o tema"); entrou a linha de data
+ * no alto, como num jornal; a seção Artigos entrou na navegação; o rodapé
+ * ganhou a coluna do Instituto (quem escreve, escreva, apoie) e o colofão.
  */
 import { raw } from 'hono/html';
 import { CSS_ROTA } from '../estilo';
 import { simbolo } from './marca';
 import { TEMA_SCRIPT } from './tema';
+import { dataHoje } from './pecas';
 import { NOME_SITE, absoluta, descricaoCurta, origemDe, tituloDaAba } from './seo';
 import type { Secao } from '../conteudo';
 
@@ -24,13 +30,13 @@ type Props = {
   tituloCurto?: string;
   descricao?: string;
   /** a seção atual, para o estado ativo da navegação */
-  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca';
+  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca' | 'autores' | 'apoie';
   /** URL canônica, absoluta */
   url?: string;
   /** JSON-LD já serializado e escapado (ver ui/jsonld.ts); um ou vários blocos */
   ld?: string | string[];
-  /** `article` para peça; `website` para o resto */
-  tipoOg?: 'website' | 'article';
+  /** `article` para peça; `profile` para autor; `website` para o resto */
+  tipoOg?: 'website' | 'article' | 'profile';
   /** a imagem de compartilhamento; sem ela, entra a padrão do site */
   imagemOg?: ImagemOg;
   /** metadados de artigo (Open Graph) — só em peça */
@@ -42,10 +48,20 @@ type Props = {
 
 const NAV: { href: string; texto: string; chave: Props['secao'] }[] = [
   { href: '/noticias', texto: 'Notícias', chave: 'noticias' },
+  { href: '/artigos', texto: 'Artigos', chave: 'artigos' },
   { href: '/relatorios', texto: 'Relatórios', chave: 'relatorios' },
   { href: '/agenda', texto: 'Agenda', chave: 'agenda' },
   { href: '/giro', texto: 'Giro da Semana', chave: 'giro' },
 ];
+
+/**
+ * O ícone do botão de tema: no claro mostra a lua (para onde o clique leva);
+ * no escuro, o sol. O CSS troca pelo data-theme — o script só alterna o atributo.
+ */
+const ICONE_TEMA = `<svg class="tema-icone" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+  <g class="tema-icone__sol"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g>
+  <path class="tema-icone__lua" d="M14.5 3.2a8.8 8.8 0 1 0 6.3 12.6A7 7 0 0 1 14.5 3.2Z"/>
+</svg>`;
 
 export const Documento = (p: Props) => {
   const titulo = tituloDaAba(p.titulo, p.tituloCurto);
@@ -106,6 +122,7 @@ export const Documento = (p: Props) => {
 
         <link rel="alternate" type="application/rss+xml" title={NOME_SITE} href="/feed.xml" />
         <link rel="alternate" type="application/rss+xml" title={`Notícias — ${NOME_SITE}`} href="/feed/noticias.xml" />
+        <link rel="alternate" type="application/rss+xml" title={`Artigos — ${NOME_SITE}`} href="/feed/artigos.xml" />
         <link rel="alternate" type="application/rss+xml" title={`Relatórios — ${NOME_SITE}`} href="/feed/relatorios.xml" />
         <link rel="alternate" type="application/rss+xml" title={`Giro da Semana — ${NOME_SITE}`} href="/feed/giro.xml" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
@@ -117,11 +134,18 @@ export const Documento = (p: Props) => {
         </a>
 
         {/*
-          O cabeçalho de revista: símbolo e nome no centro, a linha de
-          propósito embaixo, a régua, e a navegação — que é a única parte que
-          gruda ao rolar.
+          O cabeçalho de revista: a linha de data no alto, símbolo e nome no
+          centro, a linha de propósito, a régua dupla, e a navegação — que é a
+          única parte que gruda ao rolar.
         */}
-        <header>
+        <header class="cabecalho">
+          <div class="wrap dateline">
+            <span class="dateline__data">{dataHoje()}</span>
+            <span class="dateline__nota">Nada aqui é gerado por máquina. Toda peça tem autor.</span>
+            <a class="dateline__link" href="/feed.xml">
+              RSS
+            </a>
+          </div>
           <div class="wrap marca">
             <a href="/" class="marca__lockup" aria-label={`${NOME_SITE} — capa`}>
               {raw(simbolo(44))}
@@ -149,6 +173,11 @@ export const Documento = (p: Props) => {
               <a href="/blueprints" class="navbar__secundario" aria-current={p.secao === 'blueprints' ? 'page' : undefined}>
                 Blueprints
               </a>
+              {/* O tema mora aqui, não no rodapé: quem quer ler no escuro procura no alto. */}
+              <button id="tema" type="button" class="navbar__tema" aria-label="Alternar tema claro e escuro" title="Alternar tema claro e escuro">
+                {raw(ICONE_TEMA)}
+                <span class="navbar__tema-texto">Tema</span>
+              </button>
               <span class="navbar__acao">
                 <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
               </span>
@@ -177,24 +206,30 @@ export const Documento = (p: Props) => {
               <div>
                 <span class="rodape__rotulo">Seções</span>
                 <a href="/noticias">Notícias</a>
+                <a href="/artigos">Artigos</a>
                 <a href="/relatorios">Relatórios</a>
                 <a href="/agenda">Agenda</a>
                 <a href="/giro">Giro da Semana</a>
               </div>
               <div>
+                <span class="rodape__rotulo">O Instituto</span>
+                <a href="/autores">Quem escreve</a>
+                <a href="/autores#escrever">Escreva no Instituto</a>
+                <a href="/apoie">Apoie</a>
+                <a href="/marca">Marca</a>
+              </div>
+              <div>
                 <span class="rodape__rotulo">O método</span>
                 <a href="/blueprints">Blueprints e fontes</a>
                 <a href="/glossario">Glossário</a>
-                <a href="/marca">Marca</a>
+                <a href="/blueprints#dataset">Dataset</a>
                 <a href="/feed.xml">RSS</a>
               </div>
             </nav>
           </div>
           <div class="wrap rodape__pe">
             <span>Nada aqui é gerado por máquina. Toda peça tem autor.</span>
-            <button id="tema" type="button" class="pilula" aria-label="Alternar tema claro e escuro">
-              Tema
-            </button>
+            <span class="rodape__colofao">Composto em Newsreader e IBM Plex · Sem rastreador, sem terceiro na página</span>
           </div>
         </footer>
 

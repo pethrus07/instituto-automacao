@@ -6,14 +6,19 @@
  */
 import { raw } from 'hono/html';
 import { gerarCapa } from './capa';
+import { simbolo } from './marca';
 import type { Evento } from '../db';
-import { ORDEM_TEMAS, TEMAS, type Tema } from '../config';
+import { ATUACOES, ORDEM_ATUACOES, ORDEM_TEMAS, TEMAS, type Atuacao, type Tema } from '../config';
+import type { Parceiro } from '../parceiros';
 import {
   arte as arteDe,
+  autorDe,
   caminho,
+  caminhoAutor,
   ROTULO_FORMATO,
   ROTULO_SECAO,
   ROTULO_TEMA,
+  type Autor,
   type Peca,
 } from '../conteudo';
 import { ROTULO_LICENCA } from '../conteudo/tipos';
@@ -65,16 +70,42 @@ export function dataBR(iso: string | null, comHora = true): string {
   return comHora ? `${base}, ${v('hour')}:${v('minute')}` : base;
 }
 
-export const Secao = (p: { titulo: string; acao?: { texto: string; href: string } }) => (
-  <div class="secao">
-    {/* h2 de verdade: o rótulo de seção É o título do bloco, e a hierarquia
-        h1 → h2 → h3 é o que leitor de tela e buscador seguem. O visual vem da classe. */}
-    <h2 class="secao__titulo">{p.titulo}</h2>
-    {p.acao && (
-      <span class="secao__acao">
-        <a href={p.acao.href}>{p.acao.texto}</a>
-      </span>
-    )}
+/**
+ * A data de hoje, em São Paulo, para a linha de data do cabeçalho:
+ * "Segunda-feira, 7 de setembro de 2026". A página fica até 5 min na borda
+ * (listagem) ou 1 h (peça) — na virada da meia-noite a linha pode atrasar
+ * esse tanto. É a data de um jornal: a da edição, não a do relógio.
+ */
+export function dataHoje(): string {
+  const s = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * A cabeça de um bloco: o rótulo (é um h2 de verdade), a ação à direita e,
+ * quando o bloco não se explica sozinho, uma NOTA embaixo dizendo o que ele
+ * é. Veio do feedback do sócio: "o que são os relatórios e como é montada
+ * essa agenda?" — se quem é do ramo pergunta, a página tem de responder.
+ */
+export const Secao = (p: { titulo: string; acao?: { texto: string; href: string }; nota?: unknown; id?: string }) => (
+  <div class="secao" id={p.id}>
+    <div class="secao__cabeca">
+      {/* h2 de verdade: o rótulo de seção É o título do bloco, e a hierarquia
+          h1 → h2 → h3 é o que leitor de tela e buscador seguem. O visual vem da classe. */}
+      <h2 class="secao__titulo">{p.titulo}</h2>
+      {p.acao && (
+        <span class="secao__acao">
+          <a href={p.acao.href}>{p.acao.texto}</a>
+        </span>
+      )}
+    </div>
+    {p.nota && <p class="secao__nota">{p.nota}</p>}
   </div>
 );
 
@@ -165,13 +196,20 @@ export const Etiquetas = (p: { peca: Peca; comVeredito?: boolean }) => (
   </div>
 );
 
-/** Autor, data, leitura, fonte — a linha que separa peça de agregação. */
+/** Autor, data, leitura, fonte — a linha que separa peça de agregação. O nome leva à página do autor. */
 export const AssinaturaPeca = (p: { peca: Peca; completa?: boolean }) => {
   const q = p.peca;
   const minutos = Math.max(1, Math.round(q.palavras / 200));
+  const autor = autorDe(q);
   return (
     <div class="assinatura">
-      <span class="assinatura__autor">{q.autor}</span>
+      {autor ? (
+        <a href={caminhoAutor(autor)} rel="author" class="assinatura__autor">
+          {q.autor}
+        </a>
+      ) : (
+        <span class="assinatura__autor">{q.autor}</span>
+      )}
       <span class="u-dado">{dataPeca(q.data, false)}</span>
       {p.completa && <span>{minutos} min de leitura</span>}
       {q.fonte && (
@@ -301,6 +339,206 @@ export const VereditoCaixa = (p: { valor: string | undefined }) =>
       </p>
     </aside>
   ) : null;
+
+/* ================================================================ autores */
+
+/** O retrato: a foto quando há, o monograma quando não. */
+export const Monograma = (p: { autor: Autor; grande?: boolean }) =>
+  p.autor.foto ? (
+    <img
+      class={p.grande ? 'autor__foto autor__foto--grande' : 'autor__foto'}
+      src={`/autores/${p.autor.foto.arquivo}`}
+      alt={`Retrato de ${p.autor.nome}`}
+      width={p.autor.foto.largura}
+      height={p.autor.foto.altura}
+      loading="lazy"
+      decoding="async"
+    />
+  ) : (
+    <span class={p.grande ? 'monograma monograma--grande' : 'monograma'} aria-hidden="true">
+      {p.autor.iniciais}
+    </span>
+  );
+
+/**
+ * Quem escreveu, na página da peça. Pedido do sócio: o autor tem de
+ * aparecer como gente, com caminho para o currículo dele — a peça promove
+ * quem a escreveu, e é assim que se atrai quem escreve.
+ */
+export const AutorCaixa = (p: { autor: Autor; pecas: number }) => (
+  <aside class="autor-caixa">
+    <Monograma autor={p.autor} />
+    <div>
+      <span class="fonte-caixa__rotulo">Quem escreveu</span>
+      <p class="fonte-caixa__nome">
+        <a href={caminhoAutor(p.autor)} rel="author">
+          {p.autor.nome}
+        </a>
+      </p>
+      <p class="fonte-caixa__texto">
+        {p.autor.papel} · {p.pecas} {p.pecas === 1 ? 'peça' : 'peças'} no Instituto
+        {p.autor.link && (
+          <>
+            {' · '}
+            <a href={p.autor.link} rel="noopener" target="_blank">
+              {p.autor.linkRotulo}
+            </a>
+          </>
+        )}
+      </p>
+    </div>
+  </aside>
+);
+
+/** O cartão de autor, na faixa "Quem escreve" e na página de autores. */
+export const AutorCard = (p: { autor: Autor; pecas: number }) => (
+  <article class="autor-card">
+    <a href={caminhoAutor(p.autor)} class="autor-card__link">
+      <Monograma autor={p.autor} />
+      <span class="autor-card__nome">{p.autor.nome}</span>
+      <span class="autor-card__papel">{p.autor.papel}</span>
+      <span class="autor-card__pecas u-dado">
+        {p.pecas} {p.pecas === 1 ? 'peça' : 'peças'}
+      </span>
+    </a>
+  </article>
+);
+
+/**
+ * A faixa de quem escreve — rola de lado quando não cabe, e termina no
+ * convite. É o "carrossel" que o sócio pediu, sem JavaScript: rolagem com
+ * encaixe, que o dedo e a roda do mouse já sabem usar.
+ */
+export const QuemEscreve = (p: { autores: readonly Autor[]; contar: (a: Autor) => number }) => (
+  <div class="autores-faixa" role="list">
+    {p.autores.map((a) => (
+      <div role="listitem">
+        <AutorCard autor={a} pecas={p.contar(a)} />
+      </div>
+    ))}
+    <div role="listitem">
+      <article class="autor-card autor-card--convite">
+        <a href="/autores#escrever" class="autor-card__link">
+          <span class="monograma monograma--convite" aria-hidden="true">
+            +
+          </span>
+          <span class="autor-card__nome">Escreva no Instituto</span>
+          <span class="autor-card__papel">
+            Guia ou conceito, assinado, com página de autor e link para o seu currículo.
+          </span>
+        </a>
+      </article>
+    </div>
+  </div>
+);
+
+/* =============================================================== parceiro */
+
+/**
+ * O espaço do parceiro, entre o cabeçalho e a primeira notícia. Um só, com
+ * nome, logo e uma frase — e sem ele, o espaço diz de quem é. Regras em
+ * src/parceiros.ts.
+ */
+export const FaixaParceiro = (p: { parceiro: Parceiro | null }) => (
+  <aside class="parceiro" aria-label="Parceiro do Instituto">
+    <span class="parceiro__rotulo">Parceiro do Instituto</span>
+    {p.parceiro ? (
+      <a class="parceiro__corpo" href={p.parceiro.url} rel="sponsored noopener" target="_blank">
+        {p.parceiro.logo ? (
+          <img class="parceiro__logo" src={p.parceiro.logo} alt={p.parceiro.nome} height={36} loading="eager" />
+        ) : (
+          <span class="parceiro__nome">{p.parceiro.nome}</span>
+        )}
+        <span class="parceiro__frase">{p.parceiro.frase}</span>
+      </a>
+    ) : (
+      <p class="parceiro__corpo">
+        <span class="parceiro__nome">Este espaço é do primeiro parceiro do Instituto.</span>
+        <span class="parceiro__frase">
+          Visto por todo leitor, em toda visita à capa — sem escrever notícia nem escolher pauta.
+        </span>
+      </p>
+    )}
+    <a class="parceiro__acao" href="/apoie">
+      {p.parceiro ? 'Como apoiar' : 'Saiba como apoiar'}
+    </a>
+  </aside>
+);
+
+/* ================================================================== lista */
+
+/**
+ * A lista — site é aluguel, lista é propriedade.
+ *
+ * Subiu na capa e passou a perguntar o que a pessoa faz (feedback do sócio).
+ * Opcional, fechado, e dito para que serve: saber para quem se escreve. Não
+ * há promessa de diretório nem de "sua empresa aqui" — o que não existe não
+ * se anuncia.
+ */
+export const Lista = (p: { origem: string; estado?: string }) => (
+  <div class="lista" id="assinar">
+    <span class="lista__marca" aria-hidden="true">
+      {raw(simbolo(220))}
+    </span>
+    <div class="lista__texto">
+      <Kicker>A lista</Kicker>
+      <p class="lista__titulo">O Giro da Semana na sua caixa, quando ele nascer.</p>
+      <p class="lista__nota">
+        Um e-mail por semana com o que o setor publicou e o que muda por aqui. Ainda não enviamos
+        nada — a lista começa agora, e o primeiro envio sai quando houver o que mandar. Sem
+        repassar seu e-mail a ninguém.
+      </p>
+    </div>
+    <form class="lista__form" method="post" action="/assinar">
+      <div aria-hidden="true" style="position:absolute; left:-9999px">
+        <label>
+          Não preencha
+          <input type="text" name="sitio" tabindex={-1} autocomplete="off" />
+        </label>
+      </div>
+      <input type="hidden" name="origem" value={p.origem} />
+      <div class="lista__linha">
+        <label class="u-visually-hidden" for="email-lista">
+          Seu e-mail
+        </label>
+        <input class="campo" id="email-lista" type="email" name="email" required placeholder="seu@email.com.br" autocomplete="email" />
+        <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
+          Quero receber
+        </button>
+      </div>
+      <div class="lista__linha lista__linha--opcional">
+        <label class="campo-rotulo">
+          <span>
+            O que você faz <em class="u-faint">(opcional)</em>
+          </span>
+          <select name="atuacao" class="campo">
+            <option value="">Prefiro não dizer</option>
+            {ORDEM_ATUACOES.map((k: Atuacao) => (
+              <option value={k}>{ATUACOES[k]}</option>
+            ))}
+          </select>
+        </label>
+        <label class="campo-rotulo">
+          <span>
+            Empresa ou instituição <em class="u-faint">(opcional)</em>
+          </span>
+          <input class="campo" type="text" name="empresa" maxlength={120} autocomplete="organization" />
+        </label>
+      </div>
+      <p class="lista__pe">
+        Saber quem lê — quem opera, quem integra, quem ensina — é o que decide o que vale
+        escrever. É só para isso.
+      </p>
+      {p.estado === '1' ? (
+        <p class="lista__rodape">
+          <strong>Anotado.</strong> Você vai saber quando o primeiro sair.
+        </p>
+      ) : p.estado === 'erro' ? (
+        <p class="lista__rodape">Esse e-mail não parece válido. Confere e tenta de novo?</p>
+      ) : null}
+    </form>
+  </div>
+);
 
 /* ================================================================ números */
 
@@ -487,6 +725,54 @@ export const FormularioEvento = () => (
       <div>
         <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
           Enviar para conferência
+        </button>
+      </div>
+    </div>
+  </form>
+);
+
+/**
+ * O formulário de contato — o mesmo para quem quer escrever e para quem quer
+ * apoiar. Cai na tabela `contato`, lida por gente.
+ */
+export const FormularioContato = (p: { acao: string; tipo: 'autor' | 'parceiro'; enviado?: boolean }) => (
+  <form method="post" action={p.acao} class="u-fluxo" style="max-width: var(--measure)">
+    <div aria-hidden="true" style="position:absolute; left:-9999px">
+      <label>
+        Não preencha este campo
+        <input type="text" name="sitio" tabindex={-1} autocomplete="off" />
+      </label>
+    </div>
+    {p.enviado && (
+      <div style="margin-block-end: var(--space-m)">
+        <Aviso>
+          <strong>Recebido.</strong> Alguém lê e responde pelo e-mail que você deixou — não é
+          resposta automática, então pode levar uns dias.
+        </Aviso>
+      </div>
+    )}
+    <div style="display:grid; gap:var(--space-s)">
+      <div class="campo-grade">
+        <label class="campo-rotulo">
+          <span>Seu nome *</span>
+          <input type="text" name="nome" required maxlength={120} class="campo" autocomplete="name" />
+        </label>
+        <label class="campo-rotulo">
+          <span>Seu e-mail *</span>
+          <input type="email" name="email" required maxlength={200} class="campo" autocomplete="email" />
+        </label>
+      </div>
+      <label class="campo-rotulo">
+        <span>{p.tipo === 'parceiro' ? 'Empresa *' : 'Empresa ou instituição'}</span>
+        <input type="text" name="empresa" required={p.tipo === 'parceiro'} maxlength={120} class="campo" autocomplete="organization" />
+      </label>
+      <label class="campo-rotulo">
+        <span>{p.tipo === 'parceiro' ? 'O que a empresa faz, e por que apoiar o Instituto' : 'Sobre o que você escreveria, e o que você faz'}</span>
+        <textarea name="mensagem" rows={4} maxlength={1000} class="campo"></textarea>
+      </label>
+      <div>
+        <button type="submit" class="botao-acao" style="border:0; cursor:pointer">
+          {p.tipo === 'parceiro' ? 'Quero conversar sobre apoiar' : 'Quero escrever no Instituto'}
         </button>
       </div>
     </div>
