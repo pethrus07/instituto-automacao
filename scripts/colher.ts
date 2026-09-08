@@ -1,5 +1,5 @@
 /**
- * A COLHEITA — tempo 1 dos três (ver docs/FUNCIONAMENTO.md).
+ * A COLHEITA — tempo 1 dos três (ver docs/ARQUITETURA.md).
  *
  *   npm run colher              colhe e atualiza a pauta
  *   npm run colher -- --dias 7  só o que a fonte publicou nos últimos N dias

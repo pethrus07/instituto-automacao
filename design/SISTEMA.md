@@ -28,10 +28,13 @@ Todas com licença aberta (SIL OFL), então podem ser self-hosted sem custo nem 
 **A regra que importa:** serifada é obra, sem-serifa é fluxo. A escolha tipográfica *é* a
 regra editorial do projeto — impessoal no fluxo, assinado na obra. Não misturar por gosto.
 
-### ⚠️ Pendência: self-hosting
+### Self-hosting — feito em 06/09/2026
 
-O `specimen.html` puxa as fontes do Google Fonts **só para desenvolvimento**. Antes do
-primeiro deploy:
+As cinco faces (Newsreader regular e itálica, Plex Sans, Plex Mono 400 e 500) estão em
+`publico/fontes/` como woff2 do subset latin, com `@font-face` em `base.css` e **fallbacks de
+métrica ajustada** (`size-adjust`, `ascent/descent/line-gap-override`, calculados com fontTools),
+que é o que zerou o CLS. As duas do caminho crítico vão em `<link rel="preload">`. O plano
+original, para registro:
 
 1. Baixar os arquivos variáveis `.ttf` das três famílias
 2. Fazer subset para latin + latin-ext (`pyftsubset`, do `fonttools`) e converter para
@@ -86,7 +89,13 @@ componente novo, e isso é sinal de que o sistema está no tamanho certo.
 
 - [x] ~~Cabeçalho, navegação entre núcleos e rodapé~~ — feito na sprint 0
 - [x] ~~Paginação e estado vazio~~ — feito, e o volume revelou três defeitos reais
-- [ ] Página de erro
-- [ ] Template de OG image (gerada no Worker, guardada no R2)
-- [ ] Estilo de impressão para o Panorama
-- [ ] Formulário de newsletter
+- [x] ~~Página de erro~~ — `paginas/naoEncontrado.tsx`
+- [x] ~~Template de OG image~~ — rasterizado pelo compilador (Playwright) em `publico/og/`, não no Worker
+- [x] ~~Estilo de impressão~~ — `@media print` em `base.css`
+- [x] ~~Formulário de newsletter~~ — a `Lista` em `ui/pecas.tsx`, com atuação e empresa (08/09)
+- [ ] A marca definitiva (a atual é prototipal; ver `design/marca/MARCA.md`)
+- [ ] Um estilo para tabela dentro da obra, quando o primeiro artigo precisar
+
+Os detalhes de jornal de 08/09/2026 (fio de topo, linha de data, régua dupla, ordinal nos
+cartões, capitular, anéis na faixa escura, colofão) estão em `components.css` com o porquê de
+cada um; a página continua branca por decisão registrada em `tokens.css`.

@@ -6,8 +6,9 @@
 -- forma. NENHUM item, NENHUMA peça: peça mora em conteudo/**.md, e item vem
 -- da coleta real (npm run db:fontes && npm run colher).
 --
--- Eventos são FICTÍCIOS de propósito e dizem isso no nome. Os reais entram
--- com data conferida na fonte oficial: agenda com data errada não serve.
+-- Os eventos são REAIS, com data conferida no site oficial de cada um (ou na
+-- fonte acompanhada, dita na descrição). Os fictícios da primeira versão
+-- (ev-001 a ev-007) são apagados aqui embaixo: agenda com data errada não serve.
 -- =========================================================================
 
 -- Glossário — a régua pública de como o Instituto traduz -------------------

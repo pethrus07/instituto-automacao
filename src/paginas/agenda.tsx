@@ -1,5 +1,21 @@
 /**
  * A agenda: a listagem com filtros, o envio de evento e a página de cada um.
+ *
+ * Tudo vem do D1 (tabela `evento`), nunca do conteúdo compilado: evento chega
+ * pelo formulário público, e o que o organizador envia não pode passar por
+ * commit. Três rotas:
+ *
+ *   GET  /agenda            só eventos com status 'publicado' que ainda não
+ *                           terminaram; filtros por URL (?t= tema, ?f= formato,
+ *                           ?o= br|fora) — cada combinação é uma página própria,
+ *                           mas a canônica é /agenda e a filtrada leva noindex
+ *   POST /agenda/enviar     valida no servidor (nome, data futura, honeypot) e
+ *                           grava com status 'coletado'. NADA aparece antes de
+ *                           alguém conferir a data no site oficial e mudar o
+ *                           status no banco — agenda com data errada não serve
+ *   GET  /agenda/:slug      a página do evento, com schema.org/Event
+ *
+ * A capa mostra os 3 próximos pelo mesmo `listarAgenda` de db.ts.
  */
 import { Documento } from '../ui/Documento';
 import { Aviso, Vazio, Secao, EventoNaAgenda, FiltroAgenda, FormularioEvento, periodoEvento, nomeTema } from '../ui/pecas';

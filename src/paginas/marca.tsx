@@ -3,6 +3,12 @@
  * (src/ui/marca.ts); o nome é Newsreader convertido em caminhos para o SVG
  * viver fora do site. Quando a marca definitiva existir, trocam-se os
  * arquivos em publico/marca/ e a função simbolo(); esta página muda sozinha.
+ *
+ * O que a página mostra: o símbolo sobre papel e sobre o azul das capas, a
+ * construção em 64 × 64, o nome nas quatro formas (horizontal, negativo,
+ * vertical, vertical negativo), os tamanhos mínimos, as cores com os tokens
+ * e os hex, as regras de uso e os arquivos para baixar. A regra de cada
+ * decisão está em design/marca/MARCA.md — aqui é só a vitrine.
  */
 import { raw } from 'hono/html';
 import { Documento } from '../ui/Documento';

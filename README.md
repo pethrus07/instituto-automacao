@@ -10,12 +10,16 @@ toda peça — e mede quanto tempo cada assunto leva para chegar aqui.
 artificial em produção: nenhuma peça é traduzida ou redigida por modelo, e o QA confere isso
 no bundle compilado.
 
+> **Para entender o código sozinho, comece por [docs/ARQUITETURA.md](docs/ARQUITETURA.md):**
+> da estrutura de pastas ao que acontece em cada requisição, cada tick do cron e cada comando,
+> com receitas e o vocabulário interno. Este README é só o como rodar.
+
 ## Rodar local
 
 ```bash
 npm install
 npm run db:local      # aplica o schema
-npm run db:semente    # glossário e eventos de exemplo
+npm run db:semente    # glossário e os eventos reais da agenda
 npm run db:fontes     # as fontes reais
 npm run db:vozes      # as pessoas públicas
 npm run dev           # compila o conteúdo e sobe em http://localhost:8787
@@ -25,8 +29,9 @@ Banco que já tem dado: `npm run db:migrar` em vez de recriar — `schema.sql` c
 `DROP TABLE`, e item colhido não volta.
 
 ```bash
-npm test              # 89 conferências de unidade: parser, robots, sitemap, semana ISO, auditoria
-npm run qa            # 213 asserções contra o site rodando — sai com código 1 se falhar
+npm test              # as suítes de unidade: parser de feed, robots, sitemap, semana ISO, auditoria
+npm run qa            # ~1000 asserções contra o site rodando — sai com código 1 se falhar
+npm run revisao       # Playwright: mede CLS, axe, alvos, links; screenshots em qa/revisao/
 ```
 
 ## O ciclo de trabalho
@@ -39,12 +44,12 @@ npm run qa            # 213 asserções contra o site rodando — sai com códig
 | **4 · Publicar** | git | `npm run compilar` → `npm run qa` → commit → `npm run deploy` |
 | **revisão** | — | `npm run revisao` — Playwright: 13 páginas × 3 larguras, axe, fluxos, screenshots em `qa/revisao/` |
 | **tour** | — | `npm run tour` — regenera o tour narrado (`publico/tour/`): voz pt-BR + Playwright dirigindo o site + ffmpeg; legendas WebVTT e capítulos saem juntos |
+| **semanal** | Pedro | `npm run dossie` traz os números; o Giro é escrito em cima e auditado pelo compilador |
 
 Frontmatter opcional que a busca e a capa usam: `titulo_curto:` (≤ 53 caracteres; vira o `<title>`
 e o headline do JSON-LD — o título inteiro fica no h1) e `destaque: true` (a peça que abre a
 capa; o compilador aceita uma só). Peça sem foto ganha uma imagem de compartilhamento rasterizada
 da arte em `publico/og/` pelo próprio `compilar`, com o Chromium do Playwright.
-| **semanal** | — | `npm run dossie` traz os números; o Giro é escrito em cima |
 
 O conteúdo mora em `conteudo/**.md` com frontmatter. O compilador **aborta** sem autor, sem
 fonte em notícia, sem veredito na categoria ou com arte que não existe.
@@ -119,18 +124,18 @@ migracoes/           ALTER TABLE para banco que já tem dado — 006 (07/09): as
 
 | Vale | |
 |---|---|
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | **como o sistema funciona**, para entender sozinho: pastas, requisição, cron, banco, conteúdo, QA, ambientes, receitas, vocabulário, status |
 | [docs/CONCEPCAO-V2.md](docs/CONCEPCAO-V2.md) | **a concepção vigente**: princípio, três eixos, todas as decisões |
 | [docs/EXECUCAO-V2.md](docs/EXECUCAO-V2.md) | o plano de obra e os treze critérios de "perfeito" |
 | [qa/SPRINT-V2.md](qa/SPRINT-V2.md) | o que esta construção entregou e os defeitos que revelou |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | **o roadmap vigente** (reescrito em 08/09): onde estamos, o que a reunião com o sócio decidiu, o juridiquês por escrito, marcos e backlog por dono |
 | acordo interno | o combinado com o sócio |
 
-⚠️ **Descrevem a v1 e ainda não foram reescritos:** `CONCEITO.md`, `docs/ARQUITETURA.md`,
-`docs/FLUXOS.md`, `docs/MODELO-DADOS.md`, `docs/ORGANOGRAMA.md`, `docs/CAPACIDADE.md`,
-`docs/roadmap.html`. O que sobreviveu neles (robots, canonicalização,
-sistema de design, método do QA) continua certo; o resto — pipeline de IA, quatro núcleos,
-teto de custo — morreu em 03/09/2026. A reescrita é a última etapa da execução, de propósito:
-documento antes do código descreve intenção, e esse era o defeito.
+Os documentos da v1 (`CONCEITO`, `ARQUITETURA-v1`, `FLUXOS`, `MODELO-DADOS`, `ORGANOGRAMA`,
+`CAPACIDADE`, `roadmap.html`) estão em [docs/arquivo-v1/](docs/arquivo-v1/), com um README
+dizendo o que cada um era. O que sobreviveu deles está no `ARQUITETURA.md` vigente. Também
+valem `docs/FONTES.md` (a sondagem e a coleta real medidas), `design/SISTEMA.md` e
+`design/marca/MARCA.md`.
 
 ## Coisas que quebram se esquecidas
 

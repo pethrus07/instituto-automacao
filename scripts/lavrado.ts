@@ -1,5 +1,5 @@
 /**
- * A LAVRA está feita — tempo 2 encerrado (ver docs/FUNCIONAMENTO.md).
+ * A LAVRA está feita — tempo 2 encerrado (ver docs/ARQUITETURA.md).
  *
  *   npm run lavrado             marca a pauta inteira como lida
  *   npm run lavrado -- --ver    só mostra o que seria marcado, sem marcar

@@ -1,5 +1,11 @@
 /**
  * O glossário — a régua pública de como escrevemos.
+ *
+ * Lê a tabela `glossario` (semeada por seed.sql) e separa em duas listas: os
+ * termos com tradução travada e os que NÃO se traduzem (`manter_original`),
+ * que ficam na língua de origem com o significado aproximado. Nas peças a
+ * tradução vai inline; esta página é o complemento para quem quer conferir.
+ * O JSON-LD declara DefinedTermSet, um termo por DefinedTerm.
  */
 import { Documento } from '../ui/Documento';
 import { Secao } from '../ui/pecas';

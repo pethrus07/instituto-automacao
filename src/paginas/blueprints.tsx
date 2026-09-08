@@ -1,5 +1,18 @@
 /**
  * Blueprints: nossos dados, nosso método, nossas fontes — abertos.
+ *
+ * É a página que sustenta a frase "confira em vez de confiar". Em ordem:
+ *   1. o tour narrado (publico/tour/, gerado por npm run tour)
+ *   2. como funciona — os quatro tempos, em linguagem simples
+ *   3. o veredito — as quatro categorias e o critério de cada uma
+ *   4. como medimos o atraso — a definição, os números atuais e as limitações
+ *   5. as fontes — o inventário inteiro do D1 com o veredito do robots.txt de
+ *      cada uma (permite · não permite · não conferido), a licença e a voz
+ *   6. correções — o registro público (tabela `correcao`)
+ *   7. o dataset — o CSV em publico/dados/, descrito em DATASET e no JSON-LD
+ *
+ * Tudo aqui é lido do banco ou do conteúdo compilado; nada é redigido à mão
+ * que a página não possa provar. Os números do relógio vêm de db.ts.
  */
 import { Documento } from '../ui/Documento';
 import { Secao, Aviso, Veredito, ROTULO_VEREDITO, EXPLICA_VEREDITO, dataBR } from '../ui/pecas';
