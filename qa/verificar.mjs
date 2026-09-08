@@ -353,7 +353,11 @@ const fontesDb = sql(`SELECT COUNT(*) n FROM fonte`)[0].n;
 const vereditos = (blue.corpo ?? blue).match(/data-robots="/g)?.length ?? 0;
 checar('B', 'o inventário publica o veredito do robots de TODA fonte', vereditos === fontesDb, `publicou ${vereditos} para ${fontesDb} fontes`);
 const recusadasDb = sql(`SELECT COUNT(*) n FROM fonte WHERE robots_permite = 0`)[0].n;
-checar('B', 'as fontes recusadas continuam listadas, dizendo que foram recusadas', (blue.match(/data-robots="não permite"/g) ?? []).length === recusadasDb);
+const recusadasPagina = (blue.match(/data-robots="não permite"/g) ?? []).length;
+/* Compara a página com o D1 LOCAL. Contra um site publicado o banco é outro (o cron de lá já
+   marcou o robots de fontes que aqui ainda são nulas) — aí é aviso, não falha. */
+if (/127\.0\.0\.1|localhost/.test(BASE)) checar('B', 'as fontes recusadas continuam listadas, dizendo que foram recusadas', recusadasPagina === recusadasDb, `${recusadasPagina} na página, ${recusadasDb} no banco local`);
+else avisar('fontes recusadas: comparação só vale contra o dev local', `a página publicada lista ${recusadasPagina}; o D1 local tem ${recusadasDb} — bancos diferentes`);
 checar('B', 'o método declara que NÃO contornamos bloqueio', blue.includes('sem proxy') && blue.includes('navegador disfarçado'));
 checar('B', 'o método declara que não há IA em produção', blue.includes('Não há inteligência artificial em produção'));
 checar('B', 'o método publica as quatro categorias do veredito', ['v-chega', 'v-a_caminho', 'v-nao_chega', 'v-sem_efeito'].every((v) => blue.includes(v)));

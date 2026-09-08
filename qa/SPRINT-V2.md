@@ -444,6 +444,15 @@ Migração `006-leitor-e-contato.sql`: `assinante.atuacao`, `assinante.empresa`,
 (local), `db:migrar:homolog`, `db:migrar:remoto`. O QA confere 8 tabelas e testa os dois
 formulários novos só no dev local, apagando o rastro.
 
+### Na borda
+
+Homologação republicada (`6b8d2e5`), migração 006 aplicada no D1 de lá, cron vivo (`/saude`:
+coleta há 0 h). QA contra o publicado: **988 ok · 2 diferenças esperadas** (robots fechado de
+propósito; teto de 300 ms é local) · 1 aviso (assinatura só se testa no dev). Uma terceira
+"falha" era o QA comparando a página publicada com o D1 **local**: a borda lista 5 fontes
+recusadas pelo robots porque o cron de lá já as marcou; aqui são 0. Virou aviso quando o alvo é
+remoto — o banco é outro.
+
 ### Em aberto
 1. **Decisões do Pedro:** manter o relógio (o sócio duvida da medida); `link:` do currículo em
    `conteudo/autores/pedro-oliveira.md` (LinkedIn? Lattes?) e o texto da bio; fonte BR em
