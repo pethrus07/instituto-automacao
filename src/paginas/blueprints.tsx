@@ -76,8 +76,7 @@ blueprints.get('/blueprints', async (c) => {
         <section class="bloco" id="tour" style="scroll-margin-top: var(--space-l)">
           <Secao titulo="O site em menos de dois minutos" />
           <p class="u-muted" style="max-width: var(--measure); margin-block-end: var(--space-m)">
-            Um tour narrado, gerado do próprio site em funcionamento — quando uma tela muda, o vídeo é
-            refeito, não regravado. Com legendas.
+            Uma volta pelo site, narrada e legendada: o que cada seção é e onde ficam os dados.
           </p>
           <figure class="tour">
             <video class="tour__video" controls preload="metadata" playsinline poster="/og/padrao.png" width="1280" height="720">
@@ -86,26 +85,78 @@ blueprints.get('/blueprints', async (c) => {
               Seu navegador não toca vídeo. <a href="/tour/instituto-automacao-tour.mp4">Baixe o tour</a>.
             </video>
             <figcaption class="tour__legenda">
-              Narração em voz neural em português; nenhuma cena é encenada — é o site de verdade, dirigido por
-              automação. <a href="/tour/instituto-automacao-tour-capitulos.txt">Capítulos</a>.
+              A narração é voz sintética — é o único som de máquina no Instituto, e por isso está
+              dito aqui. As telas são o site de verdade, sem encenação.{' '}
+              <a href="/tour/instituto-automacao-tour-capitulos.txt">Capítulos</a>.
             </figcaption>
           </figure>
         </section>
 
-        {/* --- como o Instituto funciona --- */}
-        <section class="bloco">
-          <Secao titulo="Como funciona" />
+        {/* --- como o Instituto funciona ---
+             Alongado em 11/09/2026: o sócio leu a versão curta e disse que o
+             texto era "bem curto para explicar tudo isso", e que faltava "uma
+             ordem certa de explicação". Virou quatro tempos numerados, cada um
+             dizendo também o que NÃO acontece nele — que é onde estava a
+             dúvida dele. */}
+        <section class="bloco" id="como-funciona" style="scroll-margin-top: var(--space-l)">
+          <Secao
+            titulo="Como funciona"
+            nota="Quatro tempos, sempre na mesma ordem. Nenhum deles é automático do começo ao fim."
+          />
           <div class="obra" style="font-size: var(--step-0)">
             <p>
-              <strong>A máquina colhe. A gente decide. Alguém escreve. O git publica.</strong> Um
-              coletor lê {rel.fontes} fontes todo dia, obedecendo o <code>robots.txt</code> de cada
-              uma. O que ele traz vira uma pauta que uma pessoa lê inteira. O que vale virar peça é
-              escolhido, escrito em português a partir da fonte e lido de novo antes de sair.
+              <strong>A máquina colhe. A gente decide. Alguém escreve. O git publica.</strong> Cada
+              tempo tem um dono diferente, e é essa separação que faz o site ser conferível: o que a
+              máquina faz está todo registrado no banco, e o que uma pessoa fez está assinado.
+            </p>
+          </div>
+
+          <ol class="regras" style="margin-block-start: var(--space-m)">
+            <li>
+              <strong>1 · A máquina colhe</strong>
+              Um coletor visita as {rel.fontes} fontes da tabela abaixo a cada quinze minutos e lê o
+              feed de cada uma — só o feed, que é o canal que o site publica justamente para ser
+              lido. Antes de cada visita ele confere o <code>robots.txt</code> daquele endereço, e
+              fonte que não autoriza fica de fora, listada aqui dizendo que ficou. Ele guarda o
+              título, a data, o endereço e a fonte. <em>Não guarda o texto da matéria alheia</em>, e
+              não decide nada: no fim do dia o que existe é uma pauta.
+            </li>
+            <li>
+              <strong>2 · Uma pessoa decide</strong>
+              A pauta é lida inteira, por gente, e a maior parte dela é descartada — a maior parte do
+              que sai lá fora não muda nada para quem opera aqui, e dizer isso é parte do trabalho. O
+              que sobra vira notícia. Não há fila automática, não há "assunto em alta" e nenhum item
+              entra no site por ter repercutido muito.
+            </li>
+            <li>
+              <strong>3 · Alguém escreve, e assina</strong>
+              A notícia é escrita em português a partir da fonte, com crédito e link para ela. É texto
+              novo, não tradução: traduzir a matéria de outro inteira exigiria autorização, e resumir
+              sem ler seria repetir o que não se conferiu. Toda notícia leva ainda a seção{' '}
+              <a href="#veredito">o que isso muda aqui</a>, que é a parte que não existe na fonte
+              original — e é para ela que o site existe.
+            </li>
+            <li>
+              <strong>4 · O git publica</strong>
+              Cada texto é um arquivo no repositório. Publicar é registrar uma alteração nele, com
+              autor, data e o texto exato do que mudou — o mesmo mecanismo que os programadores usam
+              para versionar código. Nada é editado direto no ar, não existe painel de administração,
+              e um texto corrigido guarda a versão anterior em vez de apagá-la.
+            </li>
+          </ol>
+
+          <div class="obra" style="font-size: var(--step-0); margin-block-start: var(--space-m)">
+            <p>
+              <strong>Não há inteligência artificial em produção.</strong> Nenhum texto deste site foi
+              traduzido ou redigido por modelo. Todo texto tem autor, e a responsabilidade pelo que
+              está escrito é de quem assina. Hoje são {pecas.length} texto{pecas.length === 1 ? '' : 's'}.
             </p>
             <p>
-              <strong>Não há inteligência artificial em produção.</strong> Nenhuma peça deste site foi
-              traduzida ou redigida por modelo. Toda peça tem autor, e a responsabilidade pelo que
-              está escrito é de quem assina. Hoje são {pecas.length} peça{pecas.length === 1 ? '' : 's'}.
+              <strong>E quando um texto for pago, ele diz.</strong> O Instituto pode publicar conteúdo
+              patrocinado, e ele sai marcado como publicidade com o nome de quem pagou — no texto, na
+              capa, na listagem e no RSS. Notícia e Giro da Semana não são patrocináveis: a notícia
+              carrega o veredito e o Giro carrega a medição, e nenhum dos dois está à venda. As
+              regras completas estão em <a href="/apoie">Apoie</a>.
             </p>
           </div>
         </section>
@@ -143,10 +194,21 @@ blueprints.get('/blueprints', async (c) => {
               publicados lá fora há mais de 90 dias sem nenhuma menção aqui.
             </p>
             <p>
-              <em>Limitações declaradas:</em> o agrupamento por título erra quando duas notícias
-              diferentes usam palavras parecidas, e acerta menos entre idiomas distantes. E a medição
-              depende de haver imprensa brasileira especializada cobrindo o mesmo assunto — hoje são{' '}
-              {relogioBR.length} fontes marcando o relógio, o que é pouco, e dizemos isso.
+              <em>Limitações declaradas, e uma delas é grande:</em> o agrupamento hoje só junta
+              dois textos quando os títulos têm <strong>exatamente o mesmo conjunto</strong> de
+              palavras significativas. Entre idiomas diferentes isso praticamente não acontece — e
+              é por isso que {rel.medidos === 0 ? 'nenhum' : `só ${rel.medidos}`} atraso foi apurado
+              até agora: a fonte brasileira cria um assunto novo em vez de encontrar o original
+              estrangeiro, e o par que daria a medida nunca se forma. Não é um número ruim, é um
+              número que ainda não existe, e preferimos dizer isso a publicar uma mediana de
+              amostra vazia. O conserto — casar por nome próprio e código, que sobrevivem à
+              tradução — está no plano.
+            </p>
+            <p>
+              A medição depende também de haver imprensa brasileira especializada cobrindo o mesmo
+              assunto: hoje são {relogioBR.length} fontes marcando o relógio, o que é pouco, e
+              dizemos isso. Enquanto não houver par medido, <strong>o relógio não aparece na
+              capa</strong> — página inicial não é lugar de promessa.
             </p>
           </div>
         </section>
@@ -220,8 +282,9 @@ blueprints.get('/blueprints', async (c) => {
           <Secao titulo={`Correções · ${correcoes.length}`} />
           {correcoes.length === 0 ? (
             <Aviso>
-              <strong>Nenhuma correção até agora.</strong> Quando houver, aparece aqui com data e com o
-              que mudou — e o texto original não é apagado. Registro que some não é registro.
+              <strong>Nenhuma correção até agora.</strong> Quando houver, ela aparece nesta lista com
+              a data e o que mudou, e o texto corrigido diz no pé que foi corrigido. O texto errado não
+              é apagado: quem leu a versão antiga precisa conseguir achar o que mudou.
             </Aviso>
           ) : (
             correcoes.map((k) => (
@@ -245,9 +308,10 @@ blueprints.get('/blueprints', async (c) => {
             e serve para conferir a contagem ou refazê-la com outro critério.
           </p>
           <Aviso>
-            <strong>A base completa ainda não.</strong> O conjunto de dados inteiro sai com DOI e licença CC-BY
-            quando houver o primeiro trimestre de coleta — publicar uma base vazia seria a única forma de
-            estragá-la.
+            <strong>A base completa sai em dezembro.</strong> O conjunto inteiro será publicado com
+            licença CC-BY e um identificador permanente (DOI), para poder ser citado em trabalho
+            acadêmico. A data não é arbitrária: uma base de medição só serve para alguma coisa depois
+            de um trimestre inteiro de coleta contínua.
           </Aviso>
         </section>
       </Documento>,

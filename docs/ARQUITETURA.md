@@ -207,6 +207,9 @@ em vez de adivinhar.
 | `imagem:` | não | bloco com `arquivo` (em `publico/imagens/`, jpg ou png, ≤ 600 KB, ≥ 600 px), `credito`, `licenca` (`press`, `cc-by`, `cedida`, `propria`), `alt`. Largura e altura são lidas do arquivo |
 | `arte` | não | nome de um SVG em `conteudo/arte/`; sem cor crua, sem `<script>` |
 | `destaque` | não | `true` na peça que abre a capa; o compilador aceita uma só |
+| `fixo` | não | `true` no **artigo** do slot fixo da capa; só em `artigos`, e um só |
+| `patrocinada` | não | `true` em peça paga. **Exige `patrocinador`**, e só vale em `artigos` e `relatorios` — notícia e Giro não são patrocináveis |
+| `patrocinador` | só se paga | o nome de quem pagou; vai no rótulo visível. Sem `patrocinada: true`, o build aborta |
 | `numeros` | só giro | os inteiros que a prosa pode usar; a auditoria reprova qualquer outro |
 
 O corpo é Markdown mínimo (seção 4, `markdown.ts`) e precisa de pelo menos 80 caracteres.
@@ -236,7 +239,8 @@ do rodapé, "toda peça tem autor", verificável.
 `ARTES` e `TEMA_SCRIPT_HASH`. Aborta com o arquivo e o motivo na tela em qualquer falha de
 contrato: autor sem arquivo, notícia sem fonte ou sem veredito, veredito fora da categoria,
 arte que não existe ou com cor crua, imagem sem crédito ou licença ou pesada demais, dois
-destaques, giro com número que não está no dossiê.
+destaques, dois artigos fixos, giro com número que não está no dossiê, e **peça paga sem
+anunciante, anunciante sem a flag, ou peça paga em notícia ou Giro**.
 
 Também produz o que a página precisa e o Worker não consegue fazer: as imagens de
 compartilhamento (`publico/og/<secao>-<slug>.png`, 1200 × 630) rasterizadas da arte SVG ou da
@@ -338,18 +342,28 @@ A pergunta-assinatura do site, medida sobre a tabela `assunto`:
 | sem menção | assuntos publicados lá fora há mais de 90 dias e sem `primeira_mencao_br` |
 | itens, fontes | `COUNT(*)` de `item` e de `fonte` ativa |
 
-Na capa, se ainda não há par medido, a faixa mostra o que já foi lido em vez de um "0" fingindo
-medida, e diz que a medida vale para as fontes acompanhadas, não para toda a imprensa. As
-limitações estão escritas em Blueprints: o agrupamento por título erra entre idiomas distantes
-e junta pouco (552 assuntos para 554 itens em 08/09), e há poucas fontes brasileiras marcando o
-relógio. Embeddings para agrupar melhor estão no backlog do ROADMAP.
+⚠️ **Em 11/09/2026 o relógio media ZERO — e sempre mediu.** Não é imprecisão, é conjunto
+vazio: 0 atrasos apurados em 684 assuntos na homologação, 0 em 552 no banco local.
+
+A causa está em `chaveAssunto()` (`coletor/url.ts`): a chave é o **título inteiro** sem as
+palavras vazias, ordenado e junto. Dois textos só caem no mesmo assunto com o **conjunto
+idêntico** de palavras significativas — entre idiomas, quase nunca. Resultado: **2 assuntos de
+684 têm mais de um item**. Como `atraso_br_dias` só é calculado quando uma fonte brasileira
+cai num assunto que já existe com original estrangeiro (`coletor/index.ts`), a fonte brasileira
+cria assunto próprio e o par nunca se forma.
+
+Por isso, decisão de 11/09: **o relógio saiu da capa** e os números ficam em `/blueprints`,
+que passou a explicar o zero em vez de só declarar "agrupamento fraco". A faixa volta quando
+houver par medido. O conserto planejado é casar por **token raro compartilhado** (nome próprio,
+código), que sobrevive à tradução — sem IA, que continua proibida em produção.
 
 ---
 
 ## 10 · As ferramentas locais (`scripts/`)
 
-Rodam com `node --experimental-strip-types`, sem build. Todas leem o D1 **local** pelo
-wrangler quando precisam do banco.
+Rodam com `node --experimental-strip-types`, sem build. Leem o D1 **local** pelo wrangler
+quando precisam do banco — exceto `dossie`, que escolhe o banco por flag, porque o banco local
+não é onde o coletor contínuo escreve.
 
 | Comando | Tempo | O que faz |
 |---|---|---|
@@ -357,7 +371,7 @@ wrangler quando precisam do banco.
 | `npm run lavrado` | 2 · decidir | O único que escreve em `colheita/lidos.json`: marca a pauta inteira como lida. `--ver` só mostra |
 | `npm run ler -- <url>` | 3 · lavrar | Baixa um artigo, confere o robots daquele caminho, tira o ruído e salva em `colheita/leituras/`. É leitura; nunca vai para o site |
 | `npm run nova -- <secao> <slug> --url <url>` | 3 · lavrar | Cria o `.md` com o frontmatter pré-preenchido a partir da pauta |
-| `npm run dossie [-- 2026-s37]` | semanal | Os números da semana ISO que fechou, em SQL puro, para `colheita/dossie-<semana>.md`. O Giro é escrito em cima, e a auditoria confere cada inteiro da prosa contra ele |
+| `npm run dossie [-- 2026-s37] [--homolog]` | semanal | Os números da semana ISO que fechou, em SQL puro, para `colheita/dossie-<semana>.md`. O Giro é escrito em cima, e a auditoria confere cada inteiro da prosa contra ele. **Use `--homolog`:** o coletor contínuo roda no cron da borda, não no banco local (ver armadilha abaixo). Semana ainda aberta exige `--parcial`, e dossiê sem item nenhum aborta |
 | `npm run compilar` | 4 · publicar | Seção 5.4 |
 | `npm run cadencia` | medição | Quanto cada fonte publica por semana, medido no feed inteiro |
 | `npm run sondar` · `npm run sondar:vozes` | fontes | Testa candidatos a fonte e a voz contra o nosso parser e o robots. Toda fonte nasce `resumo` |
@@ -541,3 +555,15 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
 - **`<video preload="metadata">` aborta o resto do arquivo**: `ERR_ABORTED` em mídia não é falha.
 - **Nada de cor crua fora de `tokens.css`**, nem em `conteudo/arte/`: o QA reprova.
 - **Autor novo sem arquivo em `conteudo/autores/`** aborta o build da peça dele.
+- **O dossiê e o banco:** o coletor contínuo roda no **cron da borda** e escreve no D1 da
+  homologação; o banco local só tem o que uma colheita manual deixou lá. `npm run dossie` sem
+  `--homolog` pode devolver uma semana zerada — que **não parece defeito, parece semana fraca**,
+  e o Giro escrito em cima dela passa na auditoria, porque a auditoria confere a prosa contra o
+  dossiê e não o dossiê contra o mundo. Desde 11/09 o script imprime qual banco respondeu e
+  aborta em dossiê vazio.
+- **Semana reconstruída para trás não é medição.** Feed RSS só carrega os últimos itens: colher
+  hoje a semana passada mede *quando o coletor rodou*, não o que foi publicado. Foi por isso que
+  a s36 não pôde ser publicada (ROADMAP §2c).
+- **Rótulo de publicidade é do compilador, não do editor.** `patrocinada: true` sem
+  `patrocinador` não compila, e `patrocinador` sem a flag também não — este segundo é o erro de
+  digitação que publicaria peça paga sem rótulo nenhum.

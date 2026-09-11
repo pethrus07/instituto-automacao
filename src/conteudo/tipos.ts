@@ -53,6 +53,28 @@ export type Fonte = {
   publicado?: string;
 };
 
+/**
+ * Peça paga — e o rótulo que nasce junto com ela.
+ *
+ * Existe ANTES da primeira venda, de propósito. O sócio quer vender três
+ * artigos para uma empresa; se o rótulo for combinado peça a peça, ele vira
+ * negociação toda vez, e a que sai sem rótulo é justamente a que ninguém
+ * lembrou de rotular. Aqui rotular não é decisão de quem publica: é
+ * consequência do frontmatter, e o compilador recusa peça paga sem o nome de
+ * quem pagou.
+ *
+ * A obrigação é de lei, não de estilo. O CDC (art. 36) exige que a
+ * publicidade seja identificada COMO TAL, fácil e imediatamente; o Código do
+ * CONAR (art. 28) diz o mesmo do publieditorial. Por isso o rótulo sai em
+ * TODA superfície onde a peça aparece — página, capa, listagem, RSS e dado
+ * estruturado — e não só na página dela: quem vê o título na capa e não
+ * entra precisa saber tanto quanto quem entra.
+ */
+export type Patrocinio = {
+  /** quem pagou. Vai no rótulo visível, com todas as letras */
+  anunciante: string;
+};
+
 export type Peca = {
   /** do nome do arquivo, sem a data: `2026-09-03-skild-s1.md` → `skild-s1` */
   slug: string;
@@ -77,6 +99,21 @@ export type Peca = {
   arte?: string;
   /** a peça que abre a capa; no máximo uma, decidida por gente */
   destaque?: boolean;
+  /**
+   * o artigo que ocupa o slot fixo da capa. Só em `artigos`, no máximo um.
+   *
+   * Existe porque o pedido do sócio (08/09) foi "um artigo e duas notícias,
+   * para um artigo nunca sair": o slot não pode ser "o artigo mais recente",
+   * senão a semana de dois artigos empurra o que importa. Quem fica é
+   * decisão editorial, e decisão editorial mora no frontmatter.
+   */
+  fixo?: boolean;
+  /**
+   * peça paga: quem pagou. Vem de `patrocinada: true` + `patrocinador: Nome`
+   * no frontmatter, e só existe onde publicidade pode existir (ver
+   * SECOES_PATROCINAVEIS). Presente = o rótulo sai, em todo lugar.
+   */
+  patrocinada?: Patrocinio;
   /**
    * o caminho da imagem de compartilhamento (og:image): a foto, quando há;
    * senão o PNG que o compilador rasterizou da arte (ou da capa gerada)
@@ -119,6 +156,26 @@ export const SECOES: readonly Secao[] = ['noticias', 'artigos', 'relatorios', 'g
 export const TEMAS: readonly Tema[] = ['industria', 'processos'];
 export const VEREDITOS: readonly Veredito[] = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
 export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria'];
+
+/**
+ * Onde publicidade PODE existir.
+ *
+ * Artigo e relatório, sim: são texto assinado sobre um assunto, e o leitor
+ * que vê o rótulo sabe exatamente o que está lendo. Notícia e Giro, não — e
+ * isso não é pudor:
+ *
+ *   · a notícia carrega o VEREDITO ("chega aqui" / "não chega"), e veredito
+ *     que se compra deixa de ser veredito. A promessa já está publicada em
+ *     /apoie: "não escolhe pauta nem veredito";
+ *   · o Giro é o balanço dos números da semana. Patrocinar o balanço é
+ *     patrocinar a medição.
+ *
+ * É aqui que mora a diferença entre vender espaço e vender a régua. O
+ * compilador aborta se uma peça paga aparecer fora desta lista — inclusive a
+ * "notícia boa" para um cliente virar parceiro, que é publicidade velada com
+ * outro nome.
+ */
+export const SECOES_PATROCINAVEIS: readonly Secao[] = ['artigos', 'relatorios'];
 
 /** Que formatos cabem em cada seção. Notícia não vira caso; giro não vira nota. */
 export const FORMATOS_POR_SECAO: Record<Secao, readonly Formato[]> = {

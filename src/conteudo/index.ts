@@ -43,6 +43,22 @@ export function recentes(n: number, excluir?: Peca | null): Peca[] {
   return PECAS.filter((p) => p !== excluir && p.secao === 'noticias').slice(0, n);
 }
 
+/**
+ * O artigo do slot fixo da capa.
+ *
+ * O marcado com `fixo: true`; sem ele, o artigo mais recente; sem nenhum
+ * artigo, null — e a capa mostra o convite para escrever, que é honesto
+ * enquanto não houver o primeiro.
+ *
+ * Ele NÃO entra na grade de "outros artigos" da capa: aparecer duas vezes na
+ * mesma tela é o jeito mais rápido de um site com pouco conteúdo parecer
+ * repetitivo.
+ */
+export function artigoDaCapa(): Peca | null {
+  const artigos = porSecao('artigos');
+  return artigos.find((p) => p.fixo) ?? artigos[0] ?? null;
+}
+
 export function ultimoGiro(): Peca | null {
   return porSecao('giro')[0] ?? null;
 }

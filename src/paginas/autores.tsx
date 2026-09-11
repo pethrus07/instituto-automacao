@@ -21,7 +21,7 @@ import { novaApp, pagina } from './app';
 export const paginasDeAutor = novaApp();
 
 const O_QUE_O_AUTOR_GANHA = [
-  ['Assinatura em toda peça', 'Nome no alto, com link para a sua página — e no RSS, no JSON-LD e no cartão de compartilhamento.'],
+  ['Assinatura em todo texto', 'Nome no alto, com link para a sua página — e no RSS, no JSON-LD e no cartão de compartilhamento.'],
   ['Página própria', 'Papel, bio, tudo o que publicou aqui e o link para o seu currículo, LinkedIn ou Lattes.'],
   ['Leitor certo', 'Quem lê o Instituto opera, integra ou ensina automação no Brasil. É para eles que você escreve.'],
   ['Edição de gente', 'O editor lê, questiona e devolve. Nada aqui passa por máquina — nem para "melhorar".'],
@@ -45,7 +45,7 @@ paginasDeAutor.get('/autores', (c) => {
       <Documento
         titulo="Quem escreve"
         secao="autores"
-        descricao="Quem assina as peças do Instituto Automação — e como publicar um artigo aqui, com autoria, página própria e link para o seu currículo."
+        descricao="Quem assina os textos do Instituto Automação — e como publicar um artigo aqui, com autoria, página própria e link para o seu currículo."
         url={`${site}/autores`}
         ld={[ldJson(trilhaLd([{ nome: 'Capa', url: `${site}/` }, { nome: 'Quem escreve', url: `${site}/autores` }]))]}
       >
@@ -53,7 +53,7 @@ paginasDeAutor.get('/autores', (c) => {
           <span class="kicker">O Instituto</span>
           <h1>Quem escreve</h1>
           <p class="cabeca-secao__lead">
-            Toda peça tem autor, e o autor tem página. O que a pessoa faz, o que já publicou aqui, e
+            Todo texto tem autor, e o autor tem página. O que a pessoa faz, o que já publicou aqui, e
             o caminho para o currículo dela.
           </p>
         </header>
@@ -116,7 +116,7 @@ paginasDeAutor.get('/autores/:slug', (c) => {
       <Documento
         titulo={a.nome}
         secao="autores"
-        descricao={`${a.nome}, ${a.papel.toLowerCase()} do Instituto Automação: ${pecas.length} ${pecas.length === 1 ? 'peça publicada' : 'peças publicadas'}. ${a.bio.split(/\n\n/)[0] ?? ''}`}
+        descricao={`${a.nome}, ${a.papel.toLowerCase()} do Instituto Automação: ${pecas.length} ${pecas.length === 1 ? 'texto publicado' : 'textos publicados'}. ${a.bio.split(/\n\n/)[0] ?? ''}`}
         url={url}
         tipoOg="profile"
         imagemOg={a.foto ? { url: `/autores/${a.foto.arquivo}`, largura: a.foto.largura, altura: a.foto.altura, alt: `Retrato de ${a.nome}` } : undefined}
@@ -130,7 +130,7 @@ paginasDeAutor.get('/autores/:slug', (c) => {
             <div class="obra perfil__bio">{raw(renderizarObra(a.bio))}</div>
             <p class="perfil__meta">
               <span>
-                <strong>{pecas.length}</strong> {pecas.length === 1 ? 'peça' : 'peças'} no Instituto
+                <strong>{pecas.length}</strong> {pecas.length === 1 ? 'texto' : 'textos'} no Instituto
               </span>
               {desde && <span>desde {dataPeca(desde)}</span>}
               {a.link && (
@@ -147,7 +147,7 @@ paginasDeAutor.get('/autores/:slug', (c) => {
           {pecas.length ? (
             pecas.map((p) => <PecaLinha peca={p} />)
           ) : (
-            <Aviso>Ainda não há peça assinada por {a.nome}. A primeira aparece aqui assim que sair.</Aviso>
+            <Aviso>Ainda não há texto assinado por {a.nome}. A primeira aparece aqui assim que sair.</Aviso>
           )}
         </section>
       </Documento>,

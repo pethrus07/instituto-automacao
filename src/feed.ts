@@ -27,14 +27,20 @@ function rfc822(data: string | null): string {
 
 function itemRss(base: string, p: Peca): string {
   const url = base + caminho(p);
+  /* Peça paga sai rotulada no feed também — e no TÍTULO, porque leitor de
+     feed é a superfície onde o rótulo mais some: muita gente varre só a
+     lista de títulos sem abrir a descrição. Sem isto o RSS seria o buraco
+     por onde a publicidade sai sem identificação. */
+  const titulo = p.patrocinada ? `[Publicidade] ${p.titulo}` : p.titulo;
+  const descricao = p.patrocinada ? `PUBLICIDADE — conteúdo pago por ${p.patrocinada.anunciante}. ${p.lead}` : p.lead;
   return `    <item>
-      <title>${x(p.titulo)}</title>
+      <title>${x(titulo)}</title>
       <link>${x(url)}</link>
       <guid isPermaLink="true">${x(url)}</guid>
       <pubDate>${rfc822(p.data)}</pubDate>
-      <description>${x(p.lead)}</description>
+      <description>${x(descricao)}</description>
       <dc:creator>${x(p.autor)}</dc:creator>
-      <category>${x(ROTULO_SECAO[p.secao])}</category>
+      <category>${x(ROTULO_SECAO[p.secao])}</category>${p.patrocinada ? '\n      <category>Publicidade</category>' : ''}
     </item>`;
 }
 
@@ -76,6 +82,7 @@ export async function sitemap(env: Env): Promise<string> {
     { loc: `${base}/blueprints` },
     { loc: `${base}/apoie` },
     { loc: `${base}/marca` },
+    { loc: `${base}/privacidade` },
   ];
 
   for (const p of todas()) urls.push({ loc: base + caminho(p), mod: p.data });

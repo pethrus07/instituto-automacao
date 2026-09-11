@@ -1,22 +1,41 @@
 /**
- * A capa. Uma peça manda. Depois as seguintes, a lista, os artigos, o
- * relógio, relatórios e agenda, quem escreve, o giro. Com pouco conteúdo,
- * cada bloco tem de ter razão de existir — e o espaço entre eles é o que
- * separa "curado" de "abandonado".
+ * A capa. Uma notícia manda, o artigo fixo vem logo abaixo, depois as
+ * seguintes, a lista, relatórios e agenda, quem escreve, o giro. Com pouco
+ * conteúdo, cada bloco tem de ter razão de existir — e o espaço entre eles é
+ * o que separa "curado" de "abandonado".
  *
  * A ordem mudou em 07/09/2026 pelo feedback do sócio: o espaço do parceiro
  * entrou entre o cabeçalho e a primeira notícia; o cadastro subiu (estava
  * "muito embaixo"); Relatórios e Agenda ganharam nota dizendo o que são;
- * entraram Artigos e Quem escreve. O relógio ficou — é a tese do Instituto —,
- * mas agora diz sobre quais fontes mede, e não mostra "0" como se fosse
- * medida: quando ainda não há par medido, mostra o que já foi lido.
+ * entraram Artigos e Quem escreve.
+ *
+ * E mudou de novo em 11/09/2026, por três decisões do Pedro:
+ *
+ *  1. ARTIGO FIXO em segundo lugar. O pedido do sócio era "um artigo e duas
+ *     notícias, para um artigo nunca sair"; o bloco era o quarto e mostrava
+ *     os três mais recentes, então notícia nova empurrava. Agora o slot é um
+ *     só, escolhido por `fixo: true`, e fica.
+ *
+ *  2. O RELÓGIO SAIU DA CAPA. Ele é a tese do Instituto e continua rodando,
+ *     mas em 11/09 a medição estava em ZERO atraso apurado sobre 684
+ *     assuntos — não por erro de conta: o agrupamento por título exige
+ *     conjunto idêntico de palavras, então a fonte brasileira nunca cai no
+ *     mesmo assunto do original estrangeiro e o par jamais se forma. A faixa
+ *     tinha desvio honesto (mostrava o que foi lido, não um "0" fingindo
+ *     medida), mas prometer medição na capa sem medição é promessa. Os
+ *     números seguem em /blueprints, onde a limitação está escrita ao lado.
+ *     A faixa volta quando houver par medido.
+ *
+ *  3. "ENVIAR UM EVENTO" SAIU DA CAPA, e ficou só na agenda: a capa de um
+ *     site que publica pouco não pede tarefa ao leitor antes de ter entregado
+ *     alguma coisa.
  */
 import { Documento } from '../ui/Documento';
-import { Secao, Vazio, Numero, EventoNaAgenda, PecaDestaque, PecaCard, PecaLinha, Lista, FaixaParceiro, QuemEscreve } from '../ui/pecas';
+import { Secao, Vazio, EventoNaAgenda, PecaDestaque, PecaCard, PecaLinha, Lista, FaixaParceiro, QuemEscreve } from '../ui/pecas';
 import { ldJson, organizacaoLd, siteLd } from '../ui/jsonld';
 import { CACHE } from '../config';
-import { relogio as medirRelogio, listarAgenda } from '../db';
-import { destaque, recentes, ultimoGiro, porSecao, autores, pecasDoAutor } from '../conteudo';
+import { listarAgenda } from '../db';
+import { destaque, recentes, ultimoGiro, porSecao, artigoDaCapa, autores, pecasDoAutor } from '../conteudo';
 import { parceiroDaCapa } from '../parceiros';
 import { novaApp, pagina } from './app';
 
@@ -28,9 +47,11 @@ capa.get('/', async (c) => {
   const seguintes = recentes(3, principal);
   const giro = ultimoGiro();
   const relatorios = porSecao('relatorios');
-  const artigos = porSecao('artigos');
+  const artigoFixo = artigoDaCapa();
+  // os outros artigos: o fixo já tem o próprio espaço e não se repete na grade
+  const outrosArtigos = porSecao('artigos').filter((p) => p !== artigoFixo);
   const quemEscreve = autores().filter((a) => pecasDoAutor(a).length > 0);
-  const [rel, eventos] = await Promise.all([medirRelogio(c.env.DB), listarAgenda(c.env.DB, {}, 3)]);
+  const eventos = await listarAgenda(c.env.DB, {}, 3);
   const base = c.env.SITE_URL;
 
   c.header('Cache-Control', CACHE.listagem);
@@ -38,7 +59,7 @@ capa.get('/', async (c) => {
     pagina(
       <Documento
         titulo="Instituto Automação"
-        descricao="O que o setor de automação publica lá fora, lido daqui: notícias escolhidas e escritas em português, artigos que ensinam, relatórios com dado próprio, e a medição de quanto tempo cada assunto leva para chegar ao Brasil."
+        descricao="O que o setor de automação publica lá fora, lido daqui: notícias escolhidas e escritas em português, artigos que ensinam e relatórios com dado próprio."
         url={base + '/'}
         imagemOg={principal?.imagem ? { url: principal.og, largura: principal.imagem.largura, altura: principal.imagem.altura, alt: principal.imagem.alt } : undefined}
         ld={[ldJson(organizacaoLd(base)), ldJson(siteLd(base))]}
@@ -48,12 +69,42 @@ capa.get('/', async (c) => {
         {principal ? (
           <PecaDestaque peca={principal} principal />
         ) : (
-          <Vazio titulo="A primeira peça está a caminho.">
+          <Vazio titulo="A primeira notícia está a caminho.">
             O Instituto publica pouco e escolhido: notícias lidas na fonte e escritas em
             português, e relatórios com dado que só nós temos. Enquanto a primeira não sai, a{' '}
             <a href="/agenda">agenda</a> e o <a href="/blueprints">método</a> já estão aqui.
           </Vazio>
         )}
+
+        {/* O ARTIGO FIXO, em segundo lugar e antes das outras notícias.
+            É o coração do Instituto (sócio, 07/09) e o slot que notícia nova
+            não empurra (decisão de 11/09). Quando ainda não há artigo, o
+            convite para escrever ocupa o lugar — é o que existe de verdade. */}
+        <section class="bloco">
+          <Secao
+            titulo="Artigos"
+            acao={artigoFixo ? { texto: 'todos os artigos', href: '/artigos' } : undefined}
+            nota="O que ensina: guias e conceitos de automação escritos por quem faz, para quem opera no Brasil. A notícia diz o que aconteceu; o artigo explica como funciona."
+          />
+          {artigoFixo ? (
+            <>
+              <PecaDestaque peca={artigoFixo} />
+              {outrosArtigos.length > 0 && (
+                <div class="grade" style="margin-block-start: var(--space-l)">
+                  {outrosArtigos.slice(0, 2).map((p) => (
+                    <PecaCard peca={p} />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <Vazio titulo="O primeiro artigo está sendo escrito.">
+              Artigo aqui é um guia ou um conceito, assinado por quem faz automação — com página de
+              autor, bio e link para o currículo. Escreve sobre o assunto?{' '}
+              <a href="/autores#escrever">Publique no Instituto</a>.
+            </Vazio>
+          )}
+        </section>
 
         {seguintes.length > 0 && (
           <section class="bloco">
@@ -69,69 +120,6 @@ capa.get('/', async (c) => {
         {/* A lista, alta na página: quem chegou até aqui já viu o que o site é. */}
         <section class="bloco">
           <Lista origem="capa" estado={q.assinado} />
-        </section>
-
-        {/* Artigos: o que ensina. É o coração do Instituto (sócio, 07/09), e
-            por isso tem bloco próprio mesmo antes do primeiro sair. */}
-        <section class="bloco">
-          <Secao
-            titulo="Artigos"
-            acao={artigos.length ? { texto: 'todos os artigos', href: '/artigos' } : undefined}
-            nota="O que ensina: guias e conceitos de automação escritos por quem faz, para quem opera no Brasil. A notícia diz o que aconteceu; o artigo explica como funciona."
-          />
-          {artigos.length > 0 ? (
-            <div class="grade">
-              {artigos.slice(0, 3).map((p) => (
-                <PecaCard peca={p} />
-              ))}
-            </div>
-          ) : (
-            <Vazio titulo="O primeiro artigo está sendo escrito.">
-              Artigo aqui é um guia ou um conceito, assinado por quem faz automação — com página de
-              autor, bio e link para o currículo. Escreve sobre o assunto?{' '}
-              <a href="/autores#escrever">Publique no Instituto</a>.
-            </Vazio>
-          )}
-        </section>
-
-        {/* O relógio — a pergunta-assinatura, medida. Faixa escura de ponta
-            a ponta: é o único bloco com massa da página, e é o que o
-            Instituto tem que ninguém tem. Quando ainda não há par medido,
-            os números são os da leitura — nunca um "0" fingindo medida. */}
-        <section class="faixa-relogio sangra">
-          <div class="wrap faixa-relogio__miolo" style="padding-inline: 0">
-            <div class="faixa-relogio__texto">
-              <span class="faixa-relogio__kicker">O que medimos</span>
-              <h2 class="faixa-relogio__titulo">Quanto tempo a automação leva para chegar ao Brasil?</h2>
-              <p class="faixa-relogio__lead">
-                Todo assunto que o setor publica lá fora entra numa base própria, com a data em que
-                saiu e a data da primeira menção em fonte brasileira. Ninguém mede esse intervalo — e
-                sem medida, toda conversa sobre o atraso do parque industrial daqui é opinião.
-              </p>
-              <p class="faixa-relogio__metodo">
-                A medida vale para as {rel.fontes} fontes que acompanhamos, listadas em Blueprints —
-                não para toda a imprensa. É uma amostra, e dizemos isso.
-              </p>
-              <a href="/blueprints" class="faixa-relogio__link">Como medimos, e o que ainda não conseguimos medir</a>
-            </div>
-            <div class="faixa-relogio__numeros">
-              {rel.medidos > 0 ? (
-                <>
-                  <Numero valor={rel.acompanhados} rotulo="assuntos acompanhados" />
-                  <Numero valor={rel.fontes} rotulo="fontes lidas todo dia" />
-                  <Numero valor={`${rel.mediana_dias} d`} rotulo="atraso mediano até a primeira menção aqui" />
-                  <Numero valor={rel.sem_mencao} rotulo="publicados lá fora há mais de 90 dias e nunca mencionados aqui" />
-                </>
-              ) : (
-                <>
-                  <Numero valor={rel.itens} rotulo="itens lidos e guardados desde o início" />
-                  <Numero valor={rel.fontes} rotulo="fontes lidas todo dia" />
-                  <Numero valor={rel.acompanhados} rotulo="assuntos agrupados até agora" />
-                  <Numero valor="—" rotulo="atraso mediano: sai quando a primeira fonte brasileira mencionar um assunto colhido lá fora" />
-                </>
-              )}
-            </div>
-          </div>
         </section>
 
         <div class="duas-colunas">
@@ -156,19 +144,14 @@ capa.get('/', async (c) => {
             <Secao
               titulo="Agenda"
               acao={{ texto: 'calendário completo', href: '/agenda' }}
-              nota={
-                <>
-                  Feiras, congressos e encontros de automação, cada data conferida no site oficial
-                  do evento. Organiza um? <a href="/agenda#enviar">Envie</a> — listar é de graça.
-                </>
-              }
+              nota="Feiras, congressos e encontros de automação, cada data conferida no site oficial do evento."
             />
             {eventos.length > 0 ? (
               eventos.map((e) => <EventoNaAgenda evento={e} />)
             ) : (
-              <Vazio titulo="A agenda está aberta.">
-                Organiza um evento de automação? <a href="/agenda#enviar">Mande para cá</a> — listar
-                é de graça, e todo envio passa por conferência antes de aparecer.
+              <Vazio titulo="A agenda está sendo montada.">
+                Feiras, congressos e encontros de automação, com a data conferida no site oficial de
+                cada um. O <a href="/agenda">calendário completo</a> já está aberto.
               </Vazio>
             )}
           </section>
@@ -179,7 +162,7 @@ capa.get('/', async (c) => {
           <Secao
             titulo="Quem escreve"
             acao={{ texto: 'todos os autores', href: '/autores' }}
-            nota="Toda peça tem autor, e o autor tem página: o que faz, o que já publicou e o link para o currículo dele."
+            nota="Todo texto tem autor, e o autor tem página: o que faz, o que já publicou e o link para o currículo dele."
           />
           <QuemEscreve autores={quemEscreve} contar={(a) => pecasDoAutor(a).length} />
         </section>

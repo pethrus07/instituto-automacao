@@ -32,6 +32,7 @@ import {
   FORMATOS_POR_SECAO,
   LICENCAS_IMAGEM,
   SECOES,
+  SECOES_PATROCINAVEIS,
   TEMAS,
   VEREDITOS,
   type Autor,
@@ -191,6 +192,44 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     peca.destaque = true;
   }
 
+  /* O artigo fixo da capa: só artigo, e o site inteiro tem um (ver adiante). */
+  if (typeof meta['fixo'] === 'string') {
+    if (meta['fixo'] !== 'true') falhar(caminho, `"fixo" só aceita "true" (ou não existir)`);
+    if (secao !== 'artigos') falhar(caminho, `"fixo" é o slot de artigo da capa — "${secao}" não tem esse slot`);
+    peca.fixo = true;
+  }
+
+  /* --------------------------------------------------------- publicidade
+   * Peça paga entra rotulada ou não entra. Três recusas, e as três existem
+   * porque a alternativa é combinar o rótulo no dia da venda:
+   *
+   *   1. "patrocinada" só aceita "true" — meio-termo não existe;
+   *   2. paga sem "patrocinador" não compila: rótulo sem o nome de quem
+   *      pagou informa menos do que parece ("publicidade" de quem?);
+   *   3. paga fora de artigo/relatório não compila — notícia leva veredito
+   *      e Giro leva a medição, e nenhum dos dois está à venda.
+   *
+   * Um "patrocinador" solto, sem "patrocinada: true", também para o build:
+   * é o erro de digitação que publicaria a peça paga sem rótulo nenhum.
+   */
+  const temPatrocinador = typeof meta['patrocinador'] === 'string' && (meta['patrocinador'] as string).trim() !== '';
+  if (typeof meta['patrocinada'] === 'string') {
+    if (meta['patrocinada'] !== 'true') falhar(caminho, `"patrocinada" só aceita "true" (ou não existir)`);
+    if (!temPatrocinador) {
+      falhar(caminho, '"patrocinada: true" sem "patrocinador" — o rótulo tem de dizer quem pagou (CDC art. 36)');
+    }
+    if (!SECOES_PATROCINAVEIS.includes(secao)) {
+      falhar(
+        caminho,
+        `"${secao}" não aceita peça paga — só ${SECOES_PATROCINAVEIS.join(' e ')}. ` +
+          'Notícia carrega o veredito e o Giro carrega a medição; nenhum dos dois está à venda.',
+      );
+    }
+    peca.patrocinada = { anunciante: (meta['patrocinador'] as string).trim() };
+  } else if (temPatrocinador) {
+    falhar(caminho, '"patrocinador" sem "patrocinada: true" — assim a peça sairia paga e sem rótulo');
+  }
+
   /* Notícia é sobre terceiro: credita, linka, e diz o que muda aqui. */
   if (secao === 'noticias') {
     peca.veredito = entre(texto(meta, 'veredito', caminho), VEREDITOS, 'veredito', caminho) as Veredito;
@@ -338,6 +377,9 @@ const autores: Autor[] = listar(AUTORES_DIR).map(compilarAutor).sort((a, b) => a
 {
   const destaques = pecas.filter((p) => p.destaque);
   if (destaques.length > 1) falhar(CONTEUDO, `há ${destaques.length} peças com "destaque: true" — a capa tem um destaque só: ${destaques.map((p) => p.slug).join(', ')}`);
+
+  const fixos = pecas.filter((p) => p.fixo);
+  if (fixos.length > 1) falhar(CONTEUDO, `há ${fixos.length} artigos com "fixo: true" — o slot de artigo da capa é um só: ${fixos.map((p) => p.slug).join(', ')}`);
 }
 
 const artes: Record<string, string> = {};

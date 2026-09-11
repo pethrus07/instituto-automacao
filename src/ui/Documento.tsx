@@ -30,7 +30,7 @@ type Props = {
   tituloCurto?: string;
   descricao?: string;
   /** a seção atual, para o estado ativo da navegação */
-  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca' | 'autores' | 'apoie';
+  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca' | 'autores' | 'apoie' | 'privacidade';
   /** URL canônica, absoluta */
   url?: string;
   /** JSON-LD já serializado e escapado (ver ui/jsonld.ts); um ou vários blocos */
@@ -178,9 +178,12 @@ export const Documento = (p: Props) => {
                 {raw(ICONE_TEMA)}
                 <span class="navbar__tema-texto">Tema</span>
               </button>
-              <span class="navbar__acao">
-                <a href="/agenda#enviar" class="botao-acao">Enviar um evento</a>
-              </span>
+              {/* "Enviar um evento" saiu daqui em 11/09/2026 (decisão do Pedro).
+                  Ele era o único botão de ação do site e aparecia em TODA página,
+                  inclusive na capa — pedindo tarefa ao leitor antes de o site ter
+                  entregado alguma coisa, e competindo com o cadastro, que é o
+                  ativo. O convite agora vive só na agenda, que é onde o
+                  formulário está. */}
             </div>
           </nav>
         </header>
@@ -199,7 +202,8 @@ export const Documento = (p: Props) => {
               <p class="rodape__texto">
                 Lemos o que o setor de automação publica lá fora, escolhemos o que importa para
                 quem opera no Brasil, e escrevemos em português — com crédito e link para a fonte
-                em toda peça. E medimos quanto tempo cada assunto leva para chegar aqui.
+                em todo texto. E guardamos tudo o que lemos, para medir quanto tempo cada assunto
+                leva para chegar aqui.
               </p>
             </div>
             <nav class="rodape__colunas" aria-label="Rodapé">
@@ -217,6 +221,7 @@ export const Documento = (p: Props) => {
                 <a href="/autores#escrever">Escreva no Instituto</a>
                 <a href="/apoie">Apoie</a>
                 <a href="/marca">Marca</a>
+                <a href="/privacidade">Privacidade</a>
               </div>
               <div>
                 <span class="rodape__rotulo">O método</span>
@@ -228,7 +233,7 @@ export const Documento = (p: Props) => {
             </nav>
           </div>
           <div class="wrap rodape__pe">
-            <span>Nada aqui é gerado por máquina. Toda peça tem autor.</span>
+            <span>Nada aqui é gerado por máquina. Todo texto tem autor.</span>
             <span class="rodape__colofao">Composto em Newsreader e IBM Plex · Sem rastreador, sem terceiro na página</span>
           </div>
         </footer>

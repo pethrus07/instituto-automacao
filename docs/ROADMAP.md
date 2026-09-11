@@ -1,12 +1,16 @@
 # Instituto Automação — Roadmap · v2
 
-> **Estado em 08/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
+> **Estado em 11/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
 > Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
 > **31/12/2026** (acordo interno).
 >
 > Este arquivo substitui o roadmap da v1. Em 03/09 morreram a IA em produção, os quatro
 > núcleos, o teto de custo e a chave de API; o que sobreviveu está na seção 7. O `roadmap.html`
 > ao lado continua descrevendo a v1 e não foi refeito.
+>
+> **11/09 fechou as cinco decisões que travavam o prazo de 20/09** (seção 2b) e descobriu dois
+> defeitos que ninguém tinha medido: o **relógio nunca mediu nada** e o **dossiê lia o banco
+> errado** (seção 2c). Os dois estão tratados; o relógio saiu da capa até voltar a medir.
 
 ---
 
@@ -18,10 +22,12 @@
 | Seções Notícias, **Artigos** (vazia, honesta), Relatórios, Giro, Agenda, Glossário, Blueprints | **Primeiro artigo** e as instruções para autores |
 | **Autores** com página própria (1 autor), faixa "Quem escreve", convite "Escreva no Instituto" | **Primeiro Giro** (a s36 ficou sem edição) |
 | Espaço de **parceiro** na capa + `/apoie` (lista vazia) | **Primeiro parceiro** |
-| Cadastro com atuação e empresa (migração 006), tabela `contato` | **Página de privacidade** e a finalidade escrita no cadastro |
+| Cadastro com atuação e empresa (migração 006), tabela `contato` | **Primeiro artigo** para o slot fixo da capa (o slot já existe, vazio) |
+| **`/privacidade`** e a finalidade declarada ao lado do formulário (11/09) | **Relógio medindo** — o agrupamento não forma par (seção 2c) |
+| **Rótulo de publicidade no código** — `patrocinada: true` sai rotulada em toda superfície (11/09) | **Primeira venda** de artigo patrocinado |
 | Marca prototipal e prancha em `/marca` | **Logo** definitiva |
-| Tour narrado, QA 1004 asserções, revisão Playwright 8,8 | Formulário de **submissão de artigo** (texto, imagens, arquivos) |
-| Relógio medindo sobre 21 fontes, cron vivo na homologação | Redes sociais e comunidade |
+| Tour narrado, **QA 1025 asserções**, revisão Playwright (0 axe, CLS 0, 0 link quebrado) | Formulário de **submissão de artigo** (texto, imagens, arquivos) |
+| Coletor vivo no cron da homologação desde 06/09, série contínua | Redes sociais e comunidade |
 
 ---
 
@@ -53,6 +59,86 @@ Ata: `atas/atas-salvas/2026-09-08_0056_Reunião 08_09_2026 00_24.md` (89 min). T
 O que o sócio disse do visual antes da sprint de 08/09 ("cru, poucos detalhes", "escuro ficou
 melhor", "banner dá vida", "linhas organizam") foi respondido no mesmo dia: `qa/SPRINT-V2.md`
 §14.
+
+---
+
+## 2b · O que o Pedro decidiu em 11/09
+
+As cinco que travavam o prazo de 20/09, mais a do Giro. Todas implementadas no mesmo dia.
+
+| Decisão | O que vale agora | Onde está |
+|---|---|---|
+| **Giro da s36** | **Pulada**, não atrasada. A série começa na s37, e o Giro nº 1 diz por quê: a coleta contínua começou em 06/09 | a escrever em 14/09 |
+| **Relógio** | **Sai da capa** enquanto medir zero; segue rodando e os números ficam em `/blueprints`, com o motivo do zero escrito ao lado. A faixa volta quando houver par medido | `capa.tsx`, `blueprints.tsx` |
+| **Artigo fixo na capa** | **Slot próprio**, em segundo lugar (era o quarto bloco, depois do cadastro). `fixo: true` no frontmatter escolhe qual; notícia nova não empurra | `conteudo/tipos.ts`, `capa.tsx` |
+| **"Enviar um evento"** | **Sai** — não estava só na capa, estava na **navbar de toda página**, como único botão de ação do site. O convite agora vive no cabeçalho da agenda, onde o formulário está | `Documento.tsx`, `agenda.tsx` |
+| **Notícia vs peça** | "Peça" vira **termo interno**: 27 ocorrências no texto visível viraram "notícia", "artigo" ou "texto". O tipo `Peca`, a pasta e o frontmatter **não** mudaram — renomear o código seria diff enorme sem ganho para o leitor | todas as páginas |
+| **Cadência** | **Semanal**, publicando aos domingos, e a capa mexe sozinha entre um domingo e outro: a agenda avança por data (`COALESCE(fim, inicio) >= date('now')`) e o Giro entra toda segunda. Não há promessa de capa diária | decisão, sem código |
+
+---
+
+## 2c · Dois defeitos que ninguém tinha medido (11/09)
+
+Os dois apareceram ao rodar o primeiro `npm run dossie` de verdade.
+
+### O relógio nunca mediu nada — 0 de 684
+
+Não é imprecisão, é conjunto vazio, e nos **dois** bancos:
+
+| | assuntos | com atraso apurado | com menção BR |
+|---|---|---|---|
+| local | 552 | **0** | 124 |
+| homologação | 684 | **0** | 61 |
+
+**A causa:** `chaveAssunto()` (`src/coletor/url.ts`) monta a chave com o **título inteiro** —
+tira as palavras vazias, ordena o resto e junta. Dois textos só caem no mesmo assunto se
+tiverem o **conjunto idêntico** de palavras significativas, o que entre idiomas diferentes
+praticamente não acontece: **2 assuntos de 684 têm mais de um item**. Como `atraso_br_dias` só
+é calculado quando uma fonte brasileira cai num assunto que **já existe** com original
+estrangeiro (`coletor/index.ts`), a fonte brasileira cria assunto próprio e o par jamais se
+forma.
+
+O site nunca mentiu sobre isso — a capa tinha desvio honesto e Blueprints declarava o
+agrupamento fraco —, mas **em lugar nenhum estava escrito que a consequência era zero
+medição**. Agora está, em `/blueprints`.
+
+**O conserto**, quando for a vez: casar por **token raro compartilhado** (nome próprio, código
+— "Siemens", "NVIDIA", "61131"), que sobrevive à tradução e é exatamente o caso que o relógio
+quer pegar. Sem IA, cabe no cron. O risco a controlar é o falso positivo: duas notícias
+diferentes da Siemens no mesmo assunto corrompem a medida para o outro lado, então vai com
+limiar e amostra conferida à mão. **Embeddings continuam mortos** — seriam IA em produção.
+
+### O dossiê lia o banco errado
+
+`scripts/dossie.ts` tinha `instituto --local` cravado, mas o coletor contínuo roda no **cron da
+borda**, que escreve no D1 da homologação. Em 11/09 o local estava parado desde 04/09: o
+dossiê da s37 saiu com **0 itens** enquanto o homolog tinha **406**.
+
+Era um defeito de manhã de segunda-feira. Um dossiê zerado não parece defeito, parece semana
+fraca — e o Giro escrito em cima dele **passaria na auditoria**, porque ela confere a prosa
+contra o dossiê, não o dossiê contra o mundo.
+
+Três travas novas no script: o banco é escolhido (`--homolog`, `--producao`) e **impresso**; a
+semana aberta exige `--parcial` e o arquivo sai marcado como parcial; e dossiê **sem item
+nenhum aborta**. A procedência (banco e hora) agora fica escrita dentro do dossiê.
+
+### Por que a s36 não era publicável
+
+| dia | local | homologação |
+|---|---|---|
+| 31/08 | 74 | 10 |
+| 01/09 | **163** | 8 |
+| 02/09 | 13 | 21 |
+| 03/09 | 5 | 16 |
+| 04/09 | 3 | 25 |
+| 05/09 | — | 10 |
+| 06/09 | — | 41 |
+
+Os 163 do dia 01/09 no local são artefato: a primeira colheita despeja no dia em que rodou.
+Os 10 do dia 31/08 no homolog são o oposto: o coletor só começou lá em 06/09 e feed RSS só
+carrega os últimos itens. **Nenhum dos dois mede a s36** — os dois medem quando o coletor
+rodou. A s37 (07 a 13/09) é a primeira semana com série contínua: 59, 96, 136, 95 nos quatro
+primeiros dias.
 
 ---
 
@@ -88,8 +174,8 @@ alheia inteira**. As três já estão ou cabem no método atual.
 
 | Quando | Marco | Depende de |
 |---|---|---|
-| **14/09** (segunda) | **Primeiro Giro** (s37), com `npm run dossie`. Decidir se a s36 sai atrasada ou fica registrada como pulada | Pedro |
-| até **20/09** | Página de privacidade + finalidade no cadastro · notas internas fora de Blueprints · relógio com números em destaque e "atraso mediano" explicado · artigo fixo na capa · botão de evento | Pedro decide, eu faço |
+| **14/09** (segunda) | **Primeiro Giro** (s37), com `npm run dossie -- --homolog`. A s36 ficou **pulada** (decisão de 11/09) e o Giro nº 1 diz por quê | Pedro escreve |
+| ~~até **20/09**~~ | **FEITO em 11/09**, nove dias antes: privacidade + finalidade no cadastro · notas internas fora de Blueprints · "Como funciona" alongado · artigo fixo na capa · botão de evento fora · relógio fora da capa · vocabulário · rótulo de publicidade | — |
 | **setembro** | **Logo:** opções do sócio → escolha do Pedro → prancha e ícones refeitos (`/marca`, favicon, OG) | sócio, depois eu |
 | **setembro** | **Instruções para autores** publicadas em `/autores#escrever` (o que se pede já está; falta formato, tamanho, fonte, imagem, revisão) | os dois |
 | **set–out** | **Primeiro artigo** — de um autor do sócio ou do Pedro | sócio, Pedro |
@@ -106,25 +192,43 @@ alheia inteira**. As três já estão ou cabem no método atual.
 
 ### Pedro — decisões
 
-- [ ] Voltar a chamar notícia de **notícia**; "peça" fica termo interno de Blueprints.
-- [ ] **Relógio:** manter (é a tese) ou tirar (o sócio duvida da medida).
+Seis fechadas em 11/09 (seção 2b). O que sobrou:
+
+- [x] ~~Voltar a chamar notícia de **notícia**~~ — feito; "peça" é termo interno do código.
+- [x] ~~**Relógio:** manter ou tirar~~ — **sai da capa** enquanto medir zero.
+- [x] ~~Artigo fixo na capa: slot próprio ou destaque alternado~~ — **slot próprio**, 2º bloco.
+- [x] ~~Botão "Enviar um evento" fora da capa?~~ — **fora**, e da navbar inteira.
+- [x] ~~Cadência: semanal, ou capa diária?~~ — **semanal**, capa mexendo sozinha.
+- [x] ~~A s36 sai atrasada ou fica pulada?~~ — **pulada**.
 - [ ] `link:` do currículo e texto da bio em `conteudo/autores/pedro-oliveira.md`.
-- [ ] Qual peça leva `destaque: true` (hoje NVIDIA × Hugging Face).
+- [ ] Qual notícia leva `destaque: true` (hoje NVIDIA × Hugging Face).
 - [ ] Fonte brasileira dentro de Notícias, com a tagline dizendo "lá fora".
-- [ ] Artigo fixo na capa: slot próprio ou destaque alternado.
-- [ ] Botão "Enviar um evento" fora da capa?
-- [ ] Cadência: semanal, ou capa diária?
 - [ ] Quem toca redes e comunidade.
-- [ ] Preço dos 3 artigos que o sócio quer vender, e a regra do rótulo.
+- [ ] **Preço** dos 3 artigos que o sócio quer vender. O rótulo já não é decisão: é o código.
+- [ ] **Peça paga pode ser `destaque: true`?** O compilador hoje permite — ou seja, dá para
+      vender a capa. Não travei sozinho porque pode ser decisão comercial legítima; se não
+      for, é uma linha no compilador.
+- [ ] **Fórum Home Assistant = 208 de 406 itens da s37 (51%).** Um fórum de automação
+      residencial domina a semana de um site de automação industrial. Baixar o peso, tirar da
+      fonte, ou aceitar e dizer no Giro?
 
 ### Eu — código
 
-- [ ] Página de privacidade; finalidade escrita ao lado do cadastro.
-- [ ] Tirar as notas internas de Blueprints; alongar o "Como funciona".
-- [ ] Relógio: números em destaque, explicar "atraso mediano", nota de amostra (feita).
-- [ ] Artigo fixo na capa (quando decidido).
+- [x] ~~Página de privacidade; finalidade escrita ao lado do cadastro.~~ **11/09** — `/privacidade`
+      com as 4 coletas, base legal, prazo, direitos do art. 18 e a Cloudflare como operadora;
+      a finalidade sai de `FINALIDADES` em `config.ts`, um texto só para a página e o formulário.
+- [x] ~~Tirar as notas internas de Blueprints; alongar o "Como funciona".~~ **11/09** — saíram as
+      três que falavam com a gente; "Como funciona" virou quatro tempos numerados, cada um
+      dizendo também o que **não** acontece nele.
+- [x] ~~Regra de publicidade no código.~~ **11/09** — `patrocinada: true` + `patrocinador:`;
+      o compilador recusa flag sem anunciante, anunciante sem flag, e peça paga em **notícia ou
+      Giro**. Rótulo na peça, capa, listagem, RSS (inclusive no título) e JSON-LD (`sponsor`).
+- [x] ~~Artigo fixo na capa.~~ **11/09** — `fixo: true`, slot próprio em 2º lugar.
+- [x] ~~Relógio: números em destaque, explicar "atraso mediano".~~ Superado: o relógio saiu da
+      capa (seção 2b) e Blueprints passou a explicar **por que ele mede zero**.
+- [ ] **Consertar o agrupamento do relógio** (seção 2c) — é o que faz a tese existir. Casar por
+      token raro compartilhado, sem IA. É o maior item aberto do projeto.
 - [ ] Formulário de submissão de artigo com upload → `contato` ou tabela própria → eu diagramo.
-- [ ] Regra de publicidade no código: peça com `patrocinada: true` sai rotulada, sempre.
 - [ ] Reescrever ou arquivar os docs da v1 (`CONCEITO`, `ARQUITETURA`, `FLUXOS`, `MODELO-DADOS`, `CAPACIDADE`, `ORGANOGRAMA`, `roadmap.html`).
 - [ ] Lint e formatação.
 - [ ] PageSpeed Insights quando a cota liberar; cartão OG no WhatsApp e LinkedIn a partir da homologação.
@@ -142,7 +246,10 @@ alheia inteira**. As três já estão ou cabem no método atual.
 
 ### Os dois — conversa
 
-- [ ] **Publicidade identificada:** artigo pago e "notícia boa" para cliente saem rotulados ou não saem. Isso precisa ser dito antes da primeira venda.
+- [x] ~~**Publicidade identificada**~~ — **decidido pelo código em 11/09**, antes da primeira venda,
+      que era o ponto. Artigo e relatório podem ser pagos e saem rotulados; **notícia e Giro não
+      são patrocináveis** (a notícia carrega o veredito, o Giro carrega a medição). A "notícia
+      boa" para o cliente virar parceiro não compila. Falta combinar o **preço**, não a regra.
 - [ ] **Política editorial em uma página:** artigo não é opinião (método replicável, dados), parceiro não escreve nem escolhe pauta, toda peça tem autor, correções registradas.
 - [ ] O papel do sócio mudou com a v2 (infra + comercial + autores); a Leitura semanal dele não existe mais.
 
@@ -177,12 +284,17 @@ em dezembro; dataset com DOI junto dele.
 | **Zero IA em produção; toda peça tem autor; o git é o CMS** | 03/09 |
 | **Escuro não segue o sistema**; só no botão | 05/09 |
 | Evento só com data conferida no site oficial | 04/09 |
+| **Peça paga sai rotulada em toda superfície; notícia e Giro não se vendem** | 11/09 |
+| **A finalidade do cadastro se declara na coleta, não só na política** | 11/09 |
+| **Capa não promete medição que não existe** — o relógio volta quando medir | 11/09 |
+| **Publicação semanal aos domingos; a capa se move sozinha entre elas** | 11/09 |
+| "Peça" é termo do código; o leitor lê notícia, artigo, texto | 11/09 |
 
 ## 8 · Backlog sem data
 
 | Item | Nota |
 |---|---|
-| Embeddings para agrupar assunto | o relógio mede 552 assuntos para 554 itens: o agrupamento por título quase não agrupa |
+| ~~Embeddings para agrupar assunto~~ | **morto: seria IA em produção.** O conserto do agrupamento é por token raro, sem modelo — ver seção 2c |
 | Mais vozes brasileiras de automação industrial | o buraco mais visível da lista de fontes |
 | Coletor por API com credencial (GitHub, Reddit, YouTube) | saída legítima para as fontes que o robots recusa |
 | Pedido de acesso a Control Engineering, Automation World, WEG | é mensagem, não código |

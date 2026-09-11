@@ -245,6 +245,49 @@
 .veredito-explicado p { font-size: var(--step--1); color: var(--ink-muted); margin-block-start: var(--space-2xs); }
 
 /* -------------------------------------------------------------------------
+   PUBLICIDADE — o rótulo que não combina com o resto da página
+   O veredito usa lavagens claras; os selos usam cinza. Este usa o INVERSO do
+   papel, de propósito: é o único elemento da peça que precisa ser visto por
+   quem não está lendo. Como veste --paper-invert/--ink-invert, ele acompanha
+   o tema sozinho e sai preto-no-claro / claro-no-escuro sem regra extra.
+   ------------------------------------------------------------------------- */
+.selo-publi {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem var(--space-2xs);
+  border-radius: var(--radius-s);
+  background: var(--paper-invert);
+  color: var(--ink-invert);
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  line-height: 1.4;
+}
+/* na listagem o selo vira linha própria: o pé da linha já está cheio */
+.linha .selo-publi { margin-block-start: var(--space-3xs); }
+
+.publi-caixa {
+  border: var(--border-firm);
+  border-inline-start: 3px solid var(--ink);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  background: var(--paper-sunken);
+  padding: var(--space-s) var(--space-m);
+  margin-block: var(--space-m);
+  max-width: var(--measure);
+}
+.publi-caixa__rotulo {
+  font-family: var(--face-fluxo);
+  font-size: var(--step--2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 var(--space-3xs);
+}
+.publi-caixa__texto { font-size: var(--step--1); color: var(--ink-muted); margin: 0; }
+.publi-caixa__texto strong { color: var(--ink); }
+
+/* -------------------------------------------------------------------------
    ASSINATURA — o que separa peça de agregação
    ------------------------------------------------------------------------- */
 .assinatura {

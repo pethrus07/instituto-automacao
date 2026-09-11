@@ -8,7 +8,7 @@ import { raw } from 'hono/html';
 import { gerarCapa } from './capa';
 import { simbolo } from './marca';
 import type { Evento } from '../db';
-import { ATUACOES, ORDEM_ATUACOES, ORDEM_TEMAS, TEMAS, type Atuacao, type Tema } from '../config';
+import { ATUACOES, FINALIDADES, ORDEM_ATUACOES, ORDEM_TEMAS, TEMAS, type Atuacao, type Tema } from '../config';
 import type { Parceiro } from '../parceiros';
 import {
   arte as arteDe,
@@ -186,13 +186,55 @@ export const Arte = (p: { peca: Peca; classe?: string; destaque?: boolean; comCr
 
 /* =================================================================== peça */
 
-/** Seção · tema, e o veredito quando houver. É a linha de etiquetas de toda peça. */
+/* ---------------------------------------------------------- publicidade */
+
+/**
+ * O rótulo de peça paga, na etiqueta.
+ *
+ * A palavra é **Publicidade** — não "patrocinado", não "conteúdo de marca",
+ * não "apresentado por". O CDC (art. 36) pede identificação fácil e
+ * imediata, e as três alternativas existem justamente para suavizar a
+ * primeira. Quem lê "publicidade" entende na hora; é esse o teste.
+ *
+ * Fica no mesmo lugar do veredito, com contraste próprio: o leitor que
+ * aprendeu a olhar a linha de etiquetas encontra o rótulo sem procurar.
+ */
+export const SeloPatrocinada = (p: { peca: Peca }) =>
+  p.peca.patrocinada ? (
+    <span class="selo-publi" title={`Conteúdo pago por ${p.peca.patrocinada.anunciante}`}>
+      Publicidade · {p.peca.patrocinada.anunciante}
+    </span>
+  ) : null;
+
+/**
+ * O rótulo por extenso, na página da peça — antes do texto, nunca depois.
+ *
+ * Vem acima do corpo de propósito: rótulo no pé da página é rótulo que só vê
+ * quem já leu, e a lei fala em identificação IMEDIATA. Diz também o que o
+ * dinheiro não comprou, porque é isso que separa peça paga rotulada de
+ * publieditorial disfarçado.
+ */
+export const PatrocinioCaixa = (p: { peca: Peca }) =>
+  p.peca.patrocinada ? (
+    <aside class="publi-caixa" aria-label="Aviso de publicidade">
+      <p class="publi-caixa__rotulo">Publicidade</p>
+      <p class="publi-caixa__texto">
+        Este texto foi <strong>pago por {p.peca.patrocinada.anunciante}</strong>. É assinado por{' '}
+        {p.peca.autor} e segue as mesmas regras de todo texto do Instituto. O que o anunciante não
+        decide: a pauta das outras seções, o veredito de notícia nenhuma e o que entra no{' '}
+        <a href="/giro">Giro da Semana</a>. As regras estão em <a href="/apoie">Apoie</a>.
+      </p>
+    </aside>
+  ) : null;
+
+/** Seção · tema, o veredito quando houver, e o rótulo quando a peça for paga. */
 export const Etiquetas = (p: { peca: Peca; comVeredito?: boolean }) => (
   <div class="etiquetas">
     <Kicker ponto>
       {ROTULO_FORMATO[p.peca.formato]} · {ROTULO_TEMA[p.peca.tema]}
     </Kicker>
     {p.comVeredito !== false && <Veredito valor={p.peca.veredito} />}
+    <SeloPatrocinada peca={p.peca} />
   </div>
 );
 
@@ -292,6 +334,8 @@ export const PecaLinha = (p: { peca: Peca }) => {
           {ROTULO_FORMATO[q.formato]} · {ROTULO_TEMA[q.tema]}
           {q.fonte && <> · a partir de {q.fonte.nome}</>}
         </p>
+        {/* a listagem também rotula: quem lê a lista e não clica precisa saber tanto quanto quem clica */}
+        <SeloPatrocinada peca={q} />
       </div>
       <Veredito valor={q.veredito} />
     </article>
@@ -485,8 +529,7 @@ export const Lista = (p: { origem: string; estado?: string }) => (
       <p class="lista__titulo">O Giro da Semana na sua caixa, quando ele nascer.</p>
       <p class="lista__nota">
         Um e-mail por semana com o que o setor publicou e o que muda por aqui. Ainda não enviamos
-        nada — a lista começa agora, e o primeiro envio sai quando houver o que mandar. Sem
-        repassar seu e-mail a ninguém.
+        nada — a lista começa agora, e o primeiro envio sai quando houver o que mandar.
       </p>
     </div>
     <form class="lista__form" method="post" action="/assinar">
@@ -525,9 +568,16 @@ export const Lista = (p: { origem: string; estado?: string }) => (
           <input class="campo" type="text" name="empresa" maxlength={120} autocomplete="organization" />
         </label>
       </div>
+      {/* A FINALIDADE, na coleta — exigência da LGPD (art. 6º, VI e art. 9º), e o
+          que decide se esta lista pode ser usada para alguma coisa depois. Fica
+          aqui, colada no botão, e não só em /privacidade: política que o leitor
+          não abre não declara nada. O texto vem de config.ts para não divergir
+          da página. */}
       <p class="lista__pe">
-        Saber quem lê — quem opera, quem integra, quem ensina — é o que decide o que vale
-        escrever. É só para isso.
+        <strong>Para que serve o seu e-mail:</strong> para {FINALIDADES.lista} — e nada mais. Não
+        repassamos, não vendemos e não mandamos oferta de outra empresa. Os dois campos de cima são
+        opcionais e servem para {FINALIDADES.atuacao}. Você sai quando quiser, e o e-mail é
+        apagado. <a href="/privacidade">Como isso funciona por inteiro</a>.
       </p>
       {p.estado === '1' ? (
         <p class="lista__rodape">

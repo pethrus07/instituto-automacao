@@ -61,7 +61,9 @@ agenda.get('/agenda', async (c) => {
           <h1>Agenda</h1>
           <p class="cabeca-secao__lead">
             Feiras, congressos e encontros de automação — no Brasil e lá fora. {contagem.total} evento
-            {contagem.total === 1 ? '' : 's'} à frente, {contagem.brasil} no Brasil.
+            {contagem.total === 1 ? '' : 's'} à frente, {contagem.brasil} no Brasil. Organiza um?{' '}
+            <a href="#enviar">Mande para cá</a> — listar é de graça, e toda data é conferida no site
+            oficial antes de entrar.
           </p>
         </header>
 

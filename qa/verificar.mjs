@@ -151,7 +151,7 @@ titulo('A · Funcional — rotas');
 const rotas = [
   ['/', 200], ['/noticias', 200], ['/artigos', 200], ['/relatorios', 200], ['/giro', 200],
   ['/agenda', 200], ['/glossario', 200], ['/blueprints', 200], ['/marca', 200], ['/saude', 200], ['/manifest.webmanifest', 200],
-  ['/autores', 200], ['/autores/pedro-oliveira', 200], ['/autores/nao-existe', 404], ['/apoie', 200],
+  ['/autores', 200], ['/autores/pedro-oliveira', 200], ['/autores/nao-existe', 404], ['/apoie', 200], ['/privacidade', 200],
   ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/feed/artigos.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
   ...pecas.map((p) => [`/${p.secao}/${p.slug}`, 200]),
   ['/noticias/nao-existe', 404], ['/relatorios/nao-existe', 404], ['/qualquer-coisa', 404], ['/feed/inventado.xml', 404],
@@ -254,7 +254,7 @@ for (const p of pecas) {
   const html = respostas[`/${p.secao}/${p.slug}`].corpo;
   checar('B', `/${p.secao}/${p.slug} mostra o autor`, html.includes(p.meta.autor));
   checar('B', `/${p.secao}/${p.slug} tem arte (foto licenciada, desenhada ou gerada)`, /data-arte="(foto|desenhada|gerada)"/.test(html));
-  checar('B', `/${p.secao}/${p.slug} declara como foi feita`, html.includes('Como esta peça foi feita'));
+  checar('B', `/${p.secao}/${p.slug} declara como foi feito`, html.includes('Como este texto foi feito'));
   checar('B', `/${p.secao}/${p.slug} nega máquina na redação`, html.includes('por máquina'));
   if (p.secao === 'noticias') {
     const ancorasFonte = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]).filter((t) => t.includes(p.meta.fonte.url));
@@ -275,7 +275,10 @@ const temDestaque = /class="destaque"/.test(capa);
 const temVazio = /class="vazio"/.test(capa);
 checar('B', 'P5 · a capa abre com uma peça OU diz o que está vindo', pecas.length > 0 ? temDestaque : temVazio, `destaque=${temDestaque} vazio=${temVazio}`);
 checar('B', 'P5 · a capa não vaza "undefined" nem "null"', !/>\s*(undefined|null)\s*</.test(capa));
-checar('B', 'P5 · a faixa do relógio está na capa, com números', /faixa-relogio/.test(capa) && /numero__valor/.test(capa));
+/* Decisão de 11/09/2026: o relógio saiu da capa enquanto medir zero. A asserção
+   inverteu de propósito — antes cobrava a faixa, agora cobra a ausência dela. Se
+   um dia a medição existir e a faixa voltar, esta linha volta com ela. */
+checar('B', 'P5 · a faixa do relógio NÃO está na capa (sai enquanto mede zero)', !/faixa-relogio/.test(capa));
 checar('B', 'P5 · relatórios sem peça mostra o estado vazio honesto', /class="vazio"/.test(respostas['/relatorios'].corpo) || /class="destaque"/.test(respostas['/relatorios'].corpo));
 for (const secao of ['noticias', 'relatorios', 'giro']) {
   const html = respostas[`/${secao}`].corpo;
@@ -361,7 +364,7 @@ else avisar('fontes recusadas: comparação só vale contra o dev local', `a pá
 checar('B', 'o método declara que NÃO contornamos bloqueio', blue.includes('sem proxy') && blue.includes('navegador disfarçado'));
 checar('B', 'o método declara que não há IA em produção', blue.includes('Não há inteligência artificial em produção'));
 checar('B', 'o método publica as quatro categorias do veredito', ['v-chega', 'v-a_caminho', 'v-nao_chega', 'v-sem_efeito'].every((v) => blue.includes(v)));
-checar('B', 'linka o dataset publicado e diz que a base completa ainda não saiu', /href="\/dados\/[^"]+\.csv"/.test(blue) && blue.includes('A base completa ainda não'));
+checar('B', 'linka o dataset publicado e diz quando a base completa sai', /href="\/dados\/[^"]+\.csv"/.test(blue) && blue.includes('A base completa sai em dezembro'));
 checar('B', 'o inventário conta itens por fonte', /<th>Itens<\/th>/.test(blue));
 
 /* --------------------------------------------------------- B. P12 · PAUTA */
@@ -691,7 +694,7 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', 'link de parceiro, quando houver, é rel=sponsored', !/class="parceiro__corpo" href=/.test(capaHtml) || /class="parceiro__corpo" href="[^"]+" rel="sponsored/.test(capaHtml));
 
   /* a capa: a lista subiu, as notas explicam, o tema mora na nav, a linha de data */
-  checar('B', 'a lista (#assinar) vem ANTES do relógio na capa', capaHtml.indexOf('id="assinar"') > 0 && capaHtml.indexOf('id="assinar"') < capaHtml.indexOf('faixa-relogio'));
+  checar('B', 'a lista (#assinar) está na capa, depois das notícias e do artigo', capaHtml.indexOf('id="assinar"') > 0 && capaHtml.indexOf('id="assinar"') > capaHtml.indexOf('class="destaque"'));
   checar('B', 'a lista pergunta o que a pessoa faz (fechado) e a empresa (opcional)', /name="atuacao"/.test(capaHtml) && /name="empresa"/.test(capaHtml) && (capaHtml.match(/<option value="(opera|integra|ensina|estuda|outra)"/g) ?? []).length === 5);
   checar('B', 'Relatórios e Agenda têm nota dizendo o que são', (capaHtml.match(/class="secao__nota"/g) ?? []).length >= 3 && /conferida no site oficial/.test(capaHtml) && /dado próprio/.test(capaHtml));
   checar('B', 'o botão de tema está na navegação, não no rodapé', /<nav class="navbar"[\s\S]*id="tema"[\s\S]*<\/nav>/.test(capaHtml) && !/<footer[\s\S]*id="tema"/.test(capaHtml));
@@ -702,11 +705,57 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
 
   /* o relógio: nunca um "0" fingindo medida; e diz sobre quais fontes mede */
   checar('B', 'o relógio não mostra "0" como valor de medida', !/numero__valor">0</.test(capaHtml));
-  checar('B', 'o relógio diz que a medida vale para as fontes acompanhadas (amostra)', /class="faixa-relogio__metodo"/.test(capaHtml) && /não para toda a imprensa/.test(capaHtml));
+  checar('B', 'o relógio diz em Blueprints que é amostra, e por que ainda mede zero', /fontes marcando o relógio/.test(blue) && /nenhum atraso foi apurado/.test(blue) && /não aparece na\s+capa/.test(blue));
+
+  /* ------------------------------------------------------- 11/09/2026
+     O que as decisões desta data prometeram, virado asserção. */
+
+  /* O artigo fixo: segundo bloco da capa, e notícia nova não o empurra. */
+  checar('B', 'o bloco Artigos vem ANTES de "Também nesta semana" na capa',
+    capaHtml.indexOf('>Artigos<') > 0 && capaHtml.indexOf('>Artigos<') < (capaHtml.indexOf('Também nesta semana') === -1 ? Infinity : capaHtml.indexOf('Também nesta semana')));
+  const fixos = pecas.filter((p) => p.meta.fixo === 'true');
+  checar('B', 'no máximo um artigo com "fixo: true", e só em artigos', fixos.length <= 1 && fixos.every((p) => p.secao === 'artigos'), fixos.map((p) => p.slug).join(', '));
+
+  /* "Enviar um evento" saiu da capa e ficou só na agenda. */
+  checar('B', 'a capa não pede evento; a agenda continua pedindo',
+    !/href="\/agenda#enviar"/.test(capaHtml) && /id="enviar"/.test(respostas['/agenda'].corpo));
+
+  /* Vocabulário: "peça" é termo interno; o leitor lê notícia, artigo, texto. */
+  const soTexto = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
+  checar('B', '"peça" não aparece no texto visível da capa nem da página de uma notícia',
+    !/peças?/i.test(soTexto(capaHtml)) && !/peças?/i.test(soTexto(pecaHtml)));
+
+  /* LGPD: a finalidade tem de estar NA COLETA, não só na política. */
+  const priv = respostas['/privacidade'].corpo;
+  checar('B', 'a finalidade do cadastro está ao lado do formulário, na capa',
+    /Para que serve o seu e-mail/.test(capaHtml) && /mandar o Giro da Semana/.test(capaHtml) && /href="\/privacidade"/.test(capaHtml));
+  checar('B', '/privacidade diz a finalidade, a base legal e como sair',
+    /mandar o Giro da Semana/.test(priv) && /art\. 7º, I/i.test(priv) && /art\. 18/i.test(priv) && /id="direitos"/.test(priv));
+  checar('B', '/privacidade afirma o que o QA também confere: sem cookie e sem terceiro',
+    /Não usamos cookie/.test(priv) && /rastreador/.test(priv));
+  checar('B', 'a promessa de /privacidade é verdadeira: nada de terceiro na CSP da página',
+    !/https?:\/\/(?!localhost|127\.0\.0\.1)/.test((/<meta http-equiv="Content-Security-Policy"[^>]*>/.exec(capaHtml) ?? [''])[0]));
+  checar('B', 'o rodapé de toda página leva a /privacidade',
+    ['/', '/blueprints', '/apoie'].every((r) => /href="\/privacidade"/.test(respostas[r].corpo)));
+
+  /* Publicidade: a regra existe ANTES da primeira venda. Com zero peça paga
+     hoje, o que se confere é a regra — e no dia em que houver uma, as duas
+     linhas seguintes passam a conferir o rótulo em cada superfície. */
+  const pagas = pecas.filter((p) => p.meta.patrocinada === 'true');
+  checar('B', 'nenhuma notícia e nenhum Giro é patrocinado (veredito e medição não estão à venda)',
+    pagas.every((p) => p.secao === 'artigos' || p.secao === 'relatorios'), pagas.map((p) => `${p.secao}/${p.slug}`).join(', '));
+  checar('B', 'toda peça paga declara quem pagou', pagas.every((p) => (p.meta.patrocinador ?? '').trim().length > 1));
+  for (const p of pagas) {
+    const html = respostas[`/${p.secao}/${p.slug}`]?.corpo ?? '';
+    checar('B', `/${p.secao}/${p.slug} sai rotulada como publicidade na peça, na listagem e no RSS`,
+      /class="publi-caixa"/.test(html) && /class="selo-publi"/.test(html) &&
+      respostas[`/${p.secao}`].corpo.includes('selo-publi') &&
+      respostas['/feed.xml'].corpo.includes(`[Publicidade] ${p.meta.titulo}`));
+  }
 
   /* distribuição */
   const sm = respostas['/sitemap.xml'].corpo;
-  checar('B', 'sitemap tem /artigos, /autores, /apoie e a página do autor', ['/artigos', '/autores', '/apoie', '/autores/pedro-oliveira'].every((r) => sm.includes(`${r}</loc>`)));
+  checar('B', 'sitemap tem /artigos, /autores, /apoie, /privacidade e a página do autor', ['/artigos', '/autores', '/apoie', '/privacidade', '/autores/pedro-oliveira'].every((r) => sm.includes(`${r}</loc>`)));
   const rb = respostas['/robots.txt'].corpo;
   if (!/Disallow: \/$/m.test(rb)) checar('B', 'robots fecha só os POSTs novos', /Disallow: \/assinar/.test(rb) && /Disallow: \/autores\/escrever/.test(rb) && /Disallow: \/apoie\/enviar/.test(rb));
 

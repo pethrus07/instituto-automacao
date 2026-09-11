@@ -4,7 +4,7 @@
 import { raw } from 'hono/html';
 import type { Context } from 'hono';
 import { Documento } from '../ui/Documento';
-import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa } from '../ui/pecas';
+import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa, PatrocinioCaixa } from '../ui/pecas';
 import { ldJson, colecaoLd, pecaLd, trilhaLd } from '../ui/jsonld';
 import { renderizarObra } from '../ui/markdown';
 import { CACHE, type Env } from '../config';
@@ -26,7 +26,7 @@ const DESCRICAO_SECAO: Record<ChaveSecao, string> = {
 const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: unknown }> = {
   noticias: {
     titulo: 'A primeira notícia está a caminho.',
-    texto: 'Lemos as fontes todo dia. A peça só sai depois de escolhida, escrita e lida — e a primeira está nessa fila.',
+    texto: 'Lemos as fontes todo dia. A notícia só sai depois de escolhida, escrita e lida — e a primeira está nessa fila.',
   },
   artigos: {
     titulo: 'O primeiro artigo está sendo escrito.',
@@ -44,7 +44,7 @@ const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: unknown }> = {
   },
   giro: {
     titulo: 'O primeiro Giro sai na segunda-feira seguinte à primeira semana cheia.',
-    texto: 'Ele cobre a semana que fechou no domingo — o que aconteceu, o que virou peça, o que ficou de fora e por quê.',
+    texto: 'Ele cobre a semana que fechou no domingo — o que aconteceu, o que virou notícia, o que ficou de fora e por quê.',
   },
 };
 
@@ -156,6 +156,10 @@ export function paginaDaPeca(p: Peca, env: Env) {
           <AssinaturaPeca peca={p} completa />
         </header>
 
+        {/* O rótulo de publicidade vem ANTES da arte e do corpo: a lei fala em
+            identificação imediata, e imediato é antes de começar a ler. */}
+        <PatrocinioCaixa peca={p} />
+
         <Arte peca={p} classe="peca__arte" destaque />
 
         <div class="peca__corpo">
@@ -169,7 +173,7 @@ export function paginaDaPeca(p: Peca, env: Env) {
 
           <footer class="peca__pe">
             <Aviso>
-              <strong>Como esta peça foi feita.</strong>{' '}
+              <strong>Como este texto foi feito.</strong>{' '}
               {p.fonte
                 ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
                 : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}

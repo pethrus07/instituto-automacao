@@ -83,3 +83,25 @@ export const CACHE = {
   item: 'public, max-age=0, s-maxage=3600',
   estatico: 'public, max-age=31536000, immutable',
 } as const;
+
+/* ------------------------------------------------------------- LGPD
+ * A finalidade de cada coleta, escrita uma vez.
+ *
+ * A LGPD (art. 6º, VI e art. 9º) exige que a finalidade seja declarada NA
+ * COLETA, em linguagem clara — não só numa página de política que ninguém
+ * abre. Então ela aparece em dois lugares: ao lado do formulário e em
+ * /privacidade. Mora aqui porque os dois lugares TÊM de dizer a mesma
+ * coisa, e duas frases escritas à mão divergem na primeira vez que alguém
+ * mexer numa delas.
+ *
+ * Regra prática, e é o que decide se a lista vale alguma coisa depois:
+ * dado coletado só pode ser usado para o que estava escrito no dia em que
+ * foi coletado. Ampliar esta lista NÃO alcança quem já se cadastrou —
+ * finalidade nova vale para quem entrar depois dela.
+ */
+export const FINALIDADES = {
+  lista: 'mandar o Giro da Semana e avisar quando sai peça nova',
+  atuacao: 'saber para quem se escreve — o que a lista lê muda o que vale escrever',
+  contato: 'responder quem quer escrever no Instituto ou conversar sobre apoiar',
+  evento: 'conferir e publicar o evento na agenda, e falar com quem enviou se faltar dado',
+} as const;

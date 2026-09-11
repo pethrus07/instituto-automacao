@@ -90,6 +90,10 @@ export function pecaLd(p: Peca, base: string) {
     wordCount: p.palavras,
     inLanguage: 'pt-BR',
     isAccessibleForFree: true,
+    // peça paga se declara também para a máquina: `sponsor` é o campo que o
+    // schema.org tem para isso, e deixar a máquina descobrir sozinha pelo
+    // texto do rótulo seria confiar a identificação a um parser
+    sponsor: p.patrocinada ? { '@type': 'Organization', name: p.patrocinada.anunciante } : undefined,
     // a fonte original, quando a peça parte de terceiro: é citação, não cópia
     isBasedOn: p.fonte ? p.fonte.url : undefined,
     citation: p.fonte
