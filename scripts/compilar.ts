@@ -124,6 +124,35 @@ function bloco(meta: Bruto, chave: string, campos: string[], arquivo: string): R
 }
 
 /**
+ * Tipografia: o que não pode quebrar no fim da linha.
+ *
+ * A manchete da peça principal quebrava em "...por US$ / 12,9 bilhões" — o
+ * símbolo da moeda órfão numa linha e o valor na seguinte. São 52 ocorrências
+ * de `R$ <número>` e `US$ <número>` no conteúdo de hoje, e cada uma é um
+ * sorteio a cada largura de tela.
+ *
+ * Resolve-se aqui, no compilador, e não em cada componente: o texto entra
+ * uma vez, é normalizado uma vez, e todo lugar que imprime título, lead ou
+ * corpo herda de graça — sem custo em requisição e sem ninguém ter de
+ * lembrar.
+ *
+ * ⚠️ `[ \t]` e não `\s`: `\s` casaria a quebra de linha, e juntar duas linhas
+ * do markdown com um espaço inquebrável mudaria a estrutura do texto (um
+ * parágrafo que vira outro). A lista de unidades é curta de propósito —
+ * "5 m" pode ser metro ou não, e grudar errado é pior que não grudar.
+ */
+const NBSP = ' ';
+function naoQuebrar(s: string): string {
+  return s
+    // ⚠️ sem `\b` antes do grupo: € e £ NÃO são caracteres de palavra, então
+    // depois de um espaço não existe fronteira e o casamento falhava só para
+    // eles. A asserção de QA pegou isto em dois textos com valores em euro.
+    .replace(/(R\$|US\$|€|£)[ \t]+(?=\d)/g, `$1${NBSP}`)
+    .replace(/(\d)[ \t]+(mil|milhão|milhões|bilhão|bilhões|trilhão|trilhões)\b/gi, `$1${NBSP}$2`)
+    .replace(/(\d)[ \t]+(dias?|anos?|meses|mês)\b/gi, `$1${NBSP}$2`);
+}
+
+/**
  * Largura e altura de um JPEG ou PNG, lidas do cabeçalho do arquivo. Vão no
  * og:image:width/height e no JSON-LD — e o compartilhamento não precisa
  * baixar a imagem para saber o tamanho dela.
@@ -168,12 +197,12 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     secao,
     tema,
     formato,
-    titulo: texto(meta, 'titulo', caminho),
-    lead: texto(meta, 'lead', caminho),
+    titulo: naoQuebrar(texto(meta, 'titulo', caminho)),
+    lead: naoQuebrar(texto(meta, 'lead', caminho)),
     autor: texto(meta, 'autor', caminho),
     data,
     og: `/og/${secao}-${slug}.png`,
-    corpo,
+    corpo: naoQuebrar(corpo),
     palavras: corpo.trim() ? corpo.trim().split(/\s+/).length : 0,
   };
 
@@ -185,7 +214,8 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     // 53 + " — Instituto Automação" (22) = 75: o que cabe num resultado de busca sem cortar
     if (curto.length > 53) falhar(caminho, `"titulo_curto" tem ${curto.length} caracteres — o teto é 53`);
     if (curto.length < 20) falhar(caminho, `"titulo_curto" tem ${curto.length} caracteres — curto demais para dizer algo`);
-    peca.tituloCurto = curto;
+    // o teto de 53 é medido ANTES de grudar: o inquebrável não muda o comprimento
+    peca.tituloCurto = naoQuebrar(curto);
   }
   if (typeof meta['destaque'] === 'string') {
     if (meta['destaque'] !== 'true') falhar(caminho, `"destaque" só aceita "true" (ou não existir)`);

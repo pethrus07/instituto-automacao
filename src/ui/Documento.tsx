@@ -141,7 +141,7 @@ export const Documento = (p: Props) => {
         <header class="cabecalho">
           <div class="wrap dateline">
             <span class="dateline__data">{dataHoje()}</span>
-            <span class="dateline__nota">Nada aqui é gerado por máquina. Toda peça tem autor.</span>
+            <span class="dateline__nota">Nada aqui é gerado por máquina. Todo texto tem autor.</span>
             <a class="dateline__link" href="/feed.xml">
               RSS
             </a>

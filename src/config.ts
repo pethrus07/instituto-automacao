@@ -100,7 +100,7 @@ export const CACHE = {
  * finalidade nova vale para quem entrar depois dela.
  */
 export const FINALIDADES = {
-  lista: 'mandar o Giro da Semana e avisar quando sai peça nova',
+  lista: 'mandar o Giro da Semana e avisar quando sai texto novo',
   atuacao: 'saber para quem se escreve — o que a lista lê muda o que vale escrever',
   contato: 'responder quem quer escrever no Instituto ou conversar sobre apoiar',
   evento: 'conferir e publicar o evento na agenda, e falar com quem enviou se faltar dado',

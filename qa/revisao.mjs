@@ -73,10 +73,25 @@ const MEDIR = `(() => {
   const sel = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '');
   const visivel = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
 
+  /* Transbordo que IMPORTA: o que vaza da tela sem que ninguém tenha pedido.
+     O que está dentro de um rolador horizontal declarado (a faixa de autores,
+     a tabela de fontes em .scroll-x) transborda de propósito — é o desenho,
+     não o defeito. Sem esta exceção a lista enchia de falso positivo e, como
+     ela para em 6, um transbordo de verdade ficava escondido atrás do ruído. */
+  const emRolador = (el) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const ox = getComputedStyle(p).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+    return false;
+  };
   const transbordo = [];
   for (const el of document.querySelectorAll('body *')) {
     const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.right > vw + 1 && getComputedStyle(el).position !== 'fixed') { transbordo.push(sel(el) + ' (' + Math.round(r.right - vw) + 'px)'); if (transbordo.length >= 6) break; }
+    if (r.width > 0 && r.right > vw + 1 && getComputedStyle(el).position !== 'fixed' && !emRolador(el)) {
+      transbordo.push(sel(el) + ' (' + Math.round(r.right - vw) + 'px)');
+      if (transbordo.length >= 6) break;
+    }
   }
 
   const miudo = [];
@@ -126,6 +141,11 @@ const MEDIR = `(() => {
     perf: { dcl: Math.round(nav.domContentLoadedEventEnd || 0), load: Math.round(nav.loadEventEnd || 0), lcp: Math.round(window.__lcp || 0), cls: Number((window.__cls || 0).toFixed(4)), pedidos: rec.length + 1, kb: Math.round(bytes / 1024), fontes, externos },
     leitura: cs ? { fontePx: parseFloat(cs.fontSize), larguraPx: Math.round(corpo.getBoundingClientRect().width), lineHeight: cs.lineHeight, caracteresPorLinha: Math.round(corpo.getBoundingClientRect().width / (parseFloat(cs.fontSize) * 0.5)) } : null,
     linksInternos: [...new Set([...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => h && (h.startsWith('/')) && !h.startsWith('//')))],
+    /* O tema que a página REALMENTE pintou, mais a cor de fundo do body. A
+       rodada do escuro afirma ter medido o escuro; isto é a prova, e é o que
+       teria pegado as três capturas idênticas de antes de 11/09/2026. */
+    temaEscuro: document.documentElement.dataset.theme === 'dark',
+    fundoBody: getComputedStyle(document.body).backgroundColor,
   };
 })()`;
 
@@ -176,14 +196,30 @@ for (const [largura, vp] of Object.entries(LARGURAS)) {
   await context.close();
 }
 
-/* ------------------------------------------------------------------ escuro: capa e peça */
+/* ------------------------------------------------------------------ escuro: capa e peça
+ *
+ * ⚠️ `colorScheme: 'dark'` NÃO escurece este site, e por decisão dele: não há
+ * `prefers-color-scheme` em tokens.css — "o claro é o site; o escuro é uma
+ * cortesia para quem pede no botão". Emular a preferência do sistema é emular
+ * exatamente a coisa que o site ignora.
+ *
+ * Até 11/09/2026 era o que esta rodada fazia, e as três capturas "escuro"
+ * saíam BYTE A BYTE idênticas às claras — o tema escuro nunca tinha sido
+ * revisado de verdade, e ninguém viu porque ninguém comparou os arquivos.
+ *
+ * O jeito certo é entrar pela porta que o site abriu: gravar a escolha em
+ * localStorage ANTES de navegar, que é de onde o script do tema lê no boot.
+ * Sem `addInitScript`, a página pinta clara e só depois viraria — e o
+ * screenshot pega o meio do caminho.
+ */
 {
   const context = await browser.newContext({ bypassCSP: true, viewport: LARGURAS.desktop, colorScheme: 'dark', locale: 'pt-BR' });
   await context.addInitScript(INIT);
+  await context.addInitScript(`try { localStorage.setItem('tema', 'dark'); } catch (e) {}`);
   for (const [nome, rota] of [['capa', '/'], ['peca-foto', '/noticias/nvidia-compra-hugging-face'], ['agenda', '/agenda']]) {
     const m = await medirPagina(context, nome + '-escuro', rota, 'desktop');
     medidas.paginas[nome + '-escuro'] = { rota, desktop: m };
-    log(`  escuro   ${nome.padEnd(11)} axe ${JSON.stringify(m.axePorImpacto)}`);
+    log(`  escuro   ${nome.padEnd(11)} axe ${JSON.stringify(m.axePorImpacto)}${m.temaEscuro ? '' : '  ⚠️ NÃO ESCURECEU'}`);
   }
   await context.close();
 }

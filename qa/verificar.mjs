@@ -720,10 +720,48 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', 'a capa não pede evento; a agenda continua pedindo',
     !/href="\/agenda#enviar"/.test(capaHtml) && /id="enviar"/.test(respostas['/agenda'].corpo));
 
-  /* Vocabulário: "peça" é termo interno; o leitor lê notícia, artigo, texto. */
+  /* Vocabulário: "peça" é termo interno do código; o leitor lê notícia, artigo
+     ou texto.
+
+     ⚠️ Confere o texto RENDERIZADO de TODAS as páginas, e não o fonte.
+
+     A versão de 11/09 olhava só a capa e uma notícia — e, pior, não olhava
+     coisa nenhuma: na edição o \b da regex virou um caractere BACKSPACE
+     literal (0x08), então ela pedia "peças" seguido de backspace e nunca
+     casava. A asserção passava sempre, que é o mesmo que não existir — a
+     advertência está escrita no próprio src/giro/auditar.ts. Passaram por
+     baixo dela três ocorrências bem visíveis: a nota do alto de toda página,
+     a contagem de textos do autor e a própria finalidade do cadastro.
+
+     Lição que virou regra: conferir o RENDERIZADO, não o fonte. Buscar "peça"
+     no código deixa escapar o que é montado por ternário ou vem de constante,
+     que foi exatamente o caso das três.
+
+     Duas exceções, e as duas são de sentido, não de preguiça — num site de
+     automação industrial "peça" É vocabulário do ramo:
+
+       · o CORPO do texto (div.obra) fica de fora: ali quem fala é o autor, e
+         "recebem peças novas", "suporte técnico e peças" ou "três peças" são
+         português correto. A decisão foi tirar "peça" como NOME DE UNIDADE
+         EDITORIAL da voz do site — não banir a palavra do vocabulário;
+       · o glossário fica de fora: lá "a peça" é a peça de trabalho que o robô
+         toca, e trocar quebraria o verbete. */
   const soTexto = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
-  checar('B', '"peça" não aparece no texto visível da capa nem da página de uma notícia',
-    !/peças?/i.test(soTexto(capaHtml)) && !/peças?/i.test(soTexto(pecaHtml)));
+  const semObra = (h) => h.replace(/<div class="obra"[^>]*>[\s\S]*?<\/div>/g, ' ');
+  const comPeca = todasAsPaginas
+    .filter(([rota]) => rota !== '/glossario')
+    .filter(([, r]) => /\bpeças?\b/i.test(soTexto(semObra(r.corpo))))
+    .map(([rota]) => rota);
+  checar('B', '"peça" não é a palavra do SITE em página nenhuma (corpo do texto e glossário à parte: lá é peça de máquina)', comPeca.length === 0, comPeca.join(', '));
+
+  /* Tipografia: moeda não se separa do valor na quebra de linha.
+     A manchete da peça principal quebrava em "por US$ / 12,9 bilhões". O
+     compilador gruda com espaço inquebrável (scripts/compilar.ts › naoQuebrar);
+     isto confere que nenhuma página serviu o par com espaço comum. */
+  const moedaSolta = todasAsPaginas
+    .filter(([, r]) => /(R\$|US\$|€|£) \d/.test(soTexto(r.corpo)))
+    .map(([rota]) => rota);
+  checar('B', 'moeda e valor não se separam na quebra de linha (espaço inquebrável)', moedaSolta.length === 0, moedaSolta.join(', '));
 
   /* LGPD: a finalidade tem de estar NA COLETA, não só na política. */
   const priv = respostas['/privacidade'].corpo;

@@ -420,7 +420,7 @@ export const AutorCaixa = (p: { autor: Autor; pecas: number }) => (
         </a>
       </p>
       <p class="fonte-caixa__texto">
-        {p.autor.papel} · {p.pecas} {p.pecas === 1 ? 'peça' : 'peças'} no Instituto
+        {p.autor.papel} · {p.pecas} {p.pecas === 1 ? 'texto' : 'textos'} no Instituto
         {p.autor.link && (
           <>
             {' · '}
@@ -442,7 +442,7 @@ export const AutorCard = (p: { autor: Autor; pecas: number }) => (
       <span class="autor-card__nome">{p.autor.nome}</span>
       <span class="autor-card__papel">{p.autor.papel}</span>
       <span class="autor-card__pecas u-dado">
-        {p.pecas} {p.pecas === 1 ? 'peça' : 'peças'}
+        {p.pecas} {p.pecas === 1 ? 'texto' : 'textos'}
       </span>
     </a>
   </article>
