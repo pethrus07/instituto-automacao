@@ -194,21 +194,29 @@ blueprints.get('/blueprints', async (c) => {
               publicados lá fora há mais de 90 dias sem nenhuma menção aqui.
             </p>
             <p>
-              <em>Limitações declaradas, e uma delas é grande:</em> o agrupamento hoje só junta
-              dois textos quando os títulos têm <strong>exatamente o mesmo conjunto</strong> de
-              palavras significativas. Entre idiomas diferentes isso praticamente não acontece — e
-              é por isso que {rel.medidos === 0 ? 'nenhum' : `só ${rel.medidos}`} atraso foi apurado
-              até agora: a fonte brasileira cria um assunto novo em vez de encontrar o original
-              estrangeiro, e o par que daria a medida nunca se forma. Não é um número ruim, é um
-              número que ainda não existe, e preferimos dizer isso a publicar uma mediana de
-              amostra vazia. O conserto — casar por nome próprio e código, que sobrevivem à
-              tradução — está no plano.
+              <em>Como dois textos viram o mesmo assunto:</em> pelos termos <strong>raros</strong>{' '}
+              que eles compartilham. O que sobrevive à tradução é o nome próprio e o código —
+              "Siemens", "IMTS", "61131" —, enquanto o verbo e a preposição mudam. Raro é medido na
+              nossa própria base, não numa lista: num site de automação, "robô" está em toda parte e
+              não distingue nada; "Tractian" distingue muito. São precisos <strong>dois</strong>{' '}
+              termos raros em comum, e ao menos um deles tem de ser nome ou código. Nada disso é
+              inteligência artificial: é contagem de palavra, roda no mesmo coletor e dá o mesmo
+              resultado toda vez.
             </p>
             <p>
-              A medição depende também de haver imprensa brasileira especializada cobrindo o mesmo
-              assunto: hoje são {relogioBR.length} fontes marcando o relógio, o que é pouco, e
-              dizemos isso. Enquanto não houver par medido, <strong>o relógio não aparece na
-              capa</strong> — página inicial não é lugar de promessa.
+              <em>E a limitação que importa:</em> a medida só existe quando a imprensa brasileira
+              escreve sobre o mesmo assunto que saiu lá fora — e, na maior parte do tempo, ela
+              escreve sobre o Brasil. Das {relogioBR.length} fontes brasileiras que marcam o
+              relógio, o que chega é sobretudo fábrica nova, financiamento e feira daqui. Por isso
+              o número de pares medidos é pequeno e vai crescer devagar: {rel.medidos}{' '}
+              {rel.medidos === 1 ? 'par apurado' : 'pares apurados'} até agora. Preferimos publicar
+              uma amostra pequena e dizer o tamanho dela a publicar uma média que pareça maior do
+              que é.
+            </p>
+            <p>
+              Os {rel.sem_mencao} assuntos publicados lá fora há mais de 90 dias sem nenhuma menção
+              aqui não são falha da medição — <strong>são o achado</strong>. O que nunca chega é
+              parte da resposta.
             </p>
           </div>
         </section>

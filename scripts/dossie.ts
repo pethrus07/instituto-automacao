@@ -91,10 +91,22 @@ const q = (s: string) => `'${s}'`;
 console.log(`· ${slug} · ${rotulo}`);
 console.log(`· banco: ${BANCO.rotulo}${aberta ? ' · SEMANA ABERTA (parcial)' : ''}`);
 
-const totais = sql<{ itens: number; fontes: number; assuntos: number }>(
-  `SELECT COUNT(*) itens, COUNT(DISTINCT i.fonte_id) fontes, COUNT(DISTINCT i.assunto_id) assuntos
+/* IMPRENSA e FÓRUM contados separados.
+   Em 23/09/2026 o Fórum Home Assistant sozinho era 297 dos 557 itens da s38 —
+   53%. Somar tudo num total só faz o Giro dizer "a semana teve 557 itens"
+   quando metade é thread de fórum de automação residencial num site de
+   automação industrial. O número que descreve a semana do SETOR é o de
+   imprensa; o fórum é atividade de comunidade, e aparece dito assim. */
+const PUBLICACAO = `f.tipo NOT IN ('forum','social')`;
+
+const totais = sql<{ itens: number; fontes: number; assuntos: number; comunidade: number }>(
+  `SELECT COUNT(*) itens, COUNT(DISTINCT i.fonte_id) fontes, COUNT(DISTINCT i.assunto_id) assuntos,
+          (SELECT COUNT(*) FROM item i2 JOIN fonte f2 ON f2.id = i2.fonte_id
+            WHERE f2.ativo = 1 AND f2.tipo IN ('forum','social')
+              AND i2.publicado_fonte >= ${q(inicio)} AND i2.publicado_fonte < ${q(fim)}) comunidade
      FROM item i JOIN fonte f ON f.id = i.fonte_id
-    WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}`,
+    WHERE f.ativo = 1 AND ${PUBLICACAO}
+      AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}`,
 )[0]!;
 
 /* Zero item com 21 fontes ativas é banco errado, não semana fraca. */
@@ -109,8 +121,8 @@ if (totais.itens === 0) {
   process.exit(1);
 }
 
-const porFonte = sql<{ nome: string; pessoa: string | null; pais: string; n: number }>(
-  `SELECT f.nome, f.pessoa, f.pais, COUNT(*) n
+const porFonte = sql<{ nome: string; pessoa: string | null; pais: string; tipo: string; n: number }>(
+  `SELECT f.nome, f.pessoa, f.pais, f.tipo, COUNT(*) n
      FROM item i JOIN fonte f ON f.id = i.fonte_id
     WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
     GROUP BY f.id ORDER BY n DESC`,
@@ -120,14 +132,16 @@ const repercutidos = sql<{ rotulo: string; fontes: number; chegou: number }>(
   `SELECT a.rotulo, COUNT(DISTINCT i.fonte_id) fontes,
           CASE WHEN a.primeira_mencao_br IS NULL THEN 0 ELSE 1 END chegou
      FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
-    WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
+    WHERE f.ativo = 1 AND ${PUBLICACAO}
+      AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
     GROUP BY a.id HAVING fontes >= 2 ORDER BY fontes DESC LIMIT 10`,
 );
 
 const sozinhos = sql<{ n: number }>(
   `SELECT COUNT(*) n FROM (
      SELECT a.id FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
-      WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
+      WHERE f.ativo = 1 AND ${PUBLICACAO}
+        AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
       GROUP BY a.id HAVING COUNT(DISTINCT i.fonte_id) = 1)`,
 )[0]!.n;
 
@@ -181,7 +195,8 @@ if (aberta) {
 }
 l.push('');
 l.push('## Totais');
-l.push(`- itens colhidos: **${totais.itens}**`);
+l.push(`- itens publicados pelas fontes de imprensa: **${totais.itens}**`);
+l.push(`- itens de fórum e rede social (comunidade, não contam nos números da semana): **${totais.comunidade}**`);
 l.push(`- fontes que publicaram: **${totais.fontes}**`);
 l.push(`- assuntos distintos: **${totais.assuntos}**`);
 l.push(`- assuntos com uma fonte só: **${sozinhos}**`);
@@ -196,7 +211,10 @@ l.push(`- atraso mediano: **${relogio.mediana ?? '—'}**${relogio.mediana !== n
 l.push(`- assuntos da semana ainda sem menção brasileira: **${relogio.nao_chegaram}**`);
 l.push('');
 l.push('## Por fonte');
-for (const f of porFonte) l.push(`- ${f.pessoa ?? f.nome} (${f.pais}): ${f.n}`);
+for (const f of porFonte) {
+  const comunidade = f.tipo === 'forum' || f.tipo === 'social';
+  l.push(`- ${f.pessoa ?? f.nome} (${f.pais})${comunidade ? ' · comunidade' : ''}: ${f.n}`);
+}
 l.push('');
 l.push('## O que publicamos na semana');
 if (pecas.length === 0) l.push('_Nenhuma peça com data nesta semana._');

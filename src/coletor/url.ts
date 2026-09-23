@@ -55,37 +55,10 @@ export function canonicalizar(bruta: string, base?: string): string | null {
   return u.toString();
 }
 
-/**
- * Chave de agrupamento de assunto: título sem acento, sem pontuação, sem
- * palavra vazia, com os termos ordenados.
- *
- * Serve para ligar a mesma notícia entre fontes e idiomas — que é como o
- * atraso até o Brasil é medido. Deliberadamente simples no P0; embeddings
- * entram se e quando isto errar demais.
- */
-const VAZIAS = new Set([
-  // pt
-  'a','ao','aos','as','com','como','da','das','de','do','dos','e','em','na','nas','no','nos',
-  'o','os','para','por','que','se','sem','sob','sobre','um','uma','uns','umas',
-  // en
-  'a','an','and','at','by','for','from','in','into','of','on','or','the','to','with','new',
-  // de
-  'der','die','das','den','dem','des','ein','eine','einen','und','fur','mit','von','im','zu','neue','neuer',
-]);
-
-export function chaveAssunto(titulo: string): string {
-  return titulo
-    .normalize('NFD')
-    // NFD separa a letra do acento; \p{M} tira as marcas combinantes.
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/[\s-]+/)
-    .filter((p) => p.length > 2 && !VAZIAS.has(p))
-    .sort()
-    .join('-')
-    .slice(0, 200);
-}
+/* A `chaveAssunto` morava aqui e foi removida em 23/09/2026. Ela montava a
+   chave com o título inteiro ordenado, o que só agrupava textos com o conjunto
+   idêntico de palavras — entre idiomas, nunca, e por isso o relógio marcou
+   zero desde sempre. O agrupamento agora é por token raro, em ./assunto.ts. */
 
 /** Slug de URL. Só é gravado quando o item é publicado — e nunca muda depois. */
 export function slugificar(titulo: string, max = 70): string {

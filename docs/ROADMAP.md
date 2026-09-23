@@ -1,6 +1,6 @@
 # Instituto Automação — Roadmap · v2
 
-> **Estado em 11/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
+> **Estado em 23/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
 > Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
 > **31/12/2026** (acordo interno).
 >
@@ -10,7 +10,15 @@
 >
 > **11/09 fechou as cinco decisões que travavam o prazo de 20/09** (seção 2b) e descobriu dois
 > defeitos que ninguém tinha medido: o **relógio nunca mediu nada** e o **dossiê lia o banco
-> errado** (seção 2c). Os dois estão tratados; o relógio saiu da capa até voltar a medir.
+> errado** (seção 2c).
+>
+> **23/09: o relógio mede.** O agrupamento foi reescrito e a base inteira, reprocessada — as
+> duas primeiras medições da vida do projeto, mediana de 6 dias (seção 2d). E a medição expôs o
+> gargalo verdadeiro, que não era o algoritmo: **só 2 de 101 itens brasileiros têm par
+> estrangeiro**, porque a imprensa brasileira do setor escreve sobre o Brasil.
+>
+> ⚠️ **O editorial está parado há 19 dias** (último texto em 04/09) e **nenhum Giro saiu** —
+> nem o de 14/09, nem o de 21/09. A máquina, essa, não parou um tick.
 
 ---
 
@@ -142,6 +150,80 @@ primeiros dias.
 
 ---
 
+## 2d · 23/09 — o relógio mede, e o gargalo mudou de lugar
+
+### O conserto
+
+`chaveAssunto()` montava a chave com o título inteiro ordenado: só agrupava textos com o
+**conjunto idêntico** de palavras significativas, o que entre idiomas não acontece nunca.
+Substituída por agrupamento por **termo raro compartilhado** (`src/coletor/assunto.ts`):
+
+- **raro é medido na base**, não numa lista — "robô" está em toda parte e não distingue nada;
+  "Tractian" distingue muito. O teto é 0,5% do corpus, então se reajusta sozinho conforme a
+  base cresce;
+- **dois termos raros em comum**, e ao menos um deles **nome próprio ou código** — o que
+  sobrevive à tradução;
+- **sem IA**: contagem de palavra e interseção de conjunto, roda no cron, mesmo corpus dá
+  sempre o mesmo agrupamento.
+
+Duas armadilhas medidas e corrigidas no caminho, as duas em ensaio antes de gravar:
+
+| Sintoma | Causa | Conserto |
+|---|---|---|
+| 37 threads de fórum num assunto só | `2026.9.1` virava os tokens `2026`, `9`, `1` | dígito puro só conta com 4+ casas e fora da faixa de ano |
+| `industria`, `brasil`, `update` passando por raros | teto de 2% = 34 itens, frouxo demais; e daí vinha **encadeamento** (A casa com B, B com C, o grupo vira blob) | teto para 0,5% = 8 itens |
+
+O blob chegou a fundir o lançamento da Universal Robots na IMTS com a briga de patentes
+Teradyne × JAKA, e o relógio media **17 dias** onde o par verdadeiro dá **6**.
+
+### O reprocessamento
+
+`npm run reagrupar` refaz `assunto` a partir de `item` — os títulos, datas e fontes sempre
+estiveram lá, só a derivação estava errada. Roda em ensaio por padrão; só grava com
+`--aplicar`.
+
+| | antes | depois |
+|---|---|---|
+| assuntos para 1.701 itens | 1.691 (≈1:1) | **1.581** |
+| assuntos com mais de um item | 2 | **88** |
+| **atrasos apurados** | **0** | **2** |
+| atraso mediano | — | **6 dias** |
+
+Os dois pares, e os dois conferidos à mão:
+
+| | |
+|---|---|
+| **6 dias** | 🇺🇸 14/09 *Universal Robots launches its seventh generation robot platform at IMTS* → 🇧🇷 20/09 *Universal Robots lança sua plataforma de robôs de sétima geração na IMTS* |
+| **2 dias** | 🇺🇸 11/08 *Rainer Brehm Appointed President of Automation at Siemens* → 🇧🇷 13/08 *Rainer Brehm assume nova unidade Automation da Siemens* |
+
+### O gargalo verdadeiro: não é o algoritmo, são as fontes
+
+Medido por fora do agrupamento, para não confundir o defeito com o mundo: dos **101 itens
+brasileiros** da base, **2** têm par estrangeiro plausível numa janela de 30 dias. O
+algoritmo encontra exatamente esses dois — nem mais, nem menos.
+
+A razão está na pauta das fontes brasileiras: fábrica nova, financiamento do BNDES, programa
+de associação, feira daqui. Elas escrevem **sobre o Brasil**, não sobre o que saiu lá fora.
+
+Consequência para dezembro: no ritmo atual o Panorama nº 1 terá **uma dezena de pares**, não
+uma distribuição. **Mais vozes brasileiras deixou de ser backlog e virou pré-requisito do
+Panorama** — é o item que destrava a tese, e está na seção 5.
+
+### A fonte dominante, domada
+
+O Fórum Home Assistant era **297 dos 557 itens** da s38 (53%) num site de automação
+industrial. Duas mudanças, as duas reversíveis:
+
+- fórum e rede social **não ancoram o relógio**: thread de comunidade não é a fronteira
+  publicando, e deixá-la marcar `publicado_original` faria o relógio medir o dia em que
+  alguém comentou;
+- o dossiê **conta imprensa e comunidade separado** — a s38 tem 260 itens de imprensa e 297
+  de comunidade, e o Giro passa a falar dos 260.
+
+Fica em aberto para o Pedro: o fórum continua na lista de fontes ou sai?
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência
@@ -174,7 +256,8 @@ alheia inteira**. As três já estão ou cabem no método atual.
 
 | Quando | Marco | Depende de |
 |---|---|---|
-| **14/09** (segunda) | **Primeiro Giro** (s37), com `npm run dossie -- --homolog`. A s36 ficou **pulada** (decisão de 11/09) e o Giro nº 1 diz por quê | Pedro escreve |
+| ~~**14/09**~~ · ~~**21/09**~~ | **Os dois Giros não saíram.** O primeiro, agora, é o da s39 em **28/09** (segunda), com `npm run dossie -- --homolog`. O dossiê enfim tem o que contar: repercussão de verdade e o relógio medindo | Pedro escreve |
+| **até 30/09** | **Mais fontes brasileiras** — virou pré-requisito do Panorama, não backlog (seção 2d) | Pedro, com o sócio |
 | ~~até **20/09**~~ | **FEITO em 11/09**, nove dias antes: privacidade + finalidade no cadastro · notas internas fora de Blueprints · "Como funciona" alongado · artigo fixo na capa · botão de evento fora · relógio fora da capa · vocabulário · rótulo de publicidade | — |
 | **setembro** | **Logo:** opções do sócio → escolha do Pedro → prancha e ícones refeitos (`/marca`, favicon, OG) | sócio, depois eu |
 | **setembro** | **Instruções para autores** publicadas em `/autores#escrever` (o que se pede já está; falta formato, tamanho, fonte, imagem, revisão) | os dois |
@@ -205,6 +288,9 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [ ] Fonte brasileira dentro de Notícias, com a tagline dizendo "lá fora".
 - [ ] Quem toca redes e comunidade.
 - [ ] **Preço** dos 3 artigos que o sócio quer vender. O rótulo já não é decisão: é o código.
+- [ ] **O relógio volta para a capa?** A decisão de 11/09 foi "volta quando houver par medido", e
+      agora há 2. Recomendo **esperar**: mediana de n=2 na página inicial é promessa de novo, e a
+      faixa volta mais forte com uma dezena de pares.
 - [ ] **Peça paga pode ser `destaque: true`?** O compilador hoje permite — ou seja, dá para
       vender a capa. Não travei sozinho porque pode ser decisão comercial legítima; se não
       for, é uma linha no compilador.
@@ -226,8 +312,12 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [x] ~~Artigo fixo na capa.~~ **11/09** — `fixo: true`, slot próprio em 2º lugar.
 - [x] ~~Relógio: números em destaque, explicar "atraso mediano".~~ Superado: o relógio saiu da
       capa (seção 2b) e Blueprints passou a explicar **por que ele mede zero**.
-- [ ] **Consertar o agrupamento do relógio** (seção 2c) — é o que faz a tese existir. Casar por
-      token raro compartilhado, sem IA. É o maior item aberto do projeto.
+- [x] ~~**Consertar o agrupamento do relógio**~~ — **23/09**: agrupamento por termo raro, base
+      reprocessada, 2 atrasos apurados, mediana de 6 dias (seção 2d). Testes com o par real do
+      corpus em `scripts/testar-assunto.ts`; se aquele teste cair, o relógio voltou a zero.
+- [ ] **Mais fontes brasileiras que marcam o relógio** — hoje 3, e elas escrevem sobre o Brasil.
+      É o que separa um Panorama com distribuição de um Panorama com uma dezena de pares.
+      **Deixou de ser backlog: é pré-requisito de dezembro.**
 - [ ] Formulário de submissão de artigo com upload → `contato` ou tabela própria → eu diagramo.
 - [ ] Reescrever ou arquivar os docs da v1 (`CONCEITO`, `ARQUITETURA`, `FLUXOS`, `MODELO-DADOS`, `CAPACIDADE`, `ORGANOGRAMA`, `roadmap.html`).
 - [ ] Lint e formatação.
@@ -289,6 +379,9 @@ em dezembro; dataset com DOI junto dele.
 | **Capa não promete medição que não existe** — o relógio volta quando medir | 11/09 |
 | **Publicação semanal aos domingos; a capa se move sozinha entre elas** | 11/09 |
 | "Peça" é termo do código; o leitor lê notícia, artigo, texto | 11/09 |
+| **Agrupamento por termo raro, medido na base — e sem IA** | 23/09 |
+| **Fórum e rede social não ancoram o relógio; o dossiê conta comunidade à parte** | 23/09 |
+| **`assunto` é derivado: dá para reprocessar a base inteira quando o método melhorar** | 23/09 |
 
 ## 8 · Backlog sem data
 

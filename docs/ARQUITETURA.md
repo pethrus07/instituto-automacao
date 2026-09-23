@@ -342,20 +342,47 @@ A pergunta-assinatura do site, medida sobre a tabela `assunto`:
 | sem menção | assuntos publicados lá fora há mais de 90 dias e sem `primeira_mencao_br` |
 | itens, fontes | `COUNT(*)` de `item` e de `fonte` ativa |
 
-⚠️ **Em 11/09/2026 o relógio media ZERO — e sempre mediu.** Não é imprecisão, é conjunto
-vazio: 0 atrasos apurados em 684 assuntos na homologação, 0 em 552 no banco local.
+### Como dois textos viram o mesmo assunto (`coletor/assunto.ts`)
 
-A causa está em `chaveAssunto()` (`coletor/url.ts`): a chave é o **título inteiro** sem as
-palavras vazias, ordenado e junto. Dois textos só caem no mesmo assunto com o **conjunto
-idêntico** de palavras significativas — entre idiomas, quase nunca. Resultado: **2 assuntos de
-684 têm mais de um item**. Como `atraso_br_dias` só é calculado quando uma fonte brasileira
-cai num assunto que já existe com original estrangeiro (`coletor/index.ts`), a fonte brasileira
-cria assunto próprio e o par nunca se forma.
+Por **termo raro compartilhado**. O que sobrevive à tradução é o nome próprio e o código
+("Siemens", "IMTS", "61131"); o verbo e a preposição mudam.
 
-Por isso, decisão de 11/09: **o relógio saiu da capa** e os números ficam em `/blueprints`,
-que passou a explicar o zero em vez de só declarar "agrupamento fraco". A faixa volta quando
-houver par medido. O conserto planejado é casar por **token raro compartilhado** (nome próprio,
-código), que sobrevive à tradução — sem IA, que continua proibida em produção.
+1. `tokensDe(titulo)` normaliza acento, corta em não-alfanumérico, descarta palavra vazia e
+   palavra com menos de 4 letras. Marca cada token como **forte** quando é código
+   (letra+dígito, ou 4+ dígitos fora da faixa de ano) ou quando aparece em maiúscula no meio
+   de um título que não é Title Case — que é dizer nome próprio sem dicionário.
+2. `raros()` descarta o que aparece em mais de **0,5% dos assuntos** (piso de 8). Raro é
+   medido na base, então se reajusta sozinho conforme o corpus cresce.
+3. `melhorCandidato()` exige **dois** termos raros em comum e ao menos **um forte**; pontua
+   pela raridade somada (`1/log2(2+df)`) e desempata pelo id, para ser reproduzível.
+   Código raríssimo (df ≤ 2) ancora sozinho.
+4. O índice invertido é a tabela `assunto_token(token, forte, assunto_id)`, e a janela
+   continua sendo de 30 dias.
+
+Não é IA: é contagem de palavra e interseção de conjunto, roda no cron, e o mesmo corpus dá
+sempre o mesmo agrupamento. Embeddings estão mortos no ROADMAP §9 — seriam IA em produção.
+
+⚠️ **Fórum e rede social não ancoram `publicado_original`** (`podeAncorarOriginal`): thread de
+comunidade não é a fronteira publicando, e deixá-la marcar o original faria o relógio medir o
+dia em que alguém comentou.
+
+### O histórico é reprocessável
+
+`assunto` é DERIVADO de `item`. Quando o método melhorar, `npm run reagrupar [--homolog]
+[--aplicar]` refaz `assunto`, `assunto_token` e `item.assunto_id` a partir dos itens
+guardados — em ensaio por padrão, gravando só com `--aplicar`. Foi assim que a base de 2026
+passou de 0 para 2 atrasos apurados em 23/09.
+
+### O que o relógio media em 23/09/2026
+
+2 atrasos apurados sobre 1.581 assuntos, mediana de **6 dias**. O número é pequeno e o motivo
+**não é o algoritmo**: dos 101 itens brasileiros da base, só 2 têm par estrangeiro plausível —
+as fontes brasileiras escrevem sobre o Brasil (fábrica nova, BNDES, feira daqui), não sobre o
+que saiu lá fora. Mais fontes brasileiras é o que destrava a medida, e está no ROADMAP §5.
+
+Até 11/09 o relógio media ZERO, e sempre tinha medido: a chave antiga era o título inteiro
+ordenado, que só agrupa com conjunto idêntico de palavras. A faixa saiu da capa por decisão de
+11/09 e só volta quando a amostra justificar.
 
 ---
 
@@ -372,6 +399,7 @@ não é onde o coletor contínuo escreve.
 | `npm run ler -- <url>` | 3 · lavrar | Baixa um artigo, confere o robots daquele caminho, tira o ruído e salva em `colheita/leituras/`. É leitura; nunca vai para o site |
 | `npm run nova -- <secao> <slug> --url <url>` | 3 · lavrar | Cria o `.md` com o frontmatter pré-preenchido a partir da pauta |
 | `npm run dossie [-- 2026-s37] [--homolog]` | semanal | Os números da semana ISO que fechou, em SQL puro, para `colheita/dossie-<semana>.md`. O Giro é escrito em cima, e a auditoria confere cada inteiro da prosa contra ele. **Use `--homolog`:** o coletor contínuo roda no cron da borda, não no banco local (ver armadilha abaixo). Semana ainda aberta exige `--parcial`, e dossiê sem item nenhum aborta |
+| `npm run reagrupar [-- --homolog] [--aplicar]` | manutenção | Refaz `assunto` a partir de `item` quando o método de agrupamento muda. Ensaio por padrão |
 | `npm run compilar` | 4 · publicar | Seção 5.4 |
 | `npm run cadencia` | medição | Quanto cada fonte publica por semana, medido no feed inteiro |
 | `npm run sondar` · `npm run sondar:vozes` | fontes | Testa candidatos a fonte e a voz contra o nosso parser e o robots. Toda fonte nasce `resumo` |
@@ -564,6 +592,14 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
 - **Semana reconstruída para trás não é medição.** Feed RSS só carrega os últimos itens: colher
   hoje a semana passada mede *quando o coletor rodou*, não o que foi publicado. Foi por isso que
   a s36 não pôde ser publicada (ROADMAP §2c).
+- **Dígito solto vira ímã de assunto.** "2026.9.1" tokeniza em `2026`, `9`, `1`, e um `9` em
+  comum juntou 37 threads de fórum num assunto só. Por isso `ehCodigo()` exige 4+ casas e
+  faixa fora de ano.
+- **Limiar de raridade frouxo causa ENCADEAMENTO.** Com teto de 2%, `industria` e `update`
+  passavam por raros; aí A casa com B, B casa com C, e o grupo vira um blob que mistura
+  assuntos. Foi o que fez o relógio medir 17 dias onde o par verdadeiro dava 6.
+- **Mexeu no agrupamento → `npm run reagrupar`**, senão a base velha e a nova convivem com
+  critérios diferentes e a medida fica incomparável consigo mesma.
 - **Rótulo de publicidade é do compilador, não do editor.** `patrocinada: true` sem
   `patrocinador` não compila, e `patrocinador` sem a flag também não — este segundo é o erro de
   digitação que publicaria peça paga sem rótulo nenhum.

@@ -12,7 +12,8 @@
  */
 import type { Env } from '../config';
 import { lerFeed } from './feed';
-import { canonicalizar, chaveAssunto } from './url';
+import { canonicalizar } from './url';
+import { melhorCandidato, nomesDe, podeAncorarOriginal, raros, tokensDe, type Candidato, type Token } from './assunto';
 import { lerRobots } from './robots';
 import { ehIndice, lerIndiceSitemaps, lerSitemapNoticias } from './sitemap';
 
@@ -42,6 +43,8 @@ export type LinhaFonte = {
   url_feed: string | null;
   url_site: string;
   idioma: string;
+  /** o MEIO: imprensa, press, forum, social... — decide se a fonte pode ancorar o relógio */
+  tipo: string;
   nucleo: string | null;
   licenca: 'liberada' | 'resumo' | 'bloqueada';
   colheita: 'feed' | 'sitemap';
@@ -68,7 +71,7 @@ export type RelatorioColeta = {
 async function fontesVencidas(db: D1Database, limite: number): Promise<LinhaFonte[]> {
   const { results } = await db
     .prepare(
-      `SELECT id, nome, url_feed, url_site, idioma, nucleo, licenca, colheita, intervalo_min,
+      `SELECT id, nome, url_feed, url_site, idioma, tipo, nucleo, licenca, colheita, intervalo_min,
               robots_permite, robots_atraso, robots_conferido
          FROM fonte
         WHERE ativo = 1
@@ -304,22 +307,65 @@ async function ligarAssunto(
   publicado: string,
   f: LinhaFonte,
 ): Promise<void> {
-  const chave = chaveAssunto(titulo);
-  if (!chave) return;
+  const tokens = tokensDe(titulo);
+  if (tokens.length === 0) return;
+
+  /* 1 · quão raro é cada token DESTE título, medido na base inteira.
+     A raridade é do corpus, não de uma lista: é ela que faz "siemens" pesar
+     e "automation" não, e que se reajusta sozinha conforme a pauta muda. */
+  const nomes = nomesDe(tokens);
+  const total = (await db.prepare(`SELECT COUNT(*) n FROM assunto`).first<{ n: number }>())?.n ?? 0;
+  const lugares = nomes.map((_, i) => `?${i + 1}`).join(',');
+  const { results: linhasDf } = await db
+    .prepare(`SELECT token, COUNT(*) n FROM assunto_token WHERE token IN (${lugares}) GROUP BY token`)
+    .bind(...nomes)
+    .all<{ token: string; n: number }>();
+  const df = new Map<string, number>((linhasDf ?? []).map((r) => [r.token, r.n]));
+
+  const tokensRaros = raros(tokens, df, total);
+
+  /* 2 · que assuntos RECENTES compartilham algum token raro com este título.
+     A janela de 30 dias é a mesma de antes: assunto que volta meio ano depois
+     é assunto novo, não repercussão. */
+  let escolhido: Candidato | null = null;
+  if (tokensRaros.length > 0) {
+    const nomesRaros = nomesDe(tokensRaros);
+    const lugaresRaros = nomesRaros.map((_, i) => `?${i + 1}`).join(',');
+    const { results: linhasCand } = await db
+      .prepare(
+        `SELECT t.assunto_id, t.token, t.forte
+           FROM assunto_token t JOIN assunto a ON a.id = t.assunto_id
+          WHERE t.token IN (${lugaresRaros}) AND a.criado_em >= datetime('now','-30 days')`,
+      )
+      .bind(...nomesRaros)
+      .all<{ assunto_id: string; token: string; forte: number }>();
+
+    /* O token é forte se QUALQUER um dos dois lados o viu como nome: o título
+       que chega agora, ou o assunto que já existia. Um veículo escreve
+       "Siemens" e o outro escreve "siemens" no meio de um título em caixa — a
+       identidade é do token, não da grafia de quem digitou. */
+    const forteAqui = new Map(tokens.map((t) => [t.token, t.forte]));
+    const porAssunto = new Map<string, Token[]>();
+    for (const r of linhasCand ?? []) {
+      const tok: Token = { token: r.token, forte: r.forte === 1 || forteAqui.get(r.token) === true };
+      const lista = porAssunto.get(r.assunto_id);
+      if (lista) lista.push(tok);
+      else porAssunto.set(r.assunto_id, [tok]);
+    }
+    escolhido = melhorCandidato(
+      [...porAssunto].map(([assuntoId, tokensEmComum]) => ({ assuntoId, tokensEmComum })),
+      df,
+    );
+  }
 
   const ehBR = f.idioma === 'pt';
-  const existente = await db
-    .prepare(
-      `SELECT id, publicado_original, primeira_mencao_br
-         FROM assunto
-        WHERE chave = ?1 AND criado_em >= datetime('now','-30 days')
-        LIMIT 1`,
-    )
-    .bind(chave)
-    .first<{ id: string; publicado_original: string | null; primeira_mencao_br: string | null }>();
+  /* Fórum e rede social entram no assunto mas não marcam a fronteira: ver
+     podeAncorarOriginal(), em assunto.ts. */
+  const ancora = podeAncorarOriginal(f.tipo);
 
-  if (!existente) {
-    const id = `a-${await digest(chave)}`;
+  /* 3a · assunto novo */
+  if (!escolhido) {
+    const id = `a-${await digest(itemId)}`;
     await db
       .prepare(
         `INSERT OR IGNORE INTO assunto
@@ -330,29 +376,40 @@ async function ligarAssunto(
       .bind(
         id,
         titulo.slice(0, 300),
-        chave,
+        nomes.join('-').slice(0, 200),
         f.nucleo ?? 'industria',
-        ehBR ? null : publicado,
-        ehBR ? null : f.id,
+        !ehBR && ancora ? publicado : null,
+        !ehBR && ancora ? f.id : null,
         ehBR ? publicado : null,
         ehBR ? f.id : null,
       )
       .run();
     await db.prepare(`UPDATE item SET assunto_id = ?1 WHERE id = ?2`).bind(id, itemId).run();
+    await gravarTokens(db, id, tokens);
     return;
   }
 
-  await db.prepare(`UPDATE item SET assunto_id = ?1 WHERE id = ?2`).bind(existente.id, itemId).run();
-  await db
-    .prepare(`UPDATE assunto SET qtd_itens = qtd_itens + 1 WHERE id = ?1`)
-    .bind(existente.id)
-    .run();
+  /* 3b · entra num assunto que já existe */
+  const alvo = escolhido.assuntoId;
+  const existente = await db
+    .prepare(`SELECT publicado_original, primeira_mencao_br FROM assunto WHERE id = ?1`)
+    .bind(alvo)
+    .first<{ publicado_original: string | null; primeira_mencao_br: string | null }>();
+  if (!existente) return;
+
+  await db.prepare(`UPDATE item SET assunto_id = ?1 WHERE id = ?2`).bind(alvo, itemId).run();
+  await db.prepare(`UPDATE assunto SET qtd_itens = qtd_itens + 1 WHERE id = ?1`).bind(alvo).run();
+
+  /* O assunto herda só os tokens RAROS de quem entra. Herdar todos faria o
+     assunto virar ímã: quanto mais itens, mais vocabulário comum, e mais
+     coisa não relacionada passaria a casar com ele. */
+  await gravarTokens(db, alvo, tokensRaros);
 
   // primeira menção lá fora, se esta for anterior à que estava registrada
-  if (!ehBR && (!existente.publicado_original || publicado < existente.publicado_original)) {
+  if (!ehBR && ancora && (!existente.publicado_original || publicado < existente.publicado_original)) {
     await db
       .prepare(`UPDATE assunto SET publicado_original = ?2, fonte_original = ?3 WHERE id = ?1`)
-      .bind(existente.id, publicado, f.id)
+      .bind(alvo, publicado, f.id)
       .run();
   }
 
@@ -367,9 +424,22 @@ async function ligarAssunto(
                 atraso_apurado_em = datetime('now')
           WHERE id = ?1 AND publicado_original IS NOT NULL`,
       )
-      .bind(existente.id, publicado, f.id)
+      .bind(alvo, publicado, f.id)
       .run();
   }
+}
+
+/** O índice invertido: é ele que faz o próximo item achar este assunto. */
+async function gravarTokens(db: D1Database, assuntoId: string, tokens: readonly Token[]): Promise<void> {
+  if (tokens.length === 0) return;
+  const valores = tokens.map((_, i) => `(?${i * 2 + 1}, ?${i * 2 + 2}, ?${tokens.length * 2 + 1})`).join(',');
+  const ligacoes: unknown[] = [];
+  for (const t of tokens) ligacoes.push(t.token, t.forte ? 1 : 0);
+  ligacoes.push(assuntoId);
+  await db
+    .prepare(`INSERT OR IGNORE INTO assunto_token (token, forte, assunto_id) VALUES ${valores}`)
+    .bind(...ligacoes)
+    .run();
 }
 
 /** id estável e curto a partir da URL canônica — mesma URL, mesmo id, sempre. */

@@ -9,7 +9,7 @@
  */
 import { lerFeed, paraISO } from '../src/coletor/feed.ts';
 import { ehIndice, lerIndiceSitemaps, lerSitemapNoticias } from '../src/coletor/sitemap.ts';
-import { canonicalizar, chaveAssunto, slugificar } from '../src/coletor/url.ts';
+import { canonicalizar, slugificar } from '../src/coletor/url.ts';
 import { renderizarObra, minutosDeLeitura } from '../src/ui/markdown.ts';
 
 let ok = 0;
@@ -120,19 +120,10 @@ conferir('resolve link relativo', canonicalizar('/n/2', 'https://exemplo.com/fee
 conferir('recusa protocolo estranho', canonicalizar('javascript:alert(1)'), null);
 conferir('barra final só some fora da raiz', canonicalizar('https://exemplo.com/'), 'https://exemplo.com/');
 
-/* -------------------------------------------------------- chave de assunto */
-console.log('\nChave de assunto');
-conferir(
-  'títulos diferentes sobre a mesma coisa colidem',
-  chaveAssunto('Nova geração de controladores com diagnóstico preditivo') ===
-    chaveAssunto('Controladores: o diagnóstico preditivo da nova geração'),
-  true,
-);
-conferir(
-  'assuntos diferentes não colidem',
-  chaveAssunto('Norma de células colaborativas') === chaveAssunto('Inversores medem consumo'),
-  false,
-);
+/* ------------------------------------------------------------------- slug */
+console.log('\nSlug');
+/* O agrupamento de assunto saiu daqui em 23/09/2026 e tem suíte própria:
+   scripts/testar-assunto.ts. */
 conferir('slug sem acento e sem cauda quebrada', slugificar('Automação é assunto sério'), 'automacao-e-assunto-serio');
 
 /* ===================================================================== */

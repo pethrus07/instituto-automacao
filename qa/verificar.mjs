@@ -201,7 +201,11 @@ try {
 titulo('B · Conformidade — o banco depois da cirurgia');
 
 const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf%' AND name NOT LIKE 'd1_%'`).map((r) => r.name).sort();
-const esperadas = ['assinante', 'assunto', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item'];
+/* `assunto_token` entrou em 23/09/2026 (migração 007): é o índice invertido
+   que faz o agrupamento por termo raro achar o assunto de um título novo. É
+   índice DERIVADO — `npm run reagrupar` o reconstrói inteiro a partir de
+   `item`, e nada se perde se ele for apagado. */
+const esperadas = ['assinante', 'assunto', 'assunto_token', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item'];
 checar('B', `as ${esperadas.length} tabelas da v2, e só elas`, JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
 for (const morta of ['obra', 'giro', 'custo_dia']) checar('B', `a tabela ${morta} não existe mais`, !tabelas.includes(morta));
 
@@ -705,7 +709,19 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
 
   /* o relógio: nunca um "0" fingindo medida; e diz sobre quais fontes mede */
   checar('B', 'o relógio não mostra "0" como valor de medida', !/numero__valor">0</.test(capaHtml));
-  checar('B', 'o relógio diz em Blueprints que é amostra, e por que ainda mede zero', /fontes marcando o relógio/.test(blue) && /nenhum atraso foi apurado/.test(blue) && /não aparece na\s+capa/.test(blue));
+  const soTextoBlue = blue.replace(/<[^>]+>/g, ' ');
+  /* O relógio, depois do conserto de 23/09/2026. A asserção mudou junto com o
+     método: antes cobrava a confissão do zero, agora cobra que a página
+     DESCREVA o agrupamento que o código realmente faz — e que diga o tamanho
+     da amostra em vez de escondê-lo. Página que descreve um método que o
+     código não usa é a pior espécie de documentação: a que passa em revisão. */
+  checar('B', 'Blueprints descreve o agrupamento por termo raro, e não o método velho',
+    /termos <strong>raros<\/strong>/.test(blue) && /dois<\/strong>\s*termos raros em comum/.test(blue) && !/mesmo conjunto<\/strong> de/.test(blue));
+  checar('B', 'Blueprints nega que o agrupamento seja IA', /não é\s*inteligência artificial/.test(soTextoBlue) || /Nada disso é\s*inteligência artificial/.test(soTextoBlue));
+  checar('B', 'Blueprints diz quantas fontes brasileiras marcam o relógio e o tamanho da amostra',
+    /fontes brasileiras que marcam o\s+relógio/.test(blue) && /(par apurado|pares apurados)/.test(blue));
+  checar('B', 'Blueprints trata o que nunca chegou como achado, não como falha',
+    /são o achado<\/strong>/.test(blue));
 
   /* ------------------------------------------------------- 11/09/2026
      O que as decisões desta data prometeram, virado asserção. */
