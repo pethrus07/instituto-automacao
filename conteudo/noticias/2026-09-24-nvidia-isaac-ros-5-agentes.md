@@ -7,6 +7,11 @@ titulo_curto: NVIDIA põe agentes no Isaac ROS 5.0
 lead: O Isaac ROS 5.0 traz fluxos com agentes que preparam ambiente, script e ajuste fino — e suporte ao ROS 2 Lyrical. A NVIDIA também doou ao ROS 2 uma interface padrão de manuseio de dados, aberta a toda a comunidade.
 autor: Pedro Oliveira
 data: 2026-09-24
+imagem:
+  arquivo:   2026-09-24-nvidia-isaac-ros-roscon.jpg
+  credito:   NVIDIA
+  licenca:   press
+  alt:       Composição de quatro fotos de robôs usando o Isaac ROS: um braço da Intrinsic com a trajetória desenhada em verde sobre uma caixa, um humanoide da Mentee Robotics operando uma máquina de café, uma vista de cima de caixas numa esteira da EKUMEN, e um braço da Flexiv trabalhando sobre um banco de automóvel
 veredito: chega
 fonte:
   nome: The Robot Report

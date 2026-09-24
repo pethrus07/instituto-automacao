@@ -429,6 +429,32 @@ const autores: Autor[] = listar(AUTORES_DIR).map(compilarAutor).sort((a, b) => a
   const destaques = pecas.filter((p) => p.destaque);
   if (destaques.length > 1) falhar(CONTEUDO, `há ${destaques.length} peças com "destaque: true" — a capa tem um destaque só: ${destaques.map((p) => p.slug).join(', ')}`);
 
+  /* ------------------------------------------------- a capa tem foto
+   * REGRA DO DONO, 24/09/2026: a notícia principal NUNCA pode ser uma sem
+   * imagem real. A capa é a primeira coisa que alguém vê do Instituto, e arte
+   * gerada por algoritmo entrega o que o site é — um projeto com pouca
+   * produção — antes de o texto ter chance.
+   *
+   * Vale para o destaque explícito aqui, e para o automático em
+   * `conteudo/index.ts › destaque()`, que também passou a preferir quem tem
+   * foto. As duas pontas, porque marcar `destaque: true` é opcional e sem a
+   * segunda a regra cairia calada no dia em que ninguém marcasse nada.
+   *
+   * ⚠️ Isto NÃO afrouxa a regra da licença: imagem real continua exigindo
+   * crédito e licença declarados (`press`, `cc-by`, `cedida`, `propria`). Se
+   * não houver imagem licenciável para a peça, ela não pode ser o destaque —
+   * o jeito de cumprir a regra é escolher outro destaque, nunca republicar o
+   * que não se pode. */
+  const semFoto = destaques.filter((p) => !p.imagem);
+  if (semFoto.length > 0) {
+    falhar(
+      join(CONTEUDO, semFoto[0]!.secao, `${semFoto[0]!.data}-${semFoto[0]!.slug}.md`),
+      'a notícia principal não pode ser uma sem imagem real. Consiga a imagem de imprensa da ' +
+        'fonte (com crédito e licença) ou mova o "destaque: true" para outra peça — nunca ' +
+        'republique imagem sem licença para cumprir esta regra.',
+    );
+  }
+
   const fixos = pecas.filter((p) => p.fixo);
   if (fixos.length > 1) falhar(CONTEUDO, `há ${fixos.length} artigos com "fixo: true" — o slot de artigo da capa é um só: ${fixos.map((p) => p.slug).join(', ')}`);
 }
@@ -557,4 +583,15 @@ writeFileSync(SAIDA, modulo, 'utf8');
 
 const porSecao = SECOES.map((s) => `${s} ${pecas.filter((p) => p.secao === s).length}`).join(' · ');
 console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${autores.length} autor(es) · ${Object.keys(artes).length} arte(s) · ${pecas.filter((p) => p.imagem).length} imagem(ns) · ${alvos.length} PNG(s) renderizado(s)`);
+
+/* A regra branda, visível em toda compilação: imagem real SEMPRE que houver
+   uma licenciável. Não aborta — nem toda fonte oferece material de imprensa —,
+   mas o número na tela impede que "depois eu pego a foto" vire permanente. */
+{
+  const noticiasSemFoto = pecas.filter((p) => p.secao === 'noticias' && !p.imagem);
+  if (noticiasSemFoto.length > 0) {
+    console.log(`  ⚠ ${noticiasSemFoto.length} notícia(s) sem imagem real (arte gerada no lugar):`);
+    for (const p of noticiasSemFoto) console.log(`      ${p.data} ${p.slug}`);
+  }
+}
 console.log(`→ ${SAIDA.replace(RAIZ, '.')}`);

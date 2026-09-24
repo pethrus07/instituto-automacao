@@ -731,6 +731,17 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', 'Blueprints trata o que nunca chegou como achado, não como falha',
     /são o achado<\/strong>/.test(blue));
 
+  /* --------------------------------------------- a capa tem foto de verdade
+     REGRA DO DONO, 24/09/2026: a notícia principal nunca pode ser uma sem
+     imagem real. Está travada no compilador (destaque: true exige imagem) e em
+     conteudo/index.ts (o destaque automático prefere quem tem foto) — aqui se
+     confere o resultado no HTML servido, que é o único lugar onde as duas
+     pontas se encontram. */
+  const destaqueDaCapa = /<article class="destaque"[\s\S]*?<\/article>/.exec(capaHtml)?.[0] ?? '';
+  checar('B', 'a notícia principal da capa tem imagem REAL, não arte gerada',
+    /data-arte="foto"/.test(destaqueDaCapa), destaqueDaCapa ? (/data-arte="(\w+)"/.exec(destaqueDaCapa)?.[1] ?? 'sem arte') : 'sem destaque na capa');
+  checar('B', 'e a imagem da capa mostra crédito e licença', /class="arte__credito"/.test(destaqueDaCapa));
+
   /* ------------------------------------------------------- boletim gerado
      O Giro passou a ser gerado dos dados em 24/09/2026. Isso é o tipo de
      mudança que faz um site começar a mentir por omissão, então as travas são

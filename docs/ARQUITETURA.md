@@ -608,6 +608,13 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
 - **Mas o RELÓGIO ignora `papel`, de propósito.** Se uma fonte de contexto publica sobre
   robótica e uma brasileira repercute, o atraso é verdadeiro. O filtro é sobre o que o boletim
   CONTA, não sobre o que a base MEDE — confundir os dois estreitaria a medição sem motivo.
+- **A notícia principal tem de ter imagem REAL.** Regra do dono (24/09/2026), travada nas duas
+  pontas: o compilador aborta se `destaque: true` estiver numa peça sem `imagem`, e
+  `conteudo/index.ts › destaque()` prefere quem tem foto quando ninguém marcou nada — sem a
+  segunda ponta a regra cairia calada, porque marcar o destaque é opcional.
+  ⚠️ Isto NÃO afrouxa a regra da licença: se não houver imagem licenciável, muda-se o
+  destaque, nunca se republica o que não se pode. O caminho é o material de imprensa do
+  fabricante (`licenca: press`), que costuma ser a `og:image` do release dele.
 - **Boletim gerado não tem autor, e isso é contrato.** `gerado: true` só vale no Giro; o
   compilador recusa o campo em outra seção, recusa `autor` junto, e exige `numeros:`. Mexer
   nisso é mexer no que o rodapé promete em seis lugares.

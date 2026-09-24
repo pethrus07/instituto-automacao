@@ -423,6 +423,10 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
       (seção 2f): tecnologia geral virou **contexto**, fora dos números da semana.
 - [ ] **Duas classificações duvidosas:** IEEE Spectrum · IA é setor ou contexto? E o Home
       Assistant (press), que é automação mas residencial?
+- [ ] **Imagem de imprensa para 5 notícias de 24/09** — Intrinsic, Qualcomm, BNDES, Neodent e
+      HT Micron. Os newsrooms de Qualcomm e Intrinsic são renderizados por JavaScript e não
+      expõem o link no HTML; exigem navegador (o Playwright do projeto serve) ou o contato de
+      imprensa. O compilador lista as pendentes a cada build.
 - [ ] **4 fontes on-topic bloqueadas pelo robots.txt** desde sempre (GitHub releases, Reddit ·
       PLC, YouTube). O Reddit · PLC é a perda mais sentida — vale procurar outro caminho.
 
@@ -515,6 +519,8 @@ em dezembro; dataset com DOI junto dele.
 | **Automatizar não exigiu IA: o que é contagem se gera por função pura** | 24/09 |
 | **Fluxo automático que falha não publica: erro em qualquer passo aborta tudo** | 24/09 |
 | **O balanço da semana é do SETOR; contexto e comunidade contam à parte** | 24/09 |
+| **A notícia principal NUNCA é uma sem imagem real** — e a regra não afrouxa a da licença | 24/09 |
+| **Imagem real sempre que houver licenciável**; o compilador lista as que faltam a cada build | 24/09 |
 | **O filtro vale para o que o boletim CONTA, não para o que a base MEDE** | 24/09 |
 | **Fórum e rede social não ancoram o relógio; o dossiê conta comunidade à parte** | 23/09 |
 | **`assunto` é derivado: dá para reprocessar a base inteira quando o método melhorar** | 23/09 |

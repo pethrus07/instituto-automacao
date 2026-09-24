@@ -32,10 +32,26 @@ export function obter(secao: Secao, slug: string): Peca | null {
  * isso em vez de fingir.
  */
 export function destaque(): Peca | null {
-  // `destaque: true` no frontmatter manda; o compilador garante que é um só.
-  // Sem ele, a notícia mais recente — e, no empate de data, a ordem do slug,
-  // que é arbitrária: por isso o campo existe.
-  return PECAS.find((p) => p.destaque) ?? porSecao('noticias')[0] ?? porSecao('relatorios')[0] ?? PECAS[0] ?? null;
+  // `destaque: true` no frontmatter manda; o compilador garante que é um só e
+  // que ela tem imagem real.
+  const marcada = PECAS.find((p) => p.destaque);
+  if (marcada) return marcada;
+
+  /* Sem marcação, a capa escolhe sozinha — e aqui vale a mesma regra do dono
+     (24/09/2026): a notícia principal nunca é uma sem imagem real. Então a
+     preferência é pela notícia mais recente COM FOTO, e a mais recente sem
+     foto só entra se não houver nenhuma com.
+     Sem este trecho a regra existiria só no compilador, e cairia calada no dia
+     em que ninguém marcasse `destaque: true` — que é o caso mais comum. */
+  const noticias = porSecao('noticias');
+  return (
+    noticias.find((p) => p.imagem) ??
+    porSecao('relatorios').find((p) => p.imagem) ??
+    noticias[0] ??
+    porSecao('relatorios')[0] ??
+    PECAS[0] ??
+    null
+  );
 }
 
 /** As seguintes, sem repetir o destaque. Só notícia: artigo e relatório têm bloco próprio na capa. */

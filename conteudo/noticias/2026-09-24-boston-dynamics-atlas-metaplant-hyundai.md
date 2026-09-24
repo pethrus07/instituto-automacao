@@ -7,6 +7,11 @@ titulo_curto: Atlas entra na fábrica da Hyundai
 lead: O Robotics Metaplant Application Center fica na planta da Hyundai na Geórgia e é permanente, não piloto. A empresa o chama de "fábrica de comportamento de robô": entra ferramental de produção de verdade, saem dados de treinamento.
 autor: Pedro Oliveira
 data: 2026-09-24
+imagem:
+  arquivo:   2026-09-24-boston-dynamics-rmac.jpg
+  credito:   Boston Dynamics
+  licenca:   press
+  alt:       Vários humanoides Atlas, pretos e brancos com a cabeça em anel de luz, trabalham em volta de uma bancada com peças dentro de um galpão industrial; ao fundo, a carroceria azul de um veículo e carrinhos com bandejas de componentes
 destaque: true
 veredito: a_caminho
 fonte:
