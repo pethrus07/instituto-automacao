@@ -400,6 +400,7 @@ não é onde o coletor contínuo escreve.
 | `npm run nova -- <secao> <slug> --url <url>` | 3 · lavrar | Cria o `.md` com o frontmatter pré-preenchido a partir da pauta |
 | `npm run dossie [-- 2026-s37] [--homolog]` | semanal | Os números da semana ISO que fechou, em SQL puro, para `colheita/dossie-<semana>.md`. O Giro é escrito em cima, e a auditoria confere cada inteiro da prosa contra ele. **Use `--homolog`:** o coletor contínuo roda no cron da borda, não no banco local (ver armadilha abaixo). Semana ainda aberta exige `--parcial`, e dossiê sem item nenhum aborta |
 | `npm run reagrupar [-- --homolog] [--aplicar]` | manutenção | Refaz `assunto` a partir de `item` quando o método de agrupamento muda. Ensaio por padrão |
+| `npm run giro [-- 2026-s39] [--homolog] [--gravar]` | semanal | **Gera** o boletim da semana dos números medidos e escreve `conteudo/giro/`. Ensaio por padrão. Roda sozinho toda segunda pelo GitHub Actions |
 | `npm run compilar` | 4 · publicar | Seção 5.4 |
 | `npm run cadencia` | medição | Quanto cada fonte publica por semana, medido no feed inteiro |
 | `npm run sondar` · `npm run sondar:vozes` | fontes | Testa candidatos a fonte e a voz contra o nosso parser e o robots. Toda fonte nasce `resumo` |
@@ -600,6 +601,12 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
   assuntos. Foi o que fez o relógio medir 17 dias onde o par verdadeiro dava 6.
 - **Mexeu no agrupamento → `npm run reagrupar`**, senão a base velha e a nova convivem com
   critérios diferentes e a medida fica incomparável consigo mesma.
+- **Boletim gerado não tem autor, e isso é contrato.** `gerado: true` só vale no Giro; o
+  compilador recusa o campo em outra seção, recusa `autor` junto, e exige `numeros:`. Mexer
+  nisso é mexer no que o rodapé promete em seis lugares.
+- **A auditoria do Giro tem DUAS camadas.** A estrita (na geração) remove títulos de terceiro
+  antes de conferir — número de manchete alheia não é afirmação nossa. A do compilador confere
+  contra `numeros:`, que os inclui. Afrouxar a primeira é perder a trava.
 - **Rótulo de publicidade é do compilador, não do editor.** `patrocinada: true` sem
   `patrocinador` não compila, e `patrocinador` sem a flag também não — este segundo é o erro de
   digitação que publicaria peça paga sem rótulo nenhum.

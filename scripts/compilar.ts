@@ -199,7 +199,7 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     formato,
     titulo: naoQuebrar(texto(meta, 'titulo', caminho)),
     lead: naoQuebrar(texto(meta, 'lead', caminho)),
-    autor: texto(meta, 'autor', caminho),
+    /* autor entra logo abaixo: boletim gerado não tem, e é o único caso */
     data,
     og: `/og/${secao}-${slug}.png`,
     corpo: naoQuebrar(corpo),
@@ -207,6 +207,26 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
   };
 
   if (peca.corpo.length < 80) falhar(caminho, 'o corpo tem menos de 80 caracteres — isso não é uma peça');
+
+  /* --------------------------------------------------- boletim gerado
+   * `gerado: true` é a ÚNICA porta por onde entra texto sem autor, e ela só
+   * abre no Giro. Existe porque o Giro é balanço de números medidos, montado
+   * por função pura sobre a apuração (src/giro/redigir.ts) — mesmos dados,
+   * mesmo texto, nenhum modelo de linguagem envolvido.
+   *
+   * O site não pode fingir que isso foi escrito por alguém: a peça sai com o
+   * aviso na página, a assinatura mostra a origem no lugar de um nome, e as
+   * promessas do rodapé foram ESTREITADAS para notícia, artigo e relatório —
+   * que continuam exigindo autor com arquivo em conteudo/autores/.
+   */
+  if (typeof meta['gerado'] === 'string') {
+    if (meta['gerado'] !== 'true') falhar(caminho, `"gerado" só aceita "true" (ou não existir)`);
+    if (secao !== 'giro') falhar(caminho, `"${secao}" não aceita texto gerado — só o Giro é boletim de números`);
+    if (typeof meta['autor'] === 'string') falhar(caminho, 'boletim gerado não leva "autor": ele não foi escrito por uma pessoa, e dizer que foi é o que esta trava impede');
+    peca.gerado = true;
+  } else {
+    peca.autor = texto(meta, 'autor', caminho);
+  }
 
   /* O título curto: o que a busca mostra. Até 53, senão não é curto. */
   if (typeof meta['titulo_curto'] === 'string') {
@@ -401,7 +421,8 @@ const autores: Autor[] = listar(AUTORES_DIR).map(compilarAutor).sort((a, b) => a
   if (!autores.length) falhar(AUTORES_DIR, 'não há nenhum autor em conteudo/autores/ — toda peça precisa de um');
   /* toda peça aponta para gente que existe: é o que faz "toda peça tem autor" ser verificável */
   for (const p of pecas) {
-    if (!nomes.has(p.autor)) falhar(join(CONTEUDO, p.secao, `${p.data}-${p.slug}.md`), `autor "${p.autor}" não tem arquivo em conteudo/autores/ (nomes conhecidos: ${[...nomes].join(', ')})`);
+    if (p.gerado) continue; // boletim de números não tem autor, por desenho
+    if (!p.autor || !nomes.has(p.autor)) falhar(join(CONTEUDO, p.secao, `${p.data}-${p.slug}.md`), `autor "${p.autor}" não tem arquivo em conteudo/autores/ (nomes conhecidos: ${[...nomes].join(', ')})`);
   }
 }
 {

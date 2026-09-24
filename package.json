@@ -14,6 +14,7 @@
     "nova": "node --experimental-strip-types scripts/nova.ts",
     "dossie": "node --experimental-strip-types scripts/dossie.ts",
     "reagrupar": "node --experimental-strip-types scripts/reagrupar.ts",
+    "giro": "node --experimental-strip-types scripts/giro.ts",
     "db:criar": "wrangler d1 create instituto",
     "db:local": "wrangler d1 execute instituto --local --file=./schema.sql",
     "db:semente": "wrangler d1 execute instituto --local --file=./seed.sql",

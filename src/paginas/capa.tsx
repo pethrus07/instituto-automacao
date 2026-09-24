@@ -162,7 +162,7 @@ capa.get('/', async (c) => {
           <Secao
             titulo="Quem escreve"
             acao={{ texto: 'todos os autores', href: '/autores' }}
-            nota="Todo texto tem autor, e o autor tem página: o que faz, o que já publicou e o link para o currículo dele."
+            nota="Toda notícia, artigo e relatório tem autor, e o autor tem página: o que faz, o que já publicou e o link para o currículo dele."
           />
           <QuemEscreve autores={quemEscreve} contar={(a) => pecasDoAutor(a).length} />
         </section>

@@ -83,7 +83,9 @@ export function pecaLd(p: Peca, base: string) {
       : { '@type': 'ImageObject', url: imagem, width: 1200, height: 630 },
     datePublished: p.data,
     dateModified: p.data,
-    author: pessoa(autorDe(p), p.autor, base),
+    /* schema.org aceita Organization como autor, e é o que um boletim gerado
+       é: não há pessoa a creditar, e pôr uma seria falso. */
+    author: p.autor ? pessoa(autorDe(p), p.autor, base) : { '@id': `${base}/#organizacao` },
     publisher: { '@id': `${base}/#organizacao` },
     articleSection: ROTULO_SECAO[p.secao],
     keywords: [ROTULO_TEMA[p.tema], 'automação'].join(', '),

@@ -1,6 +1,6 @@
 # Instituto Automação — Roadmap · v2
 
-> **Estado em 23/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
+> **Estado em 24/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
 > Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
 > **31/12/2026** (acordo interno).
 >
@@ -17,8 +17,11 @@
 > gargalo verdadeiro, que não era o algoritmo: **só 2 de 101 itens brasileiros têm par
 > estrangeiro**, porque a imprensa brasileira do setor escreve sobre o Brasil.
 >
-> ⚠️ **O editorial está parado há 19 dias** (último texto em 04/09) e **nenhum Giro saiu** —
-> nem o de 14/09, nem o de 21/09. A máquina, essa, não parou um tick.
+> **24/09: o Giro virou automático.** Deixou de ser texto escrito à mão e passou a ser
+> **boletim gerado dos números medidos** — sem modelo de linguagem, por função pura sobre a
+> apuração (seção 2e). O primeiro saiu, e a partir de agora sai sozinho toda segunda.
+>
+> ⚠️ Segue parado o que é **editorial**: notícia e artigo. Último texto de gente em 04/09.
 
 ---
 
@@ -224,6 +227,75 @@ Fica em aberto para o Pedro: o fórum continua na lista de fontes ou sai?
 
 ---
 
+## 2e · 24/09 — o Giro automático, sem IA
+
+O Pedro reverteu a própria decisão de que o Giro é escrito à mão. A automação foi feita, e
+**sem reverter o §9**: não entrou IA em produção.
+
+### Por que dava para automatizar sem modelo
+
+O Giro sempre foi um **balanço de números** — quanto o setor publicou, o que repercutiu, quanto
+tempo o assunto levou para chegar. Nada disso é opinião, e a contagem já existia feita pelo
+coletor e pelo relógio. Então o boletim é montado por **função pura** sobre os dados medidos
+(`src/giro/redigir.ts`): mesmos dados, mesmo texto, sempre. Sem modelo, sem rede, sem chave de
+API, sem teto de custo — os três morreram em 03/09 e continuam mortos.
+
+O teste que define a coisa: um leitor pode refazer o boletim na mão a partir do dataset
+publicado e chegar no mesmo texto.
+
+### O que isso obrigou o site a mudar
+
+Um boletim gerado não pode se passar por texto de gente. Então:
+
+- a peça sai com `gerado: true`, e o compilador **recusa** o campo fora do Giro, **recusa**
+  autor declarado numa peça gerada, e **exige** `numeros:`;
+- a página leva o aviso no alto: *"Boletim gerado dos dados — não há modelo de linguagem"*;
+- a assinatura mostra a **origem** (com link para o método) no lugar de um nome;
+- as promessas do site foram **estreitadas, não apagadas**:
+
+| Onde | Antes | Agora |
+|---|---|---|
+| linha de data | "Nada aqui é gerado por máquina. Todo texto tem autor." | "Sem IA. Notícia, artigo e relatório têm autor." |
+| rodapé | idem | "Notícia, artigo e relatório: escritos por gente, com nome. O Giro é boletim de números, gerado da apuração." |
+| Blueprints | "Nenhum texto foi traduzido ou redigido por modelo" | o mesmo, mais um parágrafo declarando o Giro como a exceção e reafirmando que segue sem modelo de linguagem |
+
+### A auditoria ganhou duas camadas
+
+A trava de números já existia; o boletim gerado obrigou a afiná-la.
+
+- **Estrita, na geração:** audita só o que o Instituto **afirma**. Títulos de terceiro e nomes
+  de evento são removidos do texto antes de conferir — *"Apple releases iOS 27"* não é uma
+  afirmação nossa sobre a semana, e deixar o 27 valer numa frase nossa afrouxaria a trava.
+- **No compilador:** confere a prosa contra `numeros:`, que inclui os inteiros dos trechos
+  reproduzidos. Pega edição à mão que invente número.
+
+O auditor também passou a ignorar **data por extenso** ("27 de setembro", "14 a 20 de
+setembro"), pela mesma razão que já ignorava anos: calendário não é medição. A lista de meses é
+explícita — um `\p{L}+` no lugar dela apagaria "20 de fontes", e auditoria que apaga demais é a
+que sempre passa.
+
+### O que passou a rodar sozinho
+
+| Fluxo | Quando | O que faz |
+|---|---|---|
+| `.github/workflows/giro-semanal.yml` | segunda, 09:00 BRT | gera → compila (a auditoria aborta) → testes → sobe o site e roda o QA inteiro → publica → commita. **Falha em qualquer passo = nada vai ao ar** |
+| `.github/workflows/vigia.yml` | de hora em hora | pergunta ao `/saude`; falha (e manda e-mail) se a borda não responde ou se a coleta passou de 24 h. O risco nunca foi a máquina cair — é ela parar **calada** |
+
+Falta um segredo no repositório para o fluxo semanal: `CLOUDFLARE_API_TOKEN` e
+`CLOUDFLARE_ACCOUNT_ID`.
+
+### O primeiro boletim
+
+`conteudo/giro/2026-09-21-giro-2026s38.md`, sobre 14 a 20/09: 261 itens de 13 fontes, 6
+assuntos repercutidos, 1 atraso apurado (mediana de 6 dias), 217 assuntos sem menção brasileira.
+
+⚠️ **Fica uma decisão para o Pedro:** a lista de repercussão da s38 é *GM/CarPlay, Apple iOS,
+Valve/Half-Life, Volvo XC60, OpenAI* e **uma** de automação industrial (Universal Robots). The
+Verge e Ars Technica publicam tecnologia de consumo em volume, e é isso que domina o critério
+de "repercutiu". Mesma família do Fórum Home Assistant: a lista de fontes decide o boletim.
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência
@@ -256,7 +328,8 @@ alheia inteira**. As três já estão ou cabem no método atual.
 
 | Quando | Marco | Depende de |
 |---|---|---|
-| ~~**14/09**~~ · ~~**21/09**~~ | **Os dois Giros não saíram.** O primeiro, agora, é o da s39 em **28/09** (segunda), com `npm run dossie -- --homolog`. O dossiê enfim tem o que contar: repercussão de verdade e o relógio medindo | Pedro escreve |
+| ~~**14/09**~~ · ~~**21/09**~~ | **Feito em 24/09, e automatizado.** O Giro da s38 saiu gerado dos dados; a partir da s39 sai sozinho toda segunda às 09:00 (`.github/workflows/giro-semanal.yml`) | — |
+| **28/09** (segunda) | **Primeira execução automática** do fluxo semanal. Exige os segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no repositório | Pedro (5 min) |
 | **até 30/09** | **Mais fontes brasileiras** — virou pré-requisito do Panorama, não backlog (seção 2d) | Pedro, com o sócio |
 | ~~até **20/09**~~ | **FEITO em 11/09**, nove dias antes: privacidade + finalidade no cadastro · notas internas fora de Blueprints · "Como funciona" alongado · artigo fixo na capa · botão de evento fora · relógio fora da capa · vocabulário · rótulo de publicidade | — |
 | **setembro** | **Logo:** opções do sócio → escolha do Pedro → prancha e ícones refeitos (`/marca`, favicon, OG) | sócio, depois eu |
@@ -294,9 +367,11 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [ ] **Peça paga pode ser `destaque: true`?** O compilador hoje permite — ou seja, dá para
       vender a capa. Não travei sozinho porque pode ser decisão comercial legítima; se não
       for, é uma linha no compilador.
-- [ ] **Fórum Home Assistant = 208 de 406 itens da s37 (51%).** Um fórum de automação
-      residencial domina a semana de um site de automação industrial. Baixar o peso, tirar da
-      fonte, ou aceitar e dizer no Giro?
+- [ ] **A lista de fontes decide o boletim, e hoje ela puxa para tecnologia de consumo.** A
+      repercussão da s38 saiu com Apple, Valve, Volvo e OpenAI, e só uma de automação industrial
+      (Universal Robots) — The Verge e Ars Technica publicam em volume. E o Fórum Home Assistant
+      segue sendo 297 dos 557 itens da semana, embora já domado (não ancora o relógio, e o
+      boletim conta comunidade à parte). Tirar, baixar o peso, ou aceitar e dizer no Giro?
 
 ### Eu — código
 
@@ -318,6 +393,9 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [ ] **Mais fontes brasileiras que marcam o relógio** — hoje 3, e elas escrevem sobre o Brasil.
       É o que separa um Panorama com distribuição de um Panorama com uma dezena de pares.
       **Deixou de ser backlog: é pré-requisito de dezembro.**
+- [x] ~~**Automatizar o Giro**~~ — **24/09**: boletim gerado dos números, sem modelo de linguagem,
+      com aviso na página, auditoria em duas camadas e fluxo semanal no GitHub Actions que aborta
+      antes de publicar errado. O vigia horário do `/saude` entrou junto.
 - [ ] Formulário de submissão de artigo com upload → `contato` ou tabela própria → eu diagramo.
 - [ ] Reescrever ou arquivar os docs da v1 (`CONCEITO`, `ARQUITETURA`, `FLUXOS`, `MODELO-DADOS`, `CAPACIDADE`, `ORGANOGRAMA`, `roadmap.html`).
 - [ ] Lint e formatação.
@@ -380,6 +458,9 @@ em dezembro; dataset com DOI junto dele.
 | **Publicação semanal aos domingos; a capa se move sozinha entre elas** | 11/09 |
 | "Peça" é termo do código; o leitor lê notícia, artigo, texto | 11/09 |
 | **Agrupamento por termo raro, medido na base — e sem IA** | 23/09 |
+| **O Giro é boletim gerado dos dados — e diz que é. Notícia, artigo e relatório, por gente** | 24/09 |
+| **Automatizar não exigiu IA: o que é contagem se gera por função pura** | 24/09 |
+| **Fluxo automático que falha não publica: erro em qualquer passo aborta tudo** | 24/09 |
 | **Fórum e rede social não ancoram o relógio; o dossiê conta comunidade à parte** | 23/09 |
 | **`assunto` é derivado: dá para reprocessar a base inteira quando o método melhorar** | 23/09 |
 
@@ -399,6 +480,11 @@ em dezembro; dataset com DOI junto dele.
 | Repositório público | quando o acordo do código estiver escrito |
 
 ## 9 · Mortos — não voltar sem fato novo
+
+> ⚠️ **A automação do Giro em 24/09 NÃO ressuscitou nada desta lista.** O boletim é função pura
+> sobre números medidos: sem modelo, sem chamada de rede, sem chave, sem teto de custo. Se algum
+> dia entrar modelo de linguagem no caminho, é outra decisão — e muda o que o site promete em
+> seis lugares.
 
 IA em produção · quatro núcleos · teto de custo e chave de API (o antigo A1) · tradução
 integral de terceiro · backoffice fora do git · o "Tema" no rodapé · a coluna lateral da peça.

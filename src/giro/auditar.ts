@@ -21,12 +21,27 @@
  * anterior e por isso apagava `em 12`, `de 40`, `a 7`: exatamente o formato
  * em que um número inventado aparece em português.
  */
+const MESES =
+  'janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro';
+
 export function numerosDe(texto: string): number[] {
   const limpo = texto
     .replace(/\b\d+(?:[.,]\d+)*\s*-\s*\d+\b/g, ' ')
     .replace(/\b\d+(?:[.,]\d+)+\b/g, ' ')
     // anos são fato de calendário, não afirmação sobre os dados
-    .replace(/\b(19|20)\d{2}\b/g, ' ');
+    .replace(/\b(19|20)\d{2}\b/g, ' ')
+    /* Data por extenso, pela mesma razão do ano: "15 de setembro" e "14 a 20
+       de setembro" são calendário, não medição. Entrou em 24/09/2026, quando o
+       Giro passou a ser gerado e trouxe a janela da semana no título e as
+       datas da agenda no corpo — sem isto, o dia 20 de um evento teria de
+       constar da lista de números apurados para o build não abortar, o que
+       misturaria calendário com dado.
+
+       ⚠️ A lista de meses é explícita de propósito. Um `\p{L}+` no lugar dela
+       apagaria "20 de fontes" e qualquer outro "N de <palavra>" — e a
+       auditoria que apaga demais é a que sempre passa. */
+    .replace(new RegExp(String.raw`\b\d{1,2}(?:\s+de\s+(?:${MESES}))?\s+a\s+\d{1,2}\s+de\s+(?:${MESES})\b`, 'gi'), ' ')
+    .replace(new RegExp(String.raw`\b\d{1,2}\s+de\s+(?:${MESES})\b`, 'gi'), ' ');
 
   return [...limpo.matchAll(/\b(\d+)\b/g)].map((m) => Number(m[1]));
 }

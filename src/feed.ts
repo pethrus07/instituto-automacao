@@ -25,7 +25,10 @@ function rfc822(data: string | null): string {
   return Number.isNaN(d.getTime()) ? new Date().toUTCString() : d.toUTCString();
 }
 
-function itemRss(base: string, p: Peca): string {
+function itemRss(base: string, p: Peca, env: Env): string {
+  /* Boletim gerado não tem pessoa no crédito: quem responde é a organização.
+     Inventar um nome aqui seria a mentira que `gerado: true` existe para
+     impedir. */
   const url = base + caminho(p);
   /* Peça paga sai rotulada no feed também — e no TÍTULO, porque leitor de
      feed é a superfície onde o rótulo mais some: muita gente varre só a
@@ -39,7 +42,7 @@ function itemRss(base: string, p: Peca): string {
       <guid isPermaLink="true">${x(url)}</guid>
       <pubDate>${rfc822(p.data)}</pubDate>
       <description>${x(descricao)}</description>
-      <dc:creator>${x(p.autor)}</dc:creator>
+      <dc:creator>${x(p.autor ?? env.SITE_NOME)}</dc:creator>
       <category>${x(ROTULO_SECAO[p.secao])}</category>${p.patrocinada ? '\n      <category>Publicidade</category>' : ''}
     </item>`;
 }
@@ -63,7 +66,7 @@ export function feed(env: Env, secao?: Secao): string {
     <description>${x(descricao)}</description>
     <language>pt-BR</language>
     <lastBuildDate>${rfc822(pecas[0]?.data ?? null)}</lastBuildDate>
-${pecas.map((p) => itemRss(base, p)).join('\n')}
+${pecas.map((p) => itemRss(base, p, env)).join('\n')}
   </channel>
 </rss>`;
 }

@@ -1,0 +1,102 @@
+# O GIRO DA SEMANA, toda segunda-feira, sozinho.
+#
+# Segunda 09:00 em São Paulo (12:00 UTC): a semana fechou no domingo, o cron da
+# borda já colheu o fim de semana inteiro, e o boletim sai antes do expediente.
+#
+# O que este fluxo faz, em ordem, e PARA no primeiro erro:
+#   1. gera o boletim dos números medidos (scripts/giro.ts, sem IA)
+#   2. compila — e o compilador ABORTA se a prosa tiver número que a apuração
+#      não tem, se o frontmatter estiver errado, se houver dois destaques...
+#   3. roda os testes de unidade e sobe o site para conferir com o QA inteiro
+#   4. só então publica e commita o arquivo
+#
+# ⚠️ Se qualquer passo falhar, NADA é publicado e NADA é commitado. Boletim
+# errado no ar é pior que boletim atrasado: o site publica os próprios dados, e
+# a confiança nisso é o produto.
+#
+# ⚠️ Semana sem item nenhum ABORTA em vez de virar um boletim que diz "zero".
+# Foi assim que o dossiê quase produziu um Giro vazio em 11/09/2026, quando
+# lia o banco errado — semana zerada com fontes ativas é defeito, não notícia.
+
+name: Giro da Semana
+
+on:
+  schedule:
+    - cron: '0 12 * * 1' # segunda, 12:00 UTC = 09:00 em São Paulo
+  workflow_dispatch: # e sob demanda, para a primeira vez e para refazer
+    inputs:
+      semana:
+        description: 'Semana (ex.: 2026-s39). Vazio = a que fechou no domingo.'
+        required: false
+        type: string
+      ensaio:
+        description: 'Só gerar e conferir, sem publicar nem commitar'
+        type: boolean
+        default: false
+
+# Um de cada vez: duas execuções commitando no mesmo branch se atropelam.
+concurrency:
+  group: giro-semanal
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # para commitar o boletim gerado
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      # O compilador rasteriza a imagem de compartilhamento com o Chromium do
+      # Playwright. Sem ele o build do boletim falha na hora de gerar o og.
+      - run: npx playwright install --with-deps chromium
+
+      - name: Gerar o boletim
+        run: npm run giro -- ${{ inputs.semana }} --homolog --gravar --refazer
+
+      - name: Compilar (a auditoria de números aborta aqui)
+        run: npm run compilar
+
+      - name: Testes de unidade
+        run: npm test
+
+      - name: Subir o site e rodar o QA inteiro
+        run: |
+          npx wrangler dev --port 8788 > /tmp/dev.log 2>&1 &
+          for i in $(seq 1 60); do
+            if [ "$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://127.0.0.1:8788/saude)" = "200" ]; then break; fi
+            sleep 1
+          done
+          npm run qa -- 8788
+
+      - name: Publicar
+        if: ${{ !inputs.ensaio }}
+        run: npm run deploy:homolog
+
+      - name: Commitar o boletim
+        if: ${{ !inputs.ensaio }}
+        run: |
+          git config user.name  "Instituto Automação"
+          git config user.email "noreply@institutoautomacao.com.br"
+          git add conteudo/giro/
+          if git diff --cached --quiet; then
+            echo "nada novo para commitar"
+            exit 0
+          fi
+          git commit -m "giro: boletim da semana, gerado dos dados
+
+          Gerado por .github/workflows/giro-semanal.yml a partir dos números
+          que o coletor mediu. Passou pela auditoria do compilador (todo
+          inteiro da prosa existe na apuração), pelos testes e pelo QA."
+          git push

@@ -4,7 +4,7 @@
 import { raw } from 'hono/html';
 import type { Context } from 'hono';
 import { Documento } from '../ui/Documento';
-import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa, PatrocinioCaixa } from '../ui/pecas';
+import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa, PatrocinioCaixa, GeradoCaixa } from '../ui/pecas';
 import { ldJson, colecaoLd, pecaLd, trilhaLd } from '../ui/jsonld';
 import { renderizarObra } from '../ui/markdown';
 import { CACHE, type Env } from '../config';
@@ -142,7 +142,7 @@ export function paginaDaPeca(p: Peca, env: Env) {
       url={url}
       tipoOg="article"
       imagemOg={p.imagem ? { url: p.og, largura: p.imagem.largura, altura: p.imagem.altura, alt: p.imagem.alt } : { url: p.og, largura: 1200, altura: 630, alt: p.titulo }}
-      artigo={{ publicado: p.data, autor: p.autor, secao: ROTULO_SECAO[p.secao] }}
+      artigo={{ publicado: p.data, autor: p.autor ?? env.SITE_NOME, secao: ROTULO_SECAO[p.secao] }}
       ld={[
         ldJson(pecaLd(p, base)),
         ldJson(trilhaLd([{ nome: 'Capa', url: `${base}/` }, { nome: ROTULO_SECAO[p.secao], url: `${base}/${p.secao}` }, { nome: p.tituloCurto ?? p.titulo, url }])),
@@ -159,6 +159,7 @@ export function paginaDaPeca(p: Peca, env: Env) {
         {/* O rótulo de publicidade vem ANTES da arte e do corpo: a lei fala em
             identificação imediata, e imediato é antes de começar a ler. */}
         <PatrocinioCaixa peca={p} />
+        <GeradoCaixa peca={p} />
 
         <Arte peca={p} classe="peca__arte" destaque />
 
@@ -174,9 +175,11 @@ export function paginaDaPeca(p: Peca, env: Env) {
           <footer class="peca__pe">
             <Aviso>
               <strong>Como este texto foi feito.</strong>{' '}
-              {p.fonte
-                ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
-                : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
+              {p.gerado
+                ? 'Montado a partir dos números apurados pelo coletor, por uma função que dá sempre o mesmo texto para os mesmos dados. Sem modelo de linguagem, e sem número que não esteja na apuração.'
+                : p.fonte
+                  ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
+                  : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
             </Aviso>
           </footer>
         </div>

@@ -239,8 +239,12 @@ titulo('B · Conformidade — P2, P3: as peças');
 checar('B', 'há ao menos uma peça publicada', pecas.length >= 1, 'site perfeito e vazio é a v1 com outra cara');
 for (const p of pecas) {
   const m = p.meta;
-  const ok2 = m.titulo && m.lead && m.autor && m.data && m.secao === p.secao && /^\d{4}-\d{2}-\d{2}$/.test(m.data);
-  checar('B', `P2 · ${p.arquivo}: autor, data, seção, título e lead`, Boolean(ok2), JSON.stringify(Object.keys(m)));
+  /* Boletim gerado (o Giro) não tem autor por desenho — ver `gerado` em
+     src/conteudo/tipos.ts. Em troca é obrigado a declarar `numeros:`, que é o
+     que a auditoria confere contra a prosa. */
+  const geradoAqui = m.gerado === 'true';
+  const ok2 = m.titulo && m.lead && (geradoAqui ? m.numeros : m.autor) && m.data && m.secao === p.secao && /^\d{4}-\d{2}-\d{2}$/.test(m.data);
+  checar('B', `P2 · ${p.arquivo}: ${geradoAqui ? 'números' : 'autor'}, data, seção, título e lead`, Boolean(ok2), JSON.stringify(Object.keys(m)));
   checar('B', `${p.arquivo}: o nome do arquivo casa com a data`, m.data === p.dataNome);
   if (p.secao === 'noticias') {
     checar('B', `P3 · ${p.slug}: veredito na categoria fechada`, ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'].includes(m.veredito), m.veredito);
@@ -256,10 +260,14 @@ for (const p of pecas) {
 /* a página de cada peça */
 for (const p of pecas) {
   const html = respostas[`/${p.secao}/${p.slug}`].corpo;
-  checar('B', `/${p.secao}/${p.slug} mostra o autor`, html.includes(p.meta.autor));
+  checar('B', `/${p.secao}/${p.slug} mostra ${p.meta.gerado === 'true' ? 'a origem' : 'o autor'}`,
+    p.meta.gerado === 'true' ? html.includes('Gerado dos dados do Instituto') : html.includes(p.meta.autor));
   checar('B', `/${p.secao}/${p.slug} tem arte (foto licenciada, desenhada ou gerada)`, /data-arte="(foto|desenhada|gerada)"/.test(html));
   checar('B', `/${p.secao}/${p.slug} declara como foi feito`, html.includes('Como este texto foi feito'));
-  checar('B', `/${p.secao}/${p.slug} nega máquina na redação`, html.includes('por máquina'));
+  /* Peça de gente nega a máquina; boletim gerado nega o MODELO DE LINGUAGEM,
+     que é a afirmação que cabe a ele. Nenhum dos dois pode ficar calado. */
+  checar('B', `/${p.secao}/${p.slug} declara o que é, sobre máquina`,
+    p.meta.gerado === 'true' ? html.includes('Sem modelo de linguagem') : html.includes('por máquina'));
   if (p.secao === 'noticias') {
     const ancorasFonte = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]).filter((t) => t.includes(p.meta.fonte.url));
     checar('B', `/${p.secao}/${p.slug} credita a fonte com link`, ancorasFonte.length >= 1);
@@ -658,7 +666,7 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   const arquivosAutor = readdirSync(join(RAIZ, 'conteudo', 'autores')).filter((n) => n.endsWith('.md'));
   const nomesAutor = arquivosAutor.map((n) => /^nome:\s*(.+)$/m.exec(readFileSync(join(RAIZ, 'conteudo', 'autores', n), 'utf8'))?.[1]?.trim());
   checar('B', 'há pelo menos um autor em conteudo/autores/', arquivosAutor.length >= 1, arquivosAutor.join(', '));
-  const semArquivo = [...new Set(pecas.map((p) => p.meta.autor))].filter((a) => !nomesAutor.includes(a));
+  const semArquivo = [...new Set(pecas.filter((p) => p.meta.gerado !== 'true').map((p) => p.meta.autor))].filter((a) => !nomesAutor.includes(a));
   checar('B', 'toda peça aponta para um autor que existe em conteudo/autores/', semArquivo.length === 0, semArquivo.join(', '));
   for (const n of arquivosAutor) {
     const t = readFileSync(join(RAIZ, 'conteudo', 'autores', n), 'utf8');
@@ -722,6 +730,29 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
     /fontes brasileiras que marcam o\s+relógio/.test(blue) && /(par apurado|pares apurados)/.test(blue));
   checar('B', 'Blueprints trata o que nunca chegou como achado, não como falha',
     /são o achado<\/strong>/.test(blue));
+
+  /* ------------------------------------------------------- boletim gerado
+     O Giro passou a ser gerado dos dados em 24/09/2026. Isso é o tipo de
+     mudança que faz um site começar a mentir por omissão, então as travas são
+     do mesmo tamanho: a peça tem de se declarar, as promessas do site têm de
+     ter sido ESTREITADAS (e não apagadas), e nenhuma outra seção pode ser
+     gerada. */
+  const gerados = pecas.filter((p) => p.meta.gerado === 'true');
+  checar('B', 'só o Giro pode ser boletim gerado', gerados.every((p) => p.secao === 'giro'), gerados.map((p) => `${p.secao}/${p.slug}`).join(', '));
+  checar('B', 'boletim gerado não declara autor (dizer que uma pessoa escreveu seria o engano)',
+    gerados.every((p) => p.meta.autor === undefined));
+  checar('B', 'boletim gerado declara os números que a prosa pode usar', gerados.every((p) => (p.meta.numeros ?? '').trim().length > 0));
+  for (const p of gerados) {
+    const html = respostas[`/${p.secao}/${p.slug}`]?.corpo ?? '';
+    checar('B', `/${p.secao}/${p.slug} avisa no alto que é gerado, e nega o modelo de linguagem`,
+      /Boletim gerado dos dados/.test(html) && /Não há modelo de linguagem/.test(html));
+    checar('B', `/${p.secao}/${p.slug} assina a origem, não uma pessoa`,
+      /Gerado dos dados do Instituto/.test(html) && !/rel="author"/.test(html));
+  }
+  checar('B', 'o rodapé estreitou a promessa em vez de apagá-la (notícia/artigo/relatório por gente, Giro gerado)',
+    /Notícia, artigo e relatório: escritos por gente/.test(capaHtml) && /Giro é boletim de números, gerado da apuração/.test(capaHtml));
+  checar('B', 'Blueprints declara o Giro como a exceção, e diz que segue sem modelo de linguagem',
+    /O Giro da Semana é a exceção/.test(blue) && /sem modelo de\s+linguagem no caminho|não havendo modelo de\s+linguagem/.test(blue));
 
   /* ------------------------------------------------------- 11/09/2026
      O que as decisões desta data prometeram, virado asserção. */

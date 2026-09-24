@@ -78,10 +78,17 @@ const MEDIR = `(() => {
      a tabela de fontes em .scroll-x) transborda de propósito — é o desenho,
      não o defeito. Sem esta exceção a lista enchia de falso positivo e, como
      ela para em 6, um transbordo de verdade ficava escondido atrás do ruído. */
+  /* Um ancestral que RECORTA impede o vazamento, seja ele rolador
+     (auto/scroll) ou cortador (hidden/clip). A segunda metade entrou em
+     24/09/2026: a arte gerada da capa é um SVG com preserveAspectRatio=slice
+     dentro de .arte com overflow hidden, e os rect/line internos dele
+     reportavam retângulo além da viewport — visualmente recortados, e
+     contados como transbordo. Falso positivo aqui não é inofensivo: a lista
+     para em 6, e ruído esconde o vazamento de verdade. */
   const emRolador = (el) => {
     for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
       const ox = getComputedStyle(p).overflowX;
-      if (ox === 'auto' || ox === 'scroll') return true;
+      if (ox === 'auto' || ox === 'scroll' || ox === 'hidden' || ox === 'clip') return true;
     }
     return false;
   };

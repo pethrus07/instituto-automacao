@@ -227,6 +227,29 @@ export const PatrocinioCaixa = (p: { peca: Peca }) =>
     </aside>
   ) : null;
 
+/**
+ * O aviso de boletim gerado — no alto, antes do texto.
+ *
+ * O site promete que notícia, artigo e relatório são escritos por gente. O
+ * Giro não é, e quem chega nele tem de saber disso antes de ler, não depois.
+ * O aviso diz as duas coisas que importam: de onde vem o texto, e que não há
+ * modelo de linguagem no caminho — porque "gerado" hoje faz todo mundo supor
+ * o contrário.
+ */
+export const GeradoCaixa = (p: { peca: Peca }) =>
+  p.peca.gerado ? (
+    <aside class="publi-caixa" aria-label="Aviso de boletim gerado">
+      <p class="publi-caixa__rotulo">Boletim gerado dos dados</p>
+      <p class="publi-caixa__texto">
+        Este Giro não foi redigido por uma pessoa: é montado <strong>a partir dos números que o
+        coletor mediu</strong>, pela mesma função toda semana — os mesmos dados produzem sempre o
+        mesmo texto. <strong>Não há modelo de linguagem envolvido</strong>, e nenhum número aqui
+        existe sem estar antes na apuração. Notícia, artigo e relatório continuam escritos por
+        gente, com nome. O método está em <a href="/blueprints">Blueprints</a>.
+      </p>
+    </aside>
+  ) : null;
+
 /** Seção · tema, o veredito quando houver, e o rótulo quando a peça for paga. */
 export const Etiquetas = (p: { peca: Peca; comVeredito?: boolean }) => (
   <div class="etiquetas">
@@ -245,7 +268,14 @@ export const AssinaturaPeca = (p: { peca: Peca; completa?: boolean }) => {
   const autor = autorDe(q);
   return (
     <div class="assinatura">
-      {autor ? (
+      {/* Boletim gerado não tem pessoa a creditar. A assinatura mostra a
+          ORIGEM — e leva ao método, que é o que substitui o nome: quem quiser
+          checar confere a apuração, não a biografia de ninguém. */}
+      {q.gerado ? (
+        <a href="/blueprints" class="assinatura__autor">
+          Gerado dos dados do Instituto
+        </a>
+      ) : autor ? (
         <a href={caminhoAutor(autor)} rel="author" class="assinatura__autor">
           {q.autor}
         </a>

@@ -53,7 +53,7 @@ paginasDeAutor.get('/autores', (c) => {
           <span class="kicker">O Instituto</span>
           <h1>Quem escreve</h1>
           <p class="cabeca-secao__lead">
-            Todo texto tem autor, e o autor tem página. O que a pessoa faz, o que já publicou aqui, e
+            Toda notícia, artigo e relatório tem autor, e o autor tem página. O que a pessoa faz, o que já publicou aqui, e
             o caminho para o currículo dela.
           </p>
         </header>

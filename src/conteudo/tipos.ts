@@ -85,8 +85,8 @@ export type Peca = {
   /** o título da aba e do resultado de busca (≤ 70 caracteres); o inteiro fica no h1 */
   tituloCurto?: string;
   lead: string;
-  /** o NOME do autor, igual ao `nome` de um arquivo em conteudo/autores/ */
-  autor: string;
+  /** o NOME do autor, igual ao `nome` de um arquivo em conteudo/autores/. Ausente só em boletim gerado */
+  autor?: string;
   /** YYYY-MM-DD */
   data: string;
   /** obrigatório em notícia; ausente em artigo, relatório e giro */
@@ -97,6 +97,19 @@ export type Peca = {
   imagem?: Imagem;
   /** nome do arquivo em conteudo/arte/, sem caminho — o desenho nosso */
   arte?: string;
+  /**
+   * boletim GERADO dos dados, não redigido por uma pessoa. Só em `giro`.
+   *
+   * Existe para o site não poder mentir por omissão: peça gerada não tem
+   * autor, então a assinatura mostra a origem em vez de um nome, e a página
+   * leva o aviso. Notícia, artigo e relatório continuam exigindo autor com
+   * arquivo em conteudo/autores/ — a promessa do rodapé foi estreitada para
+   * eles, não apagada.
+   *
+   * E não é modelo de linguagem: `src/giro/redigir.ts` é função pura sobre os
+   * números medidos. Mesmos dados, mesmo texto.
+   */
+  gerado?: boolean;
   /** a peça que abre a capa; no máximo uma, decidida por gente */
   destaque?: boolean;
   /**

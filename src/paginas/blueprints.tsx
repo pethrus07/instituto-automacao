@@ -148,8 +148,16 @@ blueprints.get('/blueprints', async (c) => {
           <div class="obra" style="font-size: var(--step-0); margin-block-start: var(--space-m)">
             <p>
               <strong>Não há inteligência artificial em produção.</strong> Nenhum texto deste site foi
-              traduzido ou redigido por modelo. Todo texto tem autor, e a responsabilidade pelo que
-              está escrito é de quem assina. Hoje são {pecas.length} texto{pecas.length === 1 ? '' : 's'}.
+              traduzido ou redigido por modelo de linguagem. Notícia, artigo e relatório são escritos
+              por uma pessoa, e a responsabilidade pelo que está escrito é de quem assina. Hoje são{' '}
+              {pecas.length} texto{pecas.length === 1 ? '' : 's'}.
+            </p>
+            <p>
+              <strong>O Giro da Semana é a exceção, e ele diz que é.</strong> Aquele boletim não é
+              escrito por uma pessoa: é montado a partir dos números que o coletor mediu, pela mesma
+              função toda semana — mesmos dados, mesmo texto. Continua não havendo modelo de
+              linguagem no caminho, e cada número da prosa tem de existir na apuração antes, senão o
+              compilador recusa publicar. A página do Giro traz o aviso no alto.
             </p>
             <p>
               <strong>E quando um texto for pago, ele diz.</strong> O Instituto pode publicar conteúdo

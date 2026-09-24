@@ -141,7 +141,7 @@ export const Documento = (p: Props) => {
         <header class="cabecalho">
           <div class="wrap dateline">
             <span class="dateline__data">{dataHoje()}</span>
-            <span class="dateline__nota">Nada aqui é gerado por máquina. Todo texto tem autor.</span>
+            <span class="dateline__nota">Sem IA. Notícia, artigo e relatório têm autor.</span>
             <a class="dateline__link" href="/feed.xml">
               RSS
             </a>
@@ -233,7 +233,7 @@ export const Documento = (p: Props) => {
             </nav>
           </div>
           <div class="wrap rodape__pe">
-            <span>Nada aqui é gerado por máquina. Todo texto tem autor.</span>
+            <span>Notícia, artigo e relatório: escritos por gente, com nome. O Giro é boletim de números, gerado da apuração.</span>
             <span class="rodape__colofao">Composto em Newsreader e IBM Plex · Sem rastreador, sem terceiro na página</span>
           </div>
         </footer>

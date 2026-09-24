@@ -1,0 +1,61 @@
+# O VIGIA — o site parou de colher e ninguém viu?
+#
+# O risco operacional deste projeto nunca foi a máquina cair: é ela parar
+# CALADA. O coletor roda no cron da borda a cada 15 minutos e não avisa
+# ninguém quando para; em 11/09/2026 o banco local estava parado havia uma
+# semana e só se descobriu por acaso, ao rodar um dossiê.
+#
+# Este fluxo pergunta ao /saude de hora em hora e FALHA quando a resposta não
+# presta. Falhar é o ponto: workflow vermelho manda e-mail, e e-mail é o canal
+# que já existe — não precisa de painel, de serviço de terceiro nem de conta
+# nova em lugar nenhum.
+#
+# Não há segredo aqui: /saude é público e não diz nada que o site já não diga.
+
+name: Vigia
+
+on:
+  schedule:
+    - cron: '17 * * * *' # de hora em hora, fora do minuto cheio
+  workflow_dispatch:
+
+concurrency:
+  group: vigia
+  cancel-in-progress: true
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: A borda responde, e a coleta está em dia?
+        run: |
+          SITE="https://instituto-automacao-homolog.desbravando-utv.workers.dev"
+          # O teto é 24 h e não 1 h de propósito: fonte com intervalo longo e
+          # fim de semana quieto são normais. O que este alarme pega é a
+          # coleta PARADA, não a coleta lenta.
+          TETO_HORAS=24
+
+          echo "· perguntando a $SITE/saude"
+          if ! SAUDE=$(curl -fsS --max-time 30 "$SITE/saude"); then
+            echo "::error::A borda não respondeu o /saude. O site pode estar fora."
+            exit 1
+          fi
+          echo "$SAUDE"
+
+          OK=$(echo "$SAUDE" | python3 -c "import json,sys; print(json.load(sys.stdin).get('ok'))")
+          if [ "$OK" != "True" ]; then
+            echo "::error::/saude respondeu, mas diz que NÃO está ok — provável falha de banco."
+            exit 1
+          fi
+
+          HORAS=$(echo "$SAUDE" | python3 -c "import json,sys; c=json.load(sys.stdin).get('coleta') or {}; print(c.get('horas') if c.get('horas') is not None else -1)")
+          if [ "$HORAS" -lt 0 ]; then
+            echo "::error::O banco não tem coleta nenhuma registrada."
+            exit 1
+          fi
+          if [ "$HORAS" -gt "$TETO_HORAS" ]; then
+            echo "::error::Última coleta há ${HORAS}h (teto: ${TETO_HORAS}h). O cron parou, ou as fontes pararam de responder."
+            exit 1
+          fi
+
+          echo "✓ coleta há ${HORAS}h — dentro do teto de ${TETO_HORAS}h"
