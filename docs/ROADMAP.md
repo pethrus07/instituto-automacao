@@ -296,6 +296,58 @@ de "repercutiu". Mesma família do Fórum Home Assistant: a lista de fontes deci
 
 ---
 
+## 2f · 24/09 (tarde) — 10% do corpus era o assunto do site
+
+Ao gerar o Giro atrasado da s37, a lista de "o que repercutiu" saiu assim: *"Trump White House
+tossed a grenade into international space relations"* e *"ChatGPT Sketch turns your bad drawings
+into AI images"*. Nenhuma das duas é automação. Medi a composição do que o coletor traz, desde
+07/09:
+
+| | itens | |
+|---|---|---|
+| Fórum Home Assistant | 751 | 52% |
+| Tecnologia geral (The Verge, Ars Technica, Willison, Marcus, Mollick) | 558 | 38% |
+| **Automação** | **150** | **10%** |
+
+**Um décimo do que o site colhe é sobre o assunto do site.** Isso explicava de uma vez a
+repercussão fora do tema, o relógio que quase não mede (as fontes brasileiras industriais não
+têm assunto em comum com o que a Verge publica) e o número de "assuntos que não chegaram ao
+Brasil", que contava notícia de consumo que obviamente não chega à imprensa industrial daqui.
+
+### A decisão, e o mecanismo
+
+O Pedro escolheu **marcar como contexto, não tirar**. Migração 008: coluna `papel` em `fonte`
+(`setor` | `contexto`), e as fontes de tecnologia geral viraram contexto. Três baldes:
+
+- **setor** — é o que o Giro conta;
+- **contexto** — colhido, vira pauta, fica **fora** dos números da semana e da repercussão;
+- **comunidade** — fórum e rede social, como já era.
+
+⚠️ **O relógio NÃO usa esse filtro, de propósito.** Se uma fonte de contexto publica sobre
+robótica e uma fonte brasileira repercute, o atraso medido é verdadeiro. O filtro é sobre o que
+o boletim **conta**, não sobre o que a base **mede**.
+
+### O efeito, medido
+
+| | antes | depois |
+|---|---|---|
+| s37 · itens da semana | 280 | **59** |
+| s37 · repercutiu | Trump, ChatGPT | **nada** — e o boletim diz isso |
+| s38 · itens da semana | 261 | **60** |
+| s38 · repercutiu | Apple, Valve, Volvo, GM, OpenAI, Universal Robots | **só a Universal Robots na IMTS** — que é exatamente o par que o relógio mediu |
+
+A s38 foi **regerada e republicada**: uma série de medição não pode ter duas réguas, e o
+boletim tinha um dia de vida num ambiente `noindex`.
+
+### Fica em aberto
+
+Duas fontes de classificação duvidosa que não mexi: **IEEE Spectrum · IA** (engenharia, mas
+publicou sobre refrigeração de data center) e **Home Assistant** (automação, mas residencial).
+E **4 fontes bloqueadas pelo robots.txt** desde sempre — GitHub releases, Reddit · PLC e
+YouTube — que são justamente on-topic. O Reddit · PLC é a perda mais sentida.
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência
@@ -367,11 +419,12 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [ ] **Peça paga pode ser `destaque: true`?** O compilador hoje permite — ou seja, dá para
       vender a capa. Não travei sozinho porque pode ser decisão comercial legítima; se não
       for, é uma linha no compilador.
-- [ ] **A lista de fontes decide o boletim, e hoje ela puxa para tecnologia de consumo.** A
-      repercussão da s38 saiu com Apple, Valve, Volvo e OpenAI, e só uma de automação industrial
-      (Universal Robots) — The Verge e Ars Technica publicam em volume. E o Fórum Home Assistant
-      segue sendo 297 dos 557 itens da semana, embora já domado (não ancora o relógio, e o
-      boletim conta comunidade à parte). Tirar, baixar o peso, ou aceitar e dizer no Giro?
+- [x] ~~**A lista de fontes decide o boletim**~~ — resolvido em 24/09 com a coluna `papel`
+      (seção 2f): tecnologia geral virou **contexto**, fora dos números da semana.
+- [ ] **Duas classificações duvidosas:** IEEE Spectrum · IA é setor ou contexto? E o Home
+      Assistant (press), que é automação mas residencial?
+- [ ] **4 fontes on-topic bloqueadas pelo robots.txt** desde sempre (GitHub releases, Reddit ·
+      PLC, YouTube). O Reddit · PLC é a perda mais sentida — vale procurar outro caminho.
 
 ### Eu — código
 
@@ -461,6 +514,8 @@ em dezembro; dataset com DOI junto dele.
 | **O Giro é boletim gerado dos dados — e diz que é. Notícia, artigo e relatório, por gente** | 24/09 |
 | **Automatizar não exigiu IA: o que é contagem se gera por função pura** | 24/09 |
 | **Fluxo automático que falha não publica: erro em qualquer passo aborta tudo** | 24/09 |
+| **O balanço da semana é do SETOR; contexto e comunidade contam à parte** | 24/09 |
+| **O filtro vale para o que o boletim CONTA, não para o que a base MEDE** | 24/09 |
 | **Fórum e rede social não ancoram o relógio; o dossiê conta comunidade à parte** | 23/09 |
 | **`assunto` é derivado: dá para reprocessar a base inteira quando o método melhorar** | 23/09 |
 

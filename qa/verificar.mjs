@@ -751,6 +751,14 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   }
   checar('B', 'o rodapé estreitou a promessa em vez de apagá-la (notícia/artigo/relatório por gente, Giro gerado)',
     /Notícia, artigo e relatório: escritos por gente/.test(capaHtml) && /Giro é boletim de números, gerado da apuração/.test(capaHtml));
+  /* O balanço da semana é do SETOR. Sem esta separação o boletim da s37 dizia
+     que o que repercutiu na automação foi "Trump tossed a grenade into space
+     relations" — 10% do corpus era automação, e o resto entrava na conta. */
+  for (const p of gerados) {
+    const html = respostas[`/${p.secao}/${p.slug}`]?.corpo ?? '';
+    checar('B', `/${p.secao}/${p.slug} conta o SETOR e põe contexto e comunidade à parte`,
+      /não entram nos números acima/.test(html) || !/acompanha o que corre em volta/.test(html));
+  }
   checar('B', 'Blueprints declara o Giro como a exceção, e diz que segue sem modelo de linguagem',
     /O Giro da Semana é a exceção/.test(blue) && /sem modelo de\s+linguagem no caminho|não havendo modelo de\s+linguagem/.test(blue));
 

@@ -43,6 +43,7 @@ export type Semana = {
   janela: { inicio: string; fim: string; slug: string; rotulo: string };
   itens: number;
   comunidade: number;
+  contexto: number;
   fontes: number;
   assuntos: number;
   sozinhos: number;
@@ -134,12 +135,15 @@ export function redigirGiro(s: Semana): GiroRedigido {
       `Esses itens se agruparam em ${s.assuntos} ${plural(s.assuntos, 'assunto', 'assuntos')} distintos, dos quais ` +
       `${s.sozinhos} ${plural(s.sozinhos, 'apareceu', 'apareceram')} em uma fonte só.`,
   );
-  if (s.comunidade > 0) {
+  if (s.comunidade > 0 || s.contexto > 0) {
+    const fora: string[] = [];
+    if (s.contexto > 0) fora.push(`${s.contexto} de veículos de tecnologia geral`);
+    if (s.comunidade > 0) fora.push(`${s.comunidade} de fóruns e redes sociais`);
     l.push('');
     l.push(
-      `Fóruns e redes sociais somaram outros ${s.comunidade} ${plural(s.comunidade, 'item', 'itens')} no mesmo ` +
-        `período. Eles não entram nos números acima: thread de comunidade é atividade, não publicação, e misturar ` +
-        `as duas coisas inflaria a semana sem dizer nada sobre o setor.`,
+      `O Instituto também acompanha o que corre em volta: ${lista(fora)} no mesmo período. ` +
+        `Esses itens viram pauta e contexto, mas **não entram nos números acima** — o balanço da ` +
+        `semana é do setor de automação, e somar tudo inflaria o total sem dizer nada sobre ele.`,
     );
   }
 
@@ -233,7 +237,7 @@ export function redigirGiro(s: Semana): GiroRedigido {
   const reproduzidos = [...s.repercutidos.map((r) => r.rotulo), ...s.agenda.map((e) => e.nome), ...s.pecas.map((p) => p.titulo)];
 
   const numeros = new Set<number>([
-    s.itens, s.comunidade, s.fontes, s.assuntos, s.sozinhos,
+    s.itens, s.comunidade, s.contexto, s.fontes, s.assuntos, s.sozinhos,
     s.relogio.medidos, s.relogio.nao_chegaram,
     s.repercutidos.length, s.agenda.length, s.pecas.length,
     ...(s.relogio.mediana !== null ? [s.relogio.mediana] : []),

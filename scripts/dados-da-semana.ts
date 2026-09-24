@@ -27,18 +27,32 @@ export const BANCOS = {
 export type QualBanco = keyof typeof BANCOS;
 
 /**
- * IMPRENSA e COMUNIDADE contadas separado.
+ * TRÊS BALDES, e os números da semana são de um só.
  *
- * Em 23/09/2026 o Fórum Home Assistant sozinho era 297 dos 557 itens da s38 —
- * 53%. Somar tudo num total só faria o Giro dizer "a semana teve 557 itens"
- * quando metade é thread de fórum de automação residencial num site de
- * automação industrial. O número que descreve a semana do SETOR é o de
- * imprensa; o fórum é atividade de comunidade, e aparece dito assim.
+ * Medido em 24/09/2026, desde 07/09: de 1.459 itens colhidos, 751 (52%) eram
+ * do Fórum Home Assistant, 558 (38%) de tecnologia geral (The Verge, Ars
+ * Technica e comentaristas de IA) e 150 (10%) do setor de automação.
+ *
+ *   SETOR       o assunto do site. É ele que o Giro conta.
+ *   CONTEXTO    tecnologia geral e comentário de IA (`papel = 'contexto'`).
+ *               Continuam colhidos e servem de pauta; ficam fora dos números
+ *               da semana e da repercussão.
+ *   COMUNIDADE  fórum e rede social (`tipo`). Atividade, não publicação.
+ *
+ * Sem essa separação o boletim da s37 dizia que o que repercutiu no setor de
+ * automação foi "Trump White House tossed a grenade into space relations".
+ *
+ * ⚠️ O RELÓGIO não usa este filtro, de propósito: se uma fonte de contexto
+ * publica sobre robótica e uma fonte brasileira repercute, o atraso medido é
+ * verdadeiro. O filtro é sobre o que o boletim CONTA, não sobre o que a base
+ * MEDE.
  */
-const PUBLICACAO = `f.tipo NOT IN ('forum','social')`;
+const SETOR = `f.tipo NOT IN ('forum','social') AND f.papel = 'setor'`;
+const CONTEXTO = `f.tipo NOT IN ('forum','social') AND f.papel = 'contexto'`;
+const COMUNIDADE = `f.tipo IN ('forum','social')`;
 
 export type Repercutido = { rotulo: string; fontes: number; chegou: number };
-export type Fonte = { nome: string; pessoa: string | null; pais: string; tipo: string; n: number };
+export type Fonte = { nome: string; pessoa: string | null; pais: string; tipo: string; papel: string; n: number };
 export type Evento = { nome: string; slug: string; inicio: string; cidade: string | null; pais: string };
 export type PecaDaSemana = { titulo: string; secao: string; data: string; slug: string };
 
@@ -48,8 +62,12 @@ export type DadosDaSemana = {
   apuradoEm: string;
   /** a semana ainda não fechou: serve para olhar, não para publicar */
   aberta: boolean;
+  /** itens do SETOR — é o número que o boletim conta */
   itens: number;
+  /** fórum e rede social */
   comunidade: number;
+  /** tecnologia geral: colhida, fora da conta da semana */
+  contexto: number;
   fontes: number;
   assuntos: number;
   sozinhos: number;
@@ -78,18 +96,23 @@ export function colherSemana(janela: Janela, qual: QualBanco): DadosDaSemana {
   const { inicio, fim } = janela;
   const q = (s: string) => `'${s}'`;
 
-  const totais = sql<{ itens: number; fontes: number; assuntos: number; comunidade: number }>(
-    `SELECT COUNT(*) itens, COUNT(DISTINCT i.fonte_id) fontes, COUNT(DISTINCT i.assunto_id) assuntos,
-            (SELECT COUNT(*) FROM item i2 JOIN fonte f2 ON f2.id = i2.fonte_id
-              WHERE f2.ativo = 1 AND f2.tipo IN ('forum','social')
-                AND i2.publicado_fonte >= ${q(inicio)} AND i2.publicado_fonte < ${q(fim)}) comunidade
+  const naJanela = `i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}`;
+  const contar = (filtro: string) =>
+    sql<{ n: number }>(
+      `SELECT COUNT(*) n FROM item i JOIN fonte f ON f.id = i.fonte_id
+        WHERE f.ativo = 1 AND ${filtro} AND ${naJanela}`,
+    )[0]!.n;
+
+  const totais = sql<{ itens: number; fontes: number; assuntos: number }>(
+    `SELECT COUNT(*) itens, COUNT(DISTINCT i.fonte_id) fontes, COUNT(DISTINCT i.assunto_id) assuntos
        FROM item i JOIN fonte f ON f.id = i.fonte_id
-      WHERE f.ativo = 1 AND ${PUBLICACAO}
-        AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}`,
+      WHERE f.ativo = 1 AND ${SETOR} AND ${naJanela}`,
   )[0]!;
+  const comunidade = contar(COMUNIDADE);
+  const contexto = contar(CONTEXTO);
 
   const porFonte = sql<Fonte>(
-    `SELECT f.nome, f.pessoa, f.pais, f.tipo, COUNT(*) n
+    `SELECT f.nome, f.pessoa, f.pais, f.tipo, f.papel, COUNT(*) n
        FROM item i JOIN fonte f ON f.id = i.fonte_id
       WHERE f.ativo = 1 AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
       GROUP BY f.id ORDER BY n DESC`,
@@ -99,7 +122,7 @@ export function colherSemana(janela: Janela, qual: QualBanco): DadosDaSemana {
     `SELECT a.rotulo, COUNT(DISTINCT i.fonte_id) fontes,
             CASE WHEN a.primeira_mencao_br IS NULL THEN 0 ELSE 1 END chegou
        FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
-      WHERE f.ativo = 1 AND ${PUBLICACAO}
+      WHERE f.ativo = 1 AND ${SETOR}
         AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
       GROUP BY a.id HAVING fontes >= 2 ORDER BY fontes DESC LIMIT 10`,
   );
@@ -107,7 +130,7 @@ export function colherSemana(janela: Janela, qual: QualBanco): DadosDaSemana {
   const sozinhos = sql<{ n: number }>(
     `SELECT COUNT(*) n FROM (
        SELECT a.id FROM assunto a JOIN item i ON i.assunto_id = a.id JOIN fonte f ON f.id = i.fonte_id
-        WHERE f.ativo = 1 AND ${PUBLICACAO}
+        WHERE f.ativo = 1 AND ${SETOR}
           AND i.publicado_fonte >= ${q(inicio)} AND i.publicado_fonte < ${q(fim)}
         GROUP BY a.id HAVING COUNT(DISTINCT i.fonte_id) = 1)`,
   )[0]!.n;
@@ -150,7 +173,8 @@ export function colherSemana(janela: Janela, qual: QualBanco): DadosDaSemana {
     apuradoEm: new Date().toISOString().slice(0, 16).replace('T', ' '),
     aberta: new Date(janela.fim).getTime() > Date.now(),
     itens: totais.itens,
-    comunidade: totais.comunidade,
+    comunidade,
+    contexto,
     fontes: totais.fontes,
     assuntos: totais.assuntos,
     sozinhos,
@@ -171,7 +195,7 @@ export function colherSemana(janela: Janela, qual: QualBanco): DadosDaSemana {
  */
 export function numerosPermitidos(d: DadosDaSemana): number[] {
   const n = new Set<number>([
-    d.itens, d.comunidade, d.fontes, d.assuntos, d.sozinhos,
+    d.itens, d.comunidade, d.contexto, d.fontes, d.assuntos, d.sozinhos,
     d.relogio.medidos, d.relogio.nao_chegaram,
     d.repercutidos.length, d.agenda.length, d.pecas.length,
     ...(d.relogio.mediana !== null ? [d.relogio.mediana] : []),

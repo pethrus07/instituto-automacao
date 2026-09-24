@@ -95,8 +95,9 @@ if (aberta) {
 }
 l.push('');
 l.push('## Totais');
-l.push(`- itens publicados pelas fontes de imprensa: **${d.itens}**`);
-l.push(`- itens de fórum e rede social (comunidade, à parte): **${d.comunidade}**`);
+l.push(`- itens do SETOR (é o que o boletim conta): **${d.itens}**`);
+l.push(`- tecnologia geral, à parte: **${d.contexto}**`);
+l.push(`- fórum e rede social, à parte: **${d.comunidade}**`);
 l.push(`- fontes que publicaram: **${d.fontes}**`);
 l.push(`- assuntos distintos: **${d.assuntos}**`);
 l.push(`- assuntos com uma fonte só: **${d.sozinhos}**`);
@@ -112,8 +113,8 @@ l.push(`- assuntos da semana ainda sem menção brasileira: **${d.relogio.nao_ch
 l.push('');
 l.push('## Por fonte');
 for (const f of d.porFonte) {
-  const comunidade = f.tipo === 'forum' || f.tipo === 'social';
-  l.push(`- ${f.pessoa ?? f.nome} (${f.pais})${comunidade ? ' · comunidade' : ''}: ${f.n}`);
+  const papel = f.tipo === 'forum' || f.tipo === 'social' ? ' · comunidade' : f.papel === 'contexto' ? ' · contexto' : '';
+  l.push(`- ${f.pessoa ?? f.nome} (${f.pais})${papel}: ${f.n}`);
 }
 l.push('');
 l.push('## O que publicamos na semana');

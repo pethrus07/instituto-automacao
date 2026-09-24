@@ -82,7 +82,7 @@ conferir('a auditoria lista o que usou', auditarNumeros(BOM, PERMITIDOS).usados.
 
 const SEMANA_BASE = {
   janela: { inicio: '2026-09-14T00:00:00.000Z', fim: '2026-09-21T00:00:00.000Z', slug: '2026-s38', rotulo: '14 a 20 de setembro de 2026' },
-  itens: 261, comunidade: 297, fontes: 13, assuntos: 248, sozinhos: 242,
+  itens: 60, comunidade: 297, contexto: 201, fontes: 8, assuntos: 58, sozinhos: 57,
   repercutidos: [{ rotulo: 'Universal Robots launches at IMTS', fontes: 2, chegou: 1 }],
   porFonte: [{ nome: 'The Verge', pessoa: null, pais: 'US', tipo: 'imprensa', n: 101 }],
   relogio: { medidos: 1, mediana: 6, nao_chegaram: 217 },
@@ -95,7 +95,8 @@ const cheio = redigirGiro(SEMANA_BASE);
 conferir('o boletim é reproduzível: mesmos dados, mesmo texto', redigirGiro(SEMANA_BASE).corpo === cheio.corpo, true);
 conferir('o relógio medido aparece com a mediana', /mediana ficou em \*\*6 dias\*\*/.test(cheio.corpo), true);
 conferir('o que não chegou é tratado como achado', /\*\*é o achado\*\*/.test(cheio.corpo), true);
-conferir('a comunidade é contada à parte, e dito por quê', /não entram nos números acima/.test(cheio.corpo), true);
+conferir('comunidade e contexto contados à parte, e dito por quê', /não entram nos números acima/.test(cheio.corpo), true);
+conferir('o contexto aparece nomeado como tecnologia geral', /veículos de tecnologia geral/.test(cheio.corpo), true);
 conferir('o boletim declara que não é modelo de linguagem', /não é escrito por modelo de\s*linguagem/.test(cheio.corpo), true);
 
 /* Semana vazia: o texto TEM de mudar, e dizer que foi vazia. */
