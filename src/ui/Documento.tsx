@@ -115,16 +115,11 @@ export const Documento = (p: Props) => {
         <link rel="apple-touch-icon" href="/icones/icone-180.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
 
-        {/* Fontes self-hosted (publico/fontes/), só o subset latin. As três do
+        {/* Fontes self-hosted (publico/fontes/), só o subset latin. As duas do
             caminho crítico vão em preload; a itálica e a mono chegam quando o
             CSS pedir. Nenhum terceiro no caminho da primeira pintura. */}
         <link rel="preload" href="/fontes/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin="" />
         <link rel="preload" href="/fontes/plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin="" />
-        {/* A mono também: é a da linha de data, no topo de TODA página. Sem
-            preload ela chegava depois da primeira pintura, a data mudava de
-            largura no celular e empurrava o cabeçalho (CLS 0,10 medido na
-            capa, 27/09/2026, 1 carregamento em 3). */}
-        <link rel="preload" href="/fontes/plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin="" />
         <link rel="stylesheet" href={CSS_ROTA} />
         {p.estilos?.map((href) => <link rel="stylesheet" href={href} />)}
 

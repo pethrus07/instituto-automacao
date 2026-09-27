@@ -34,8 +34,26 @@
   font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
   src: url("/fontes/plex-mono-latin-500.woff2") format("woff2");
 }
-@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); size-adjust: 123.54%; ascent-override: 59.50%; descent-override: 21.45%; line-gap-override: 0%; }
-@font-face { font-family: "IBM Plex Sans Fallback"; src: local("Arial"); size-adjust: 120.75%; ascent-override: 84.89%; descent-override: 22.77%; line-gap-override: 0%; }
+/* Newsreader: recalibrada pela largura em 27/09/2026. Os 123,54% faziam o
+   Georgia 36% mais largo (medido num parágrafo de notícia: 3386 px contra
+   2482) — a notícia inteira ficava 1.424 px mais alta no celular até a fonte
+   chegar. 123,54% × 0,735 ≈ 90,8% (o texto corrido é quase todo regular);
+   ascent e descent sobem na mesma proporção. */
+@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); size-adjust: 90.8%; ascent-override: 80.95%; descent-override: 29.18%; line-gap-override: 0%; }
+/* A MARCA tem reserva própria (27/09/2026). A de cima foi calibrada para o
+   texto corrido; no negrito grande do nome ela sai 30% mais larga (medido:
+   309 px contra 239 px a 390 de tela), o nome quebrava para baixo do símbolo
+   até a Newsreader chegar, e a página inteira subia quando ela chegava —
+   CLS 0,10 a 0,14 na capa pela rede. 123,54% × 239/309 ≈ 95,5%. */
+@font-face { font-family: "Newsreader Marca Fallback"; src: local("Georgia"); size-adjust: 95.5%; ascent-override: 77%; descent-override: 27.7%; line-gap-override: 0%; }
+/* IBM Plex Sans: recalibrada em 27/09/2026 pela LARGURA, que é o que decide
+   onde a linha quebra. Os 120,75% antigos vinham da altura das letras e
+   deixavam o Arial 20% mais largo (medido: 410 px contra 341 na linha de
+   propósito; 574 contra 478 na navegação) — a linha de propósito quebrava no
+   celular e a navegação no tablet, e a página pulava quando a Plex chegava.
+   120,75% × 0,833 ≈ 100,6%; ascent e descent sobem na mesma proporção para a
+   altura da linha continuar a mesma. */
+@font-face { font-family: "IBM Plex Sans Fallback"; src: local("Arial"); size-adjust: 100.6%; ascent-override: 101.9%; descent-override: 27.33%; line-gap-override: 0%; }
 @font-face { font-family: "IBM Plex Mono Fallback"; src: local("Consolas"); size-adjust: 109.13%; ascent-override: 93.92%; descent-override: 25.20%; line-gap-override: 0%; }
 
 *, *::before, *::after { box-sizing: border-box; }

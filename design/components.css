@@ -70,7 +70,7 @@
   max-width: 100%;
 }
 .marca__nome {
-  font-family: var(--face-obra);
+  font-family: "Newsreader", "Newsreader Marca Fallback", ui-serif, Georgia, serif;
   font-size: clamp(1.6rem, 1rem + 3.2vw, 3.2rem);
   font-weight: var(--weight-bold);
   letter-spacing: -0.022em;
