@@ -108,3 +108,5 @@ button.botao-acao:disabled { opacity: 0.5; cursor: not-allowed; }
 /* O roteiro de cada seção, na página da pauta (27/09/2026: "bem pré-pronto"). */
 .pauta__dicas { margin-block: var(--space-2xs) var(--space-s); padding-inline-start: var(--space-m); font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); list-style: '→  '; }
 .pauta__dicas li + li { margin-block-start: var(--space-3xs); }
+
+.escrever-blocos-chips + .escrever-nota { margin-block-start: var(--space-s); }

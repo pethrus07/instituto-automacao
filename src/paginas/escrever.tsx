@@ -356,7 +356,7 @@ escrever.get('/escrever/pauta/:slug', (c) => {
           </section>
 
           <section class="bloco">
-            <Secao titulo="Os blocos que costumam servir" nota="O editor já traz estes montados, vazios, no lugar certo." />
+            <Secao titulo="Os blocos que costumam servir" nota="No editor, cada um é um botão de um clique no alto — entra só o que você usar." />
             <p class="escrever-blocos-chips">
               {p.blocos.map((b) => (
                 <span class="chip">{b in BLOCOS ? BLOCOS[b as TipoBloco].rotulo : { tabela: 'Tabela', codigo: 'Código', terminal: 'Terminal', imagem: 'Imagem' }[b as 'tabela']}</span>

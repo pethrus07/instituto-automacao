@@ -12,6 +12,9 @@
 
 .editor { display: grid; gap: var(--space-m); }
 .editor__carregando { font-family: var(--face-fluxo); color: var(--ink-muted); }
+/* Enquanto o script monta o editor, a página já reserva a altura dele: sem
+   isto o rodapé aparecia no alto e era empurrado para baixo (CLS 0,49 medido). */
+.editor[data-estado="carregando"] { min-block-size: 100vh; }
 
 .editor__cabeca { display: grid; gap: var(--space-2xs); max-width: var(--measure); }
 .editor__cabeca-texto { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
@@ -270,3 +273,5 @@
 .roteiro-secao li + li { margin-block-start: var(--space-3xs); }
 .paragrafo-campo:focus-within .roteiro-secao { color: var(--ink); box-shadow: inset 2px 0 0 var(--marca); }
 .sugestoes__botao--termo { border-style: dotted; color: var(--ink); }
+/* a tecla na dica do topo tinha 10 px (0,78 em do texto miúdo) — medido pela revisão */
+.editor__cabeca-texto kbd { font-size: 0.92em; }
