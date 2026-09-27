@@ -32,6 +32,29 @@ for (const s of SERIES) {
 }
 for (const t of TRILHAS) if (!PAUTAS.some((p) => p.trilha === t.slug)) erros.push(`trilha ${t.slug} sem pauta`);
 
+/* O GUIA de cada pauta — o pré-pronto do editor (27/09/2026). Pauta sem guia
+   abre o editor vazio, que é justamente o que o guia existe para evitar. */
+const { GUIAS } = await import('../src/guias/index.ts');
+const PROIBIDO = /[|{}[\]"]/; // o dialeto do artigo leria isto como tabela, termo, tecla ou link
+for (const p of PAUTAS) {
+  const g = GUIAS[p.slug];
+  if (!g) {
+    erros.push(`${p.slug}: sem guia em src/guias/`);
+    continue;
+  }
+  if (g.secoes.length !== p.cobrir.length) erros.push(`${p.slug}: guia com ${g.secoes.length} seções, a pauta tem ${p.cobrir.length}`);
+  if (g.secoes.some((s) => s.dicas.length < 1)) erros.push(`${p.slug}: seção do guia sem dica`);
+  if (g.resumo.length < 2) erros.push(`${p.slug}: resumo do guia com menos de 2 tópicos`);
+  if (g.quiz.length !== 3) erros.push(`${p.slug}: o quiz do guia tem ${g.quiz.length} perguntas, não 3`);
+  for (const q of g.quiz) if (!q.certa.trim() || q.erradas.length < 2 || q.erradas.some((e) => !e.trim())) erros.push(`${p.slug}: pergunta do quiz incompleta — "${q.pergunta.slice(0, 40)}"`);
+  const textos = [...g.resumo, ...g.secoes.flatMap((s) => s.dicas), ...g.armadilhas, ...g.quiz.flatMap((q) => [q.pergunta, q.certa, ...q.erradas]), ...g.termos.flatMap((t) => [t.termo, t.definicao])];
+  for (const t of textos) {
+    if (PROIBIDO.test(t)) erros.push(`${p.slug}: caractere reservado do dialeto em "${t.slice(0, 50)}"`);
+    if (/\bpeças?\b/i.test(t)) erros.push(`${p.slug}: "peça" é termo interno do site — "${t.slice(0, 50)}"`);
+  }
+}
+for (const slug of Object.keys(GUIAS)) if (!PAUTAS.some((p) => p.slug === slug)) erros.push(`guia "${slug}" sem pauta correspondente`);
+
 for (const e of erros) console.error(`✗ ${e}`);
 console.log(`${erros.length ? '✗' : '✓'} pautas: ${PAUTAS.length} pautas · ${SERIES.length} séries · ${TRILHAS.length} trilhas · ${erros.length} erro(s)`);
 if (erros.length) process.exit(1);

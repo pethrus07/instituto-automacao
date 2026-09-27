@@ -46,6 +46,7 @@ import {
   type Pauta,
 } from '../pautas';
 import { CSS_ARTIGO_ROTA, CSS_ESCREVER_ROTA } from '../estilo';
+import { guiaDe } from '../guias/index.ts';
 import { novaApp, pagina } from './app';
 
 export const escrever = novaApp();
@@ -283,6 +284,7 @@ escrever.get('/escrever/pauta/:slug', (c) => {
   const trilha = trilhaPorSlug(p.trilha)!;
   const serie = p.serie ? seriePorSlug(p.serie) : null;
   const artigo = artigoDaPauta(p.slug);
+  const guia = guiaDe(p.slug);
   const url = `${site}/escrever/pauta/${p.slug}`;
 
   c.header('Cache-Control', CACHE.listagem);
@@ -328,12 +330,29 @@ escrever.get('/escrever/pauta/:slug', (c) => {
           )}
 
           <section class="bloco">
-            <Secao titulo="O esqueleto" nota="Cada item vira um subtítulo no editor. Mude, junte, tire — é ponto de partida, não formulário." />
+            <Secao
+              titulo="O que já vem pronto no editor"
+              nota="Cada item vira um subtítulo, com o roteiro do que responder. O resumo, as armadilhas e o quiz já vêm preenchidos para você revisar — você escreve o que só quem faz sabe."
+            />
             <ol class="pauta__esqueleto">
-              {p.cobrir.map((item) => (
-                <li>{item}</li>
+              {p.cobrir.map((item, i) => (
+                <li>
+                  {item}
+                  {guia?.secoes[i] && (
+                    <ul class="pauta__dicas">
+                      {guia.secoes[i]!.dicas.map((d) => (
+                        <li>{d}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
               ))}
             </ol>
+            {guia && (
+              <p class="escrever-nota">
+                Mais: o resumo em {guia.resumo.length} tópicos, {guia.armadilhas.length} armadilhas comuns, um quiz de {guia.quiz.length} perguntas e {guia.termos.length} termos para explicar no texto.
+              </p>
+            )}
           </section>
 
           <section class="bloco">
@@ -460,7 +479,7 @@ escrever.get('/escrever/editor', (c) => {
   // O que o editor precisa saber da pauta, e só isso. Vai como JSON inerte
   // (type="application/json" não executa, e a CSP não precisa abrir nada).
   const dados = {
-    pauta: p ? { slug: p.slug, titulo: p.titulo, objetivo: p.objetivo, formato: p.formato, nivel: p.nivel, cobrir: p.cobrir, blocos: p.blocos, serie: serie ? { titulo: serie.titulo, parte: p.parte, partes: serie.partes } : null } : null,
+    pauta: p ? { slug: p.slug, titulo: p.titulo, objetivo: p.objetivo, formato: p.formato, nivel: p.nivel, cobrir: p.cobrir, blocos: p.blocos, serie: serie ? { titulo: serie.titulo, parte: p.parte, partes: serie.partes } : null, guia: guiaDe(p.slug) } : null,
     blocos: Object.fromEntries((Object.keys(BLOCOS) as TipoBloco[]).map((k) => [k, { rotulo: BLOCOS[k].rotulo, para: BLOCOS[k].para }])),
     formatos: ROTULO_FORMATO_ARTIGO,
     niveis: ROTULO_NIVEL,

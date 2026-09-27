@@ -37,6 +37,14 @@ type Pauta = {
   cobrir: string[];
   blocos: string[];
   serie: { titulo: string; parte: number; partes: number } | null;
+  /** o pré-pronto (src/guias/): resumo, o que responder em cada seção, armadilhas, quiz e termos */
+  guia: {
+    resumo: string[];
+    secoes: { dicas: string[] }[];
+    armadilhas: string[];
+    quiz: { pergunta: string; certa: string; erradas: string[] }[];
+    termos: { termo: string; definicao: string }[];
+  } | null;
 };
 type Formato = 'guia' | 'conceito' | 'experiencia';
 type Nivel = 'iniciante' | 'intermediario' | 'avancado';
@@ -76,6 +84,8 @@ type Bloco = {
   resultado?: string;
   autoria?: string;
   questoes?: Questao[];
+  /** o roteiro da seção, do guia da pauta — aparece no editor, NUNCA vai para o texto */
+  dicas?: string[];
 };
 
 type Autor = { nome: string; email: string; papel: string; bio: string; link: string; foto: string | null };
@@ -277,18 +287,32 @@ function blocoVazio(tipo: string): Bloco {
  * no lugar, vazio, esperando o que só o autor sabe.
  */
 function esqueleto(p: Pauta): Bloco[] {
-  /* LEVE DE PROPÓSITO (27/09/2026, pedido do Pedro: "como não pagamos, deve ser
-     rápido e fácil"). A primeira versão trazia todos os blocos sugeridos já
-     montados e vazios — uma página cheia de caixas para preencher assusta
-     quem tem 20 minutos. Agora o esqueleto é só o que todo artigo tem (resumo,
-     a promessa, as seções e uma pergunta do quiz); os blocos sugeridos viram
-     botões de um clique no alto (`sugestoes()`), e só entra o que o autor usar. */
-  const b: Bloco[] = [blocoVazio('resumo'), { ...blocoVazio('aprender'), texto: p.objetivo }];
-  for (const titulo of p.cobrir) {
+  /* PRÉ-PRONTO (27/09/2026, Pedro: "deve ir bem pré-pronto, bem preenchido").
+     Com o guia da pauta (src/guias/), o autor encontra:
+       · o resumo já em tópicos, para revisar;
+       · a promessa (o objetivo da pauta);
+       · cada seção com o roteiro do que responder, acima do parágrafo vazio;
+       · as armadilhas comuns já listadas — ele só diz o que acontece e como
+         evitar, e as que não completar não vão para o texto;
+       · o quiz inteiro, com a certa e as erradas.
+     O que continua vazio é o parágrafo: é ali que está o que só quem faz sabe.
+     Os blocos sugeridos que não são estes viram botões de um clique no alto. */
+  const g = p.guia;
+  const b: Bloco[] = [
+    { ...blocoVazio('resumo'), texto: g ? g.resumo.map((r) => `- ${r}`).join('\n') : '' },
+    { ...blocoVazio('aprender'), texto: p.objetivo },
+  ];
+  p.cobrir.forEach((titulo, i) => {
     b.push({ ...blocoVazio('subtitulo'), texto: titulo });
-    b.push(blocoVazio('paragrafo'));
-  }
-  b.push({ ...blocoVazio('quiz'), questoes: [questaoVazia()] });
+    b.push({ ...blocoVazio('paragrafo'), dicas: g?.secoes[i]?.dicas ?? [] });
+  });
+  if (g?.armadilhas.length) b.push({ ...blocoVazio('armadilhas'), armadilhas: g.armadilhas.map((t) => ({ titulo: t, texto: '', evitar: '' })) });
+  b.push({
+    ...blocoVazio('quiz'),
+    questoes: g?.quiz.length
+      ? g.quiz.map((q) => ({ pergunta: q.pergunta, opcoes: [{ texto: q.certa, certa: true }, ...q.erradas.map((e) => ({ texto: e, certa: false }))], explica: '' }))
+      : [questaoVazia()],
+  });
   return b;
 }
 
@@ -330,6 +354,9 @@ function embaralhar(q: Questao) {
 }
 const semAspas = (s: string) => umaLinha(s).replace(/"/g, '”').replace(/[()]/g, '');
 
+/** Armadilha com título e ao menos o que acontece ou como evitar — só título é lembrete do guia. */
+const armadilhaPronta = (a: Armadilha) => !!a.titulo.trim() && !!(a.texto.trim() || a.evitar.trim());
+
 /** O bloco está vazio? Vazio não vai para o texto — e a conferência avisa. */
 function vazio(b: Bloco): boolean {
   switch (b.tipo) {
@@ -337,7 +364,8 @@ function vazio(b: Bloco): boolean {
     case 'antesdepois': return !b.antes && !b.depois;
     case 'tabela': return !(b.linhas ?? []).some((l) => l.some((c) => c.trim()));
     case 'roteiro': case 'passos': case 'checklist': return !(b.itens ?? []).some((i) => i.titulo.trim());
-    case 'armadilhas': return !(b.armadilhas ?? []).some((a) => a.titulo.trim());
+    // armadilha que veio do guia e o autor não completou é roteiro, não texto
+    case 'armadilhas': return !(b.armadilhas ?? []).some(armadilhaPronta);
     case 'proscontras': return !(b.pro ?? '').trim() && !(b.contra ?? '').trim();
     case 'formula': return !(b.tex ?? '').trim();
     case 'quiz': return !(b.questoes ?? []).some((q) => q.pergunta.trim());
@@ -366,7 +394,7 @@ function blocoParaMd(b: Bloco): string {
     case 'roteiro': case 'passos': case 'checklist':
       return [abre(b.tipo, b.titulo), ...(b.itens ?? []).filter((i) => i.titulo.trim()).map((i) => `- ${umaLinha(i.titulo)}${i.texto.trim() ? ` — ${umaLinha(i.texto)}` : ''}`), ':::'].join('\n');
     case 'armadilhas':
-      return [abre('armadilhas', b.titulo), ...(b.armadilhas ?? []).filter((a) => a.titulo.trim()).flatMap((a) => [`### ${umaLinha(a.titulo)}`, ...(a.texto.trim() ? [umaLinha(a.texto)] : []), ...(a.evitar.trim() ? [`Como evitar: ${umaLinha(a.evitar)}`] : [])]), ':::'].join('\n');
+      return [abre('armadilhas', b.titulo), ...(b.armadilhas ?? []).filter(armadilhaPronta).flatMap((a) => [`### ${umaLinha(a.titulo)}`, ...(a.texto.trim() ? [umaLinha(a.texto)] : []), ...(a.evitar.trim() ? [`Como evitar: ${umaLinha(a.evitar)}`] : [])]), ':::'].join('\n');
     case 'proscontras': {
       const lados = (s: string | undefined, m: string) => (s ?? '').split('\n').map((l) => l.trim().replace(/^[-+*]\s+/, '')).filter(Boolean).map((l) => `${m} ${l}`);
       return [abre('proscontras', b.titulo), ...lados(b.pro, '+'), ...lados(b.contra, '-'), ':::'].join('\n');
@@ -568,6 +596,29 @@ function cabecaDaPauta(): Node {
     h('p', { class: 'editor__cabeca-texto' }, h('strong', {}, 'O esqueleto já está montado: '), 'é só escrever embaixo de cada subtítulo.'),
     dicas,
     sugestoes(p),
+    termos(p),
+  );
+}
+
+/** Os termos do guia: um clique põe {{termo|definição}} onde o cursor está — o leitor lê a explicação sem sair do texto. */
+function termos(p: Pauta): Node {
+  if (!p.guia?.termos.length) return document.createTextNode('');
+  return h(
+    'p',
+    { class: 'sugestoes' },
+    h('span', { class: 'sugestoes__rotulo' }, 'Termos para explicar:'),
+    ...p.guia.termos.map((t) =>
+      h('button', {
+        type: 'button', class: 'sugestoes__botao sugestoes__botao--termo', title: `Insere no texto: ${t.termo} — ${t.definicao}`,
+        onmousedown: (e: Event) => e.preventDefault(),
+        onclick: () => {
+          const a = areaAtiva;
+          if (!a || !a.isConnected) { estadoSalvo.textContent = 'Clique no texto onde o termo aparece, e depois no termo'; return; }
+          a.setRangeText(`{{${t.termo}|${t.definicao}}}`, a.selectionStart ?? a.value.length, a.selectionEnd ?? a.value.length, 'end');
+          a.dispatchEvent(new Event('input'));
+          a.focus();
+        },
+      }, t.termo)),
   );
 }
 
@@ -891,6 +942,9 @@ function campos(b: Bloco): Node {
   const para = rotuloDe(b.tipo).para;
   switch (b.tipo) {
     case 'paragrafo': {
+      const roteiro = b.dicas?.length
+        ? h('ul', { class: 'roteiro-secao', 'aria-label': 'O que responder nesta parte (não vai para o texto)' }, ...b.dicas.map((d) => h('li', {}, d)))
+        : null;
       const el = area(b.texto ?? '', 'Escreva aqui…  ( / abre os blocos )', (v) => (b.texto = v), { classe: 'campo-doc--obra', linhas: 2, rotulo: 'Parágrafo' });
       // "/" sozinho num parágrafo abre o menu de blocos ali mesmo, como nos editores de hoje
       el.addEventListener('input', () => {
@@ -898,7 +952,7 @@ function campos(b: Bloco): Node {
         const ins = el.closest('[data-bloco]')?.previousElementSibling as HTMLElement | null;
         if (ins) abrirMenu.get(ins)?.(b.id);
       });
-      return el;
+      return roteiro ? h('div', { class: 'paragrafo-campo' }, roteiro, el) : el;
     }
     case 'subtitulo':
       // sem seletor de nível: ele cortava o subtítulo e quase ninguém usava — subtítulo é seção
@@ -1126,6 +1180,8 @@ function conferir(): { achados: Achado[]; md: string } {
   else if (n < 250) a.push({ nivel: 'aviso', texto: `${n} palavras — curto pode (um bom passo a passo com fotos cabe em 400), mas confira se falta alguma seção.` });
   if (!r.blocos.includes('quiz')) a.push({ nivel: 'aviso', texto: 'Sem quiz no fim. Três perguntas bastam — é a marca do Instituto.' });
   if (!r.blocos.includes('resumo')) a.push({ nivel: 'aviso', texto: 'Sem resumo rápido no alto. Quem tem um minuto lê só ele.' });
+  const soTitulo = R.blocos.flatMap((b) => b.armadilhas ?? []).filter((x) => x.titulo.trim() && !armadilhaPronta(x)).length;
+  if (soTitulo) a.push({ nivel: 'aviso', texto: `${soTitulo} armadilha(s) do roteiro sem “o que acontece” nem “como evitar” — ficam de fora do texto. Complete as que você já viu acontecer.` });
   const vazios = R.blocos.filter(vazio).filter((b) => b.tipo !== 'paragrafo');
   if (vazios.length) a.push({ nivel: 'aviso', texto: `${vazios.length} bloco(s) vazio(s) — não vão no texto: ${[...new Set(vazios.map((b) => rotuloDe(b.tipo).rotulo))].join(', ')}.` });
   for (const b of R.blocos) for (const i of [b.img, b.antes, b.depois]) if (i && !i.alt.trim()) a.push({ nivel: 'erro', texto: 'Uma foto está sem a frase do que ela mostra.' });

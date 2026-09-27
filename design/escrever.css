@@ -259,3 +259,14 @@
   .imagem-campo__cheio { grid-template-columns: 1fr; }
   .enviar { gap: var(--space-xl); }
 }
+
+/* --- o roteiro da seção, acima do parágrafo (não vai para o texto) ------- */
+.paragrafo-campo { display: grid; gap: var(--space-2xs); }
+.roteiro-secao {
+  margin: 0; padding: var(--space-2xs) var(--space-s) var(--space-2xs) calc(var(--space-s) + 1rem);
+  border-radius: var(--radius-s); background: var(--paper-sunken);
+  font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); list-style: '→  ';
+}
+.roteiro-secao li + li { margin-block-start: var(--space-3xs); }
+.paragrafo-campo:focus-within .roteiro-secao { color: var(--ink); box-shadow: inset 2px 0 0 var(--marca); }
+.sugestoes__botao--termo { border-style: dotted; color: var(--ink); }
