@@ -20,41 +20,63 @@
 .editor__aviso { display: grid; gap: var(--space-s); padding: var(--space-m); border: 2px solid var(--v-caminho-ink); border-radius: var(--radius-m); background: var(--v-caminho-wash); font-family: var(--face-fluxo); font-size: var(--step--1); }
 .editor__aviso-acoes { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 
-/* --- o topo que gruda: as três etapas e o estado do rascunho ------------- */
-/* A navegação do site gruda só dentro do cabeçalho, que sai da tela ao rolar
+/* --- o topo que gruda: formatação, estado, prévia e Enviar ---------------- */
+/* 27/09/2026 (2ª versão): as três abas saíram. Escrever é a página inteira; a
+   prévia fica ao lado na tela larga (e num botão no celular); Enviar abre um
+   painel por cima. Um passo a menos para quem escreve de graça.
+   A navegação do site gruda só dentro do cabeçalho, que sai da tela ao rolar
    (medido: a 1500 px de rolagem ela está em −806). Por isso o editor gruda em 0. */
 .editor__topo {
   position: sticky; inset-block-start: 0; z-index: 20;
-  display: grid; gap: var(--space-2xs);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs) var(--space-m);
   padding-block: var(--space-2xs); background: var(--paper); border-block-end: var(--border-hair);
 }
-.editor__topo-linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs) var(--space-m); }
-.editor:not([data-aba="escrever"]) .barra { display: none; }
-.editor__abas { display: flex; gap: var(--space-3xs); }
-.editor__abas button {
-  font: inherit; font-family: var(--face-fluxo); font-size: var(--step--1); font-weight: var(--weight-semibold);
-  padding: var(--space-2xs) var(--space-s); border: 0; border-radius: var(--radius-s); background: none; color: var(--ink-muted); cursor: pointer;
-}
-.editor__abas button:hover { color: var(--ink); background: var(--paper-sunken); }
-.editor__abas button[aria-selected="true"] { color: var(--marca-texto); background: var(--marca); }
-.editor__estado { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-s); font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); }
+.editor__estado { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-s); font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); margin-inline-start: auto; }
+.editor__progresso { color: var(--marca); font-weight: var(--weight-semibold); }
+.editor__acoes { display: flex; gap: var(--space-2xs); align-items: center; }
+.editor[data-aba="previa"] .barra { visibility: hidden; }
+.editor[data-soltando] .editor__painel--escrever { outline: 2px dashed var(--marca); outline-offset: var(--space-2xs); border-radius: var(--radius-m); }
 
 /* --- as áreas: escrever e prévia lado a lado na tela larga --------------- */
 .editor__area { display: grid; gap: var(--space-xl); align-items: start; }
 .editor__painel--previa { display: none; }
-.editor__painel--enviar { display: none; }
 .editor[data-aba="previa"] .editor__painel--escrever { display: none; }
 .editor[data-aba="previa"] .editor__painel--previa { display: block; }
-.editor[data-aba="enviar"] .editor__area { display: none; }
-.editor[data-aba="enviar"] .editor__painel--enviar { display: block; }
 @media (min-width: 80rem) {
+  .editor__ver { display: none; }
+  .editor[data-aba="previa"] .barra { visibility: visible; }
   .editor__area { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .editor[data-aba="escrever"] .editor__painel--previa {
-    display: block; position: sticky; inset-block-start: 7rem; max-block-size: calc(100vh - 8rem); overflow-y: auto;
+  .editor .editor__painel--escrever { display: block; }
+  .editor .editor__painel--previa {
+    display: block; position: sticky; inset-block-start: 4.5rem; max-block-size: calc(100vh - 5.5rem); overflow-y: auto;
     padding-inline-start: var(--space-l); border-inline-start: var(--border-hair);
   }
-  .editor[data-aba="previa"] .editor__area { grid-template-columns: minmax(0, 52rem); justify-content: center; }
 }
+
+/* --- os blocos que a pauta sugere, como botões --------------------------- */
+.sugestoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3xs) var(--space-2xs); margin-block-start: var(--space-2xs); font-family: var(--face-fluxo); font-size: var(--step--1); }
+.sugestoes__rotulo { color: var(--ink-muted); margin-inline-end: var(--space-3xs); }
+.sugestoes__botao {
+  min-block-size: 2rem; padding: 0.1rem var(--space-xs); border: 1px dashed var(--rule-strong); border-radius: var(--radius-pill);
+  background: none; font: inherit; color: var(--marca); cursor: pointer;
+}
+.sugestoes__botao:hover { border-style: solid; border-color: var(--marca); background: var(--marca-clara); }
+
+/* --- o painel de envio, por cima ----------------------------------------- */
+.editor__dialogo {
+  margin: auto; /* o reset do site zera a margem, e o dialog perde o centro */
+  inline-size: min(64rem, calc(100% - 2rem)); max-block-size: calc(100vh - 2rem); padding: var(--space-m) var(--space-l);
+  border: var(--border-firm); border-radius: var(--radius-m); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-raised);
+}
+.editor__dialogo::backdrop { background: rgb(0 0 0 / 0.45); }
+.editor__dialogo-cabeca { display: flex; align-items: center; justify-content: space-between; gap: var(--space-s); }
+.editor__dialogo-cabeca h2 { font-family: var(--face-obra); font-size: var(--step-2); }
+.enviar__quem, .enviar__mais { display: grid; gap: var(--space-s); }
+.enviar__quem > summary, .enviar__mais > summary { cursor: pointer; font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.enviar__quem > summary strong { color: var(--ink); }
+.enviar__mais { padding-block-start: var(--space-2xs); border-block-start: 1px dotted var(--rule); }
+.campo-doc--secundario { font-size: var(--step--1); color: var(--ink-muted); }
+
 .previa__rotulo { font-family: var(--face-fluxo); font-size: var(--step--2); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--ink-faint); margin-block-end: var(--space-s); }
 .previa__vazia { color: var(--ink-faint); font-style: italic; }
 .editor__painel--previa .peca { gap: var(--space-l); }
@@ -189,9 +211,11 @@
 .formula-campo__amostra { padding: var(--space-s); border-radius: var(--radius-s); background: var(--paper-sunken); text-align: center; font-size: 1.2em; font-family: var(--face-fluxo); color: var(--ink-muted); overflow-x: auto; }
 
 .questao-campo { display: grid; gap: 0; margin: 0 0 var(--space-s); padding: var(--space-s); border: var(--border-hair); border-radius: var(--radius-m); min-inline-size: 0; }
-.questao-campo legend { padding-inline: var(--space-2xs); font-family: var(--face-fluxo); font-size: var(--step--2); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--marca); }
-.questao-campo__opcao { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2xs); align-items: center; }
-.questao-campo__opcao input[type="radio"] { inline-size: 1.5rem; block-size: 1.5rem; accent-color: var(--v-chega-ink); margin-inline-start: var(--space-2xs); }
+.questao-campo__n { font-family: var(--face-fluxo); font-size: var(--step--2); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--marca); }
+.questao-campo__opcao { display: grid; grid-template-columns: 1.5rem 1fr 1.9rem; gap: var(--space-2xs); align-items: center; }
+.questao-campo__marca { text-align: center; font-family: var(--face-fluxo); font-weight: var(--weight-bold); }
+.questao-campo__opcao--certa .questao-campo__marca { color: var(--v-chega-ink); }
+.questao-campo__opcao--errada .questao-campo__marca { color: var(--v-nao-chega-ink); }
 .questao-campo__acoes { display: flex; gap: var(--space-s); }
 
 /* --- enviar --------------------------------------------------------------- */
@@ -225,6 +249,12 @@
 
 @media (max-width: 40rem) {
   .editor__contador { display: none; }
+  /* no celular a faixa que gruda tem de ser UMA linha: a formatação (que quase
+     ninguém usa no telefone) sai, e ficam só o progresso e os dois botões */
+  .editor__topo .barra { display: none; }
+  .editor__salvo { display: none; }
+  .editor__estado { margin-inline-start: 0; }
+  .editor__acoes .botao-acao, .editor__acoes .botao-secundario { padding-inline: var(--space-xs); }
   .barra__botao { min-inline-size: 2rem; padding-inline: var(--space-2xs); }
   .imagem-campo__cheio { grid-template-columns: 1fr; }
   .enviar { gap: var(--space-xl); }

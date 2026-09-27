@@ -456,7 +456,9 @@ titulo('B · Conformidade — a aba Escrever');
   const editor = respostas['/escrever/editor?pauta=entrada-analogica-4-20-ma'].corpo;
   const pauta = respostas['/escrever/pauta/configurar-um-inversor-em-vinte-minutos'].corpo;
   checar('B', 'Escrever está na navegação de toda página', /<a href="\/escrever"[^>]*>Escrever<\/a>/.test(capa));
-  checar('B', '/escrever mostra as 10 trilhas recolhidas e as 66 pautas', (hub.match(/<details class="trilha"/g) ?? []).length === 10 && (hub.match(/class="linha-pauta /g) ?? []).length === 66, `${(hub.match(/<details class="trilha"/g) ?? []).length} trilhas · ${(hub.match(/class="linha-pauta /g) ?? []).length} pautas`);
+  // os números vêm do próprio catálogo: pauta nova não pode quebrar o QA, e pauta sumida da página tem de quebrar
+  const { PAUTAS: CATALOGO, TRILHAS: TRILHAS_CATALOGO } = await import('../src/pautas.ts');
+  checar('B', `/escrever mostra as ${TRILHAS_CATALOGO.length} trilhas recolhidas e as ${CATALOGO.length} pautas`, (hub.match(/<details class="trilha"/g) ?? []).length === TRILHAS_CATALOGO.length && (hub.match(/class="linha-pauta /g) ?? []).length === CATALOGO.length,`${(hub.match(/<details class="trilha"/g) ?? []).length} trilhas · ${(hub.match(/class="linha-pauta /g) ?? []).length} pautas`);
   checar('B', '/escrever/blocos publica os 20 blocos, cada um renderizado', (guia.match(/<section class="guia-bloco" id="bloco-/g) ?? []).length === 20 && /class="b-quiz"/.test(guia) && /<math/.test(guia));
   checar('B', 'a fórmula do guia sai em MathML (KaTeX no build, nada no navegador)', /<math[^>]*display="block"/.test(guia) && !/katex\.min\.js/.test(guia));
   checar('B', 'a pauta tem esqueleto e o botão para o editor', /class="pauta__esqueleto"/.test(pauta) && /href="\/escrever\/editor\?pauta=configurar-um-inversor-em-vinte-minutos"/.test(pauta));

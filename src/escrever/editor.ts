@@ -236,8 +236,9 @@ function novoRascunho(p: Pauta | null): Rascunho {
   return {
     versao: 1,
     pauta: p?.slug ?? null,
-    meta: { titulo: p?.titulo ?? '', lead: '', formato: p?.formato ?? '', nivel: p?.nivel ?? '' },
-    blocos: p ? esqueleto(p) : [{ id: uid(), tipo: 'resumo', texto: '' }, { id: uid(), tipo: 'paragrafo', texto: '' }, { id: uid(), tipo: 'quiz', titulo: '', questoes: [questaoVazia()] }],
+    // formato e nível já vêm escolhidos (da pauta, ou o mais comum no tema livre): é um campo a menos
+    meta: { titulo: p?.titulo ?? '', lead: '', formato: p?.formato ?? 'guia', nivel: p?.nivel ?? 'intermediario' },
+    blocos: p ? esqueleto(p) : [blocoVazio('resumo'), blocoVazio('paragrafo'), { ...blocoVazio('quiz'), questoes: [questaoVazia()] }],
     autor: autorVazio(),
     consentimentos: { autoria: false, imagens: false, privacidade: false },
     enviado: null,
@@ -245,6 +246,7 @@ function novoRascunho(p: Pauta | null): Rascunho {
   };
 }
 
+/** A certa é sempre a primeira NO EDITOR (é o campo "resposta certa"); no texto, o `serializar` embaralha. */
 const questaoVazia = (): Questao => ({ pergunta: '', opcoes: [{ texto: '', certa: true }, { texto: '', certa: false }, { texto: '', certa: false }], explica: '' });
 
 /** Um bloco novo, vazio, do tipo pedido. */
@@ -275,24 +277,18 @@ function blocoVazio(tipo: string): Bloco {
  * no lugar, vazio, esperando o que só o autor sabe.
  */
 function esqueleto(p: Pauta): Bloco[] {
-  const sug = new Set(p.blocos);
-  const b: Bloco[] = [];
-  if (sug.has('resumo')) b.push(blocoVazio('resumo'));
-  if (sug.has('aprender')) b.push({ ...blocoVazio('aprender'), texto: p.objetivo });
-  if (sug.has('roteiro')) b.push({ ...blocoVazio('roteiro'), itens: p.cobrir.map((c) => ({ titulo: c, texto: '' })) });
-
-  // os blocos do meio se distribuem entre as seções, na ordem em que a pauta os sugere
-  const meio = p.blocos.filter((x) => !['resumo', 'aprender', 'roteiro', 'armadilhas', 'checklist', 'recursos', 'notadoautor', 'quiz'].includes(x));
-  const porSecao = p.cobrir.map(() => [] as string[]);
-  meio.forEach((x, i) => porSecao[Math.min(p.cobrir.length - 1, Math.floor((i * p.cobrir.length) / Math.max(1, meio.length)))]!.push(x));
-
-  p.cobrir.forEach((titulo, i) => {
+  /* LEVE DE PROPÓSITO (27/09/2026, pedido do Pedro: "como não pagamos, deve ser
+     rápido e fácil"). A primeira versão trazia todos os blocos sugeridos já
+     montados e vazios — uma página cheia de caixas para preencher assusta
+     quem tem 20 minutos. Agora o esqueleto é só o que todo artigo tem (resumo,
+     a promessa, as seções e uma pergunta do quiz); os blocos sugeridos viram
+     botões de um clique no alto (`sugestoes()`), e só entra o que o autor usar. */
+  const b: Bloco[] = [blocoVazio('resumo'), { ...blocoVazio('aprender'), texto: p.objetivo }];
+  for (const titulo of p.cobrir) {
     b.push({ ...blocoVazio('subtitulo'), texto: titulo });
     b.push(blocoVazio('paragrafo'));
-    for (const x of porSecao[i]!) b.push(blocoVazio(x));
-  });
-  for (const fim of ['armadilhas', 'checklist', 'recursos', 'notadoautor', 'quiz']) if (sug.has(fim)) b.push(blocoVazio(fim));
-  if (!sug.has('quiz')) b.push(blocoVazio('quiz'));
+  }
+  b.push({ ...blocoVazio('quiz'), questoes: [questaoVazia()] });
   return b;
 }
 
@@ -313,6 +309,25 @@ const neutra = (s: string) =>
     .join('\n')
     .trim();
 const nomeImg = (img: Img) => `img-${img.id}.jpg`;
+
+/** O crédito que o autor não precisa digitar: a foto é dele (é o que ele confirma no envio). */
+const creditoDe = (img: Img) => img.credito.trim() || `Foto: ${R.autor.nome.trim() || 'do autor'}`;
+
+/**
+ * A resposta certa sai numa posição que depende da pergunta — sempre a mesma
+ * para o mesmo texto (a prévia não pula), mas não sempre a primeira, senão o
+ * leitor aprende que "a primeira é a certa".
+ */
+function embaralhar(q: Questao) {
+  const ops = q.opcoes.filter((o) => o.texto.trim());
+  const certa = ops.findIndex((o) => o.certa);
+  if (certa < 0 || ops.length < 2) return ops;
+  const [c] = ops.splice(certa, 1);
+  let h = 0;
+  for (const ch of q.pergunta) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  ops.splice(h % (ops.length + 1), 0, c!);
+  return ops;
+}
 const semAspas = (s: string) => umaLinha(s).replace(/"/g, '”').replace(/[()]/g, '');
 
 /** O bloco está vazio? Vazio não vai para o texto — e a conferência avisa. */
@@ -338,7 +353,7 @@ function blocoParaMd(b: Bloco): string {
     case 'lista': return (b.texto ?? '').split('\n').map((l) => l.trim()).filter(Boolean).map((l) => `- ${l.replace(/^[-*]\s+/, '')}`).join('\n');
     case 'numerada': return (b.texto ?? '').split('\n').map((l) => l.trim()).filter(Boolean).map((l, i) => `${i + 1}. ${l.replace(/^\d+\.\s+/, '')}`).join('\n');
     case 'citacao': return `> ${umaLinha(b.texto)}`;
-    case 'imagem': return b.img ? `![${semAspas(b.img.alt).replace(/[\[\]]/g, '')}](${nomeImg(b.img)} "${semAspas(b.img.credito)}")` : '';
+    case 'imagem': return b.img ? `![${semAspas(b.img.alt).replace(/[\[\]]/g, '')}](${nomeImg(b.img)} "${semAspas(creditoDe(b.img))}")` : '';
     case 'codigo': return `\`\`\`${(b.linguagem ?? '').trim().toLowerCase().replace(/[^a-z0-9+#.-]/g, '')} ${umaLinha(b.titulo)}\n${(b.texto ?? '').replace(/^```\s*$/gm, '`` `')}\n\`\`\``;
     case 'terminal': return `\`\`\`terminal ${umaLinha(b.titulo)}\n${(b.texto ?? '').replace(/^```\s*$/gm, '`` `')}\n\`\`\``;
     case 'tabela': {
@@ -369,7 +384,7 @@ function blocoParaMd(b: Bloco): string {
         abre('quiz', b.titulo),
         ...(b.questoes ?? [])
           .filter((q) => q.pergunta.trim())
-          .flatMap((q) => [`? ${umaLinha(q.pergunta)}`, ...q.opcoes.filter((o) => o.texto.trim()).map((o) => `${o.certa ? '+' : '-'} ${umaLinha(o.texto)}`), ...(q.explica.trim() ? [`> ${umaLinha(q.explica)}`] : [])]),
+          .flatMap((q) => [`? ${umaLinha(q.pergunta)}`, ...embaralhar(q).map((o) => `${o.certa ? '+' : '-'} ${umaLinha(o.texto)}`), ...(q.explica.trim() ? [`> ${umaLinha(q.explica)}`] : [])]),
         ':::',
       ].join('\n');
     default:
@@ -408,7 +423,9 @@ const ROTULOS_LINHA: Record<string, { rotulo: string; para: string }> = {
 const rotuloDe = (tipo: string) => ROTULOS_LINHA[tipo] ?? DADOS.blocos[tipo] ?? { rotulo: tipo, para: '' };
 
 const GRUPOS: { nome: string; tipos: string[] }[] = [
-  { nome: 'Texto', tipos: ['paragrafo', 'subtitulo', 'lista', 'numerada', 'citacao'] },
+  // o que se usa em quase todo artigo vem primeiro, sem ter de procurar
+  { nome: 'Mais usados', tipos: ['paragrafo', 'subtitulo', 'imagem', 'dica', 'passos', 'codigo'] },
+  { nome: 'Texto', tipos: ['lista', 'numerada', 'citacao'] },
   { nome: 'Abertura', tipos: ['resumo', 'aprender', 'roteiro'] },
   { nome: 'Avisos', tipos: ['dica', 'atencao', 'perigo', 'nota', 'curiosidade', 'margem'] },
   { nome: 'Fazer', tipos: ['passos', 'armadilhas', 'checklist'] },
@@ -420,61 +437,88 @@ const GRUPOS: { nome: string; tipos: string[] }[] = [
 /* ================================================================ a tela */
 
 const raiz = document.getElementById('editor')!;
-let aba: 'escrever' | 'previa' | 'enviar' = 'escrever';
+/** No celular, escrever e ver a prévia se alternam; na tela larga ficam lado a lado. */
+let aba: 'escrever' | 'previa' = 'escrever';
 let areaAtiva: HTMLTextAreaElement | HTMLInputElement | null = null;
+/** O bloco em que o autor está — é depois dele que entra o que for colado, arrastado ou sugerido. */
+let blocoAtivo: string | null = null;
 
 const salvarJa = () => {
   R.salvo = new Date().toISOString();
   const ok = guardar.escrever(CHAVE, R);
   guardar.escrever(CHAVE_AUTOR, { ...R.autor });
-  estadoSalvo.textContent = ok ? `Rascunho salvo neste navegador · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Não consegui salvar o rascunho neste navegador — baixe o .md para não perder';
+  estadoSalvo.textContent = ok ? `Salvo · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Não consegui salvar neste navegador — baixe o .md';
 };
 const salvar = debounce(salvarJa, 500);
 const atualizarPrevia = debounce(() => desenharPrevia(), 250);
 
-/** Toda edição passa por aqui: guarda, redesenha a prévia e a conferência. */
+/** Toda edição passa por aqui: guarda, redesenha a prévia, a conferência e o progresso. */
 function mudou() {
   if (R.enviado) R.enviado = null; // editou depois de enviar: é outra versão
   salvar();
   atualizarPrevia();
   atualizarConferencia();
+  atualizarProgresso();
 }
 
-const estadoSalvo = h('span', { class: 'editor__salvo', 'aria-live': 'polite' }, 'Rascunho neste navegador');
+const estadoSalvo = h('span', { class: 'editor__salvo', 'aria-live': 'polite' }, 'Salvo neste navegador');
 const contador = h('span', { class: 'editor__contador' });
+const progresso = h('span', { class: 'editor__progresso' });
 
-const abas = h('div', { class: 'editor__abas', role: 'tablist', 'aria-label': 'Etapas' });
-const painelEscrever = h('section', { class: 'editor__painel editor__painel--escrever', id: 'painel-escrever', role: 'tabpanel' });
-const painelPrevia = h('section', { class: 'editor__painel editor__painel--previa', id: 'painel-previa', role: 'tabpanel', 'aria-label': 'Como vai ficar', tabindex: 0 });
-const painelEnviar = h('section', { class: 'editor__painel editor__painel--enviar', id: 'painel-enviar', role: 'tabpanel' });
+const painelEscrever = h('section', { class: 'editor__painel editor__painel--escrever', id: 'painel-escrever', 'aria-label': 'Escrever' });
+const painelPrevia = h('section', { class: 'editor__painel editor__painel--previa', id: 'painel-previa', 'aria-label': 'Como vai ficar', tabindex: 0 });
+const painelEnviar = h('div', { class: 'editor__painel--enviar' });
+const dialogo = h('dialog', { class: 'editor__dialogo', 'aria-label': 'Enviar para o editor' });
 const listaBlocos = h('div', { class: 'editor__blocos' });
 const conferencia = h('div', { class: 'conferencia', 'aria-live': 'polite' });
+const botaoVer = h('button', { type: 'button', class: 'botao-secundario editor__ver', 'aria-pressed': 'false' }, 'Ver como fica');
 
-function trocarAba(nova: typeof aba) {
-  aba = nova;
-  raiz.dataset.aba = nova;
-  for (const b of abas.querySelectorAll('button')) b.setAttribute('aria-selected', String(b.dataset.aba === nova));
-  if (nova === 'previa') desenharPrevia();
-  if (nova === 'enviar') desenharEnviar();
-  window.scrollTo({ top: raiz.offsetTop - 80, behavior: 'smooth' });
+function alternarPrevia() {
+  aba = aba === 'escrever' ? 'previa' : 'escrever';
+  raiz.dataset.aba = aba;
+  botaoVer.textContent = aba === 'previa' ? 'Voltar a escrever' : 'Ver como fica';
+  botaoVer.setAttribute('aria-pressed', String(aba === 'previa'));
+  if (aba === 'previa') desenharPrevia();
+  window.scrollTo({ top: raiz.offsetTop - 16, behavior: 'smooth' });
+}
+
+function abrirEnvio() {
+  desenharEnviar();
+  dialogo.showModal();
+}
+
+/** "3 de 5 seções escritas": o autor vê quanto falta sem ter de contar. */
+function atualizarProgresso() {
+  let secoes = 0;
+  let escritas = 0;
+  R.blocos.forEach((b, i) => {
+    if (b.tipo !== 'subtitulo' || b.nivel === 3) return;
+    secoes++;
+    const seguinte = R.blocos.slice(i + 1).find((x) => x.tipo !== 'subtitulo' || x.nivel === 3);
+    if (seguinte && seguinte.tipo !== 'subtitulo' && !vazio(seguinte)) escritas++;
+  });
+  progresso.textContent = secoes ? `${escritas} de ${secoes} seções escritas` : '';
 }
 
 function montar() {
   raiz.textContent = '';
   raiz.dataset.estado = 'pronto';
   raiz.dataset.aba = aba;
+  botaoVer.onclick = alternarPrevia;
 
-  for (const [chave, nome] of [['escrever', 'Escrever'], ['previa', 'Ver como fica'], ['enviar', 'Enviar']] as const) {
-    abas.append(h('button', { type: 'button', role: 'tab', 'data-aba': chave, 'aria-selected': String(aba === chave), 'aria-controls': `painel-${chave}`, onclick: () => trocarAba(chave) }, nome));
-  }
-
-  // Uma faixa só gruda no alto: as etapas, o estado e a barra de formatação.
-  // Duas faixas grudadas, cada uma com a sua altura, se atropelavam ao rolar.
+  // Uma faixa só gruda no alto: a formatação, o estado, a prévia e o Enviar.
   const topo = h(
     'div',
     { class: 'editor__topo' },
-    h('div', { class: 'editor__topo-linha' }, abas, h('div', { class: 'editor__estado' }, contador, estadoSalvo)),
     barraDeFormatacao(),
+    h('div', { class: 'editor__estado' }, progresso, contador, estadoSalvo),
+    h('div', { class: 'editor__acoes' }, botaoVer, h('button', { type: 'button', class: 'botao-acao', onclick: abrirEnvio }, 'Enviar →')),
+  );
+
+  dialogo.textContent = '';
+  dialogo.append(
+    h('div', { class: 'editor__dialogo-cabeca' }, h('h2', {}, 'Enviar para o editor'), h('button', { type: 'button', class: 'cartao__tirar', 'aria-label': 'Fechar', onclick: () => dialogo.close() }, '×')),
+    painelEnviar,
   );
 
   raiz.append(
@@ -482,12 +526,13 @@ function montar() {
     cabecaDaPauta(),
     topo,
     h('div', { class: 'editor__area' }, painelEscrever, painelPrevia),
-    painelEnviar,
+    dialogo,
   );
 
   desenharEscrever();
   desenharPrevia();
   atualizarConferencia();
+  atualizarProgresso();
 }
 
 /** Rascunho de outra pauta salvo aqui: pergunta antes de apagar. */
@@ -514,15 +559,64 @@ function avisoDeRascunho(): Node {
 
 function cabecaDaPauta(): Node {
   const p = DADOS.pauta && R.pauta === DADOS.pauta.slug ? DADOS.pauta : null;
-  if (!p) {
-    return h('header', { class: 'editor__cabeca' }, h('span', { class: 'kicker' }, R.pauta ? 'Continuando o seu rascunho' : 'Tema livre'), h('p', { class: 'editor__cabeca-texto' }, 'Escreva em blocos: o botão + entre eles abre o menu. A prévia mostra exatamente como o site vai publicar.'));
-  }
+  const dicas = h('p', { class: 'editor__cabeca-texto' }, 'Escreva direto no texto. Para mais recursos, o ', h('strong', {}, '+'), ' entre os blocos ou ', h('kbd', {}, '/'), ' num parágrafo vazio. Fotos: cole (', h('kbd', {}, 'Ctrl'), ' ', h('kbd', {}, 'V'), ') ou arraste para cá — várias de uma vez.');
+  if (!p) return h('header', { class: 'editor__cabeca' }, h('span', { class: 'kicker' }, R.pauta ? 'Continuando o seu rascunho' : 'Tema livre'), dicas);
   return h(
     'header',
     { class: 'editor__cabeca' },
     h('span', { class: 'kicker' }, p.serie ? `Série ${p.serie.titulo} · parte ${p.serie.parte} de ${p.serie.partes}` : 'Pauta avulsa'),
-    h('p', { class: 'editor__cabeca-texto' }, h('strong', {}, 'O esqueleto já está montado. '), `O objetivo: ${p.objetivo} Os subtítulos vêm da pauta; mude, junte ou tire o que quiser.`),
+    h('p', { class: 'editor__cabeca-texto' }, h('strong', {}, 'O esqueleto já está montado: '), 'é só escrever embaixo de cada subtítulo.'),
+    dicas,
+    sugestoes(p),
   );
+}
+
+/** Os blocos que a pauta sugere, como botões de um clique — em vez de caixas vazias na página. */
+function sugestoes(p: Pauta): Node {
+  const tipos = [...new Set(p.blocos)].filter((t) => !['resumo', 'aprender', 'quiz'].includes(t));
+  if (!tipos.length) return document.createTextNode('');
+  return h(
+    'p',
+    { class: 'sugestoes' },
+    h('span', { class: 'sugestoes__rotulo' }, 'Costuma servir aqui:'),
+    ...tipos.map((t) => h('button', { type: 'button', class: 'sugestoes__botao', title: rotuloDe(t).para, onclick: () => inserir([blocoVazio(t)]) }, `+ ${rotuloDe(t).rotulo}`)),
+  );
+}
+
+/** Onde entra o bloco novo: depois do bloco em que o autor está; sem foco, antes do quiz do fim. */
+function inserir(novos: Bloco[], pos?: number) {
+  let i = pos ?? -1;
+  if (i < 0 && blocoAtivo) i = R.blocos.findIndex((b) => b.id === blocoAtivo) + 1;
+  if (i <= 0) {
+    const quiz = R.blocos.map((b) => b.tipo).lastIndexOf('quiz');
+    i = quiz >= 0 ? quiz : R.blocos.length;
+  }
+  R.blocos.splice(i, 0, ...novos);
+  desenharBlocos();
+  mudou();
+  const alvo = listaBlocos.querySelector(`[data-bloco="${novos[0]!.id}"]`) as HTMLElement | null;
+  alvo?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  (alvo?.querySelector('textarea, input:not([type=file])') as HTMLElement | null)?.focus({ preventScroll: true });
+}
+
+/** Foto colada ou arrastada vira bloco de imagem na hora, já reduzida e com o crédito do autor. */
+async function fotosParaBlocos(arquivos: File[]) {
+  const imagens = arquivos.filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
+  if (!imagens.length) return;
+  estadoSalvo.textContent = imagens.length > 1 ? `Preparando ${imagens.length} fotos…` : 'Preparando a foto…';
+  const novos: Bloco[] = [];
+  for (const f of imagens) {
+    try {
+      const r = await reduzir(f, { largura: 1600, teto: 580_000 });
+      const id = uid();
+      await IDB.por(id, r.blob, r.largura, r.altura);
+      novos.push({ ...blocoVazio('imagem'), img: { id, alt: '', credito: '' } });
+    } catch {
+      /* uma foto ruim não impede as outras */
+    }
+  }
+  if (novos.length) inserir(novos);
+  salvarJa();
 }
 
 /* ---------------------------------------------------------------- escrever */
@@ -530,7 +624,7 @@ function cabecaDaPauta(): Node {
 function desenharEscrever() {
   painelEscrever.textContent = '';
   const titulo = h('textarea', { class: 'doc-titulo', rows: 1, placeholder: 'O título do artigo', maxlength: 160, 'aria-label': 'Título', value: R.meta.titulo });
-  const lead = h('textarea', { class: 'doc-lead', rows: 1, placeholder: 'A linha fina: uma frase que faça o leitor querer a segunda', maxlength: 300, 'aria-label': 'Linha fina', value: R.meta.lead });
+  const lead = h('textarea', { class: 'doc-lead', rows: 1, placeholder: 'Uma frase que diga ao leitor o que ele vai ganhar lendo', maxlength: 300, 'aria-label': 'Linha fina', value: R.meta.lead });
   for (const [el, campo] of [[titulo, 'titulo'], [lead, 'lead']] as const) {
     crescer(el);
     el.addEventListener('input', () => {
@@ -539,21 +633,39 @@ function desenharEscrever() {
       mudou();
     });
   }
-  const formato = h('select', { class: 'campo', 'aria-label': 'Formato', onchange: (e: Event) => { R.meta.formato = (e.target as HTMLSelectElement).value as Formato; mudou(); } },
-    h('option', { value: '' }, 'Formato…'),
-    ...(Object.entries(DADOS.formatos) as [Formato, string][]).map(([k, v]) => h('option', { value: k, selected: R.meta.formato === k }, v)),
-  );
-  const nivel = h('select', { class: 'campo', 'aria-label': 'Nível', onchange: (e: Event) => { R.meta.nivel = (e.target as HTMLSelectElement).value as Nivel; mudou(); } },
-    h('option', { value: '' }, 'Nível…'),
-    ...(Object.entries(DADOS.niveis) as [Nivel, string][]).map(([k, v]) => h('option', { value: k, selected: R.meta.nivel === k }, v)),
-  );
-
-  painelEscrever.append(
-    h('div', { class: 'doc' }, titulo, lead, h('div', { class: 'doc-meta' }, formato, nivel)),
-    listaBlocos,
-  );
+  painelEscrever.append(h('div', { class: 'doc' }, titulo, lead), listaBlocos);
   desenharBlocos();
 }
+
+/* Colar e arrastar fotos, em qualquer lugar do texto. */
+painelEscrever.addEventListener('paste', (e) => {
+  const arquivos = [...(e.clipboardData?.files ?? [])];
+  if (!arquivos.some((f) => f.type.startsWith('image/'))) return;
+  e.preventDefault();
+  void fotosParaBlocos(arquivos);
+});
+painelEscrever.addEventListener('dragover', (e) => {
+  if ([...(e.dataTransfer?.items ?? [])].some((i) => i.kind === 'file')) {
+    e.preventDefault();
+    raiz.dataset.soltando = '';
+  }
+});
+painelEscrever.addEventListener('dragleave', (e) => {
+  if (!painelEscrever.contains(e.relatedTarget as Node)) delete raiz.dataset.soltando;
+});
+painelEscrever.addEventListener('drop', (e) => {
+  delete raiz.dataset.soltando;
+  const arquivos = [...(e.dataTransfer?.files ?? [])];
+  if (!arquivos.length || (e.target as HTMLElement).closest('input[type=file]')) return;
+  e.preventDefault();
+  const cartao = (e.target as HTMLElement).closest<HTMLElement>('[data-bloco]');
+  if (cartao) blocoAtivo = cartao.dataset.bloco ?? blocoAtivo;
+  void fotosParaBlocos(arquivos);
+});
+listaBlocos.addEventListener('focusin', (e) => {
+  const c = (e.target as HTMLElement).closest<HTMLElement>('[data-bloco]');
+  if (c) blocoAtivo = c.dataset.bloco ?? null;
+});
 
 /** Campo que cresce com o texto — medido depois de estar na página (fora dela, scrollHeight é 0). */
 function crescer(el: HTMLTextAreaElement) {
@@ -640,18 +752,23 @@ function cartao(b: Bloco, i: number): HTMLElement {
 }
 
 /** O "+" entre dois blocos: abre o menu, escolhe, entra no lugar. */
+/** Os menus abertos pelo "/" num parágrafo: o parágrafo com a barra é trocado pelo bloco escolhido. */
+const abrirMenu = new Map<HTMLElement, (substituir: string | null) => void>();
+
 function inseridor(pos: number): HTMLElement {
   const menu = h('div', { class: 'menu-blocos', hidden: true });
   const botao = h('button', { type: 'button', class: 'inseridor__botao', 'aria-expanded': 'false', 'aria-label': 'Adicionar um bloco aqui' }, '+');
-  const fechar = () => { menu.hidden = true; botao.setAttribute('aria-expanded', 'false'); };
-  botao.addEventListener('click', () => {
-    const abrir = menu.hidden;
+  let substituir: string | null = null;
+  const fechar = () => { menu.hidden = true; botao.setAttribute('aria-expanded', 'false'); substituir = null; };
+  const abrir = (sub: string | null) => {
     for (const m of listaBlocos.querySelectorAll<HTMLElement>('.menu-blocos')) m.hidden = true;
     for (const x of listaBlocos.querySelectorAll('.inseridor__botao')) x.setAttribute('aria-expanded', 'false');
-    menu.hidden = !abrir;
-    botao.setAttribute('aria-expanded', String(abrir));
-    if (abrir) (menu.querySelector('button') as HTMLElement | null)?.focus();
-  });
+    substituir = sub;
+    menu.hidden = false;
+    botao.setAttribute('aria-expanded', 'true');
+    (menu.querySelector('button') as HTMLElement | null)?.focus();
+  };
+  botao.addEventListener('click', () => (menu.hidden ? abrir(null) : fechar()));
   menu.addEventListener('keydown', (e) => { if (e.key === 'Escape') { fechar(); botao.focus(); } });
   for (const g of GRUPOS) {
     menu.append(
@@ -662,7 +779,9 @@ function inseridor(pos: number): HTMLElement {
             type: 'button', class: 'menu-blocos__item', title: rotuloDe(t).para,
             onclick: () => {
               const novo = blocoVazio(t);
-              R.blocos.splice(pos, 0, novo);
+              const i = substituir ? R.blocos.findIndex((b) => b.id === substituir) : -1;
+              if (i >= 0) R.blocos.splice(i, 1, novo);
+              else R.blocos.splice(pos, 0, novo);
               desenharBlocos();
               mudou();
               (listaBlocos.querySelector(`[data-bloco="${novo.id}"] textarea, [data-bloco="${novo.id}"] input:not([type=file])`) as HTMLElement | null)?.focus();
@@ -672,7 +791,9 @@ function inseridor(pos: number): HTMLElement {
       ),
     );
   }
-  return h('div', { class: 'inseridor' }, botao, menu);
+  const el = h('div', { class: 'inseridor' }, botao, menu);
+  abrirMenu.set(el, abrir);
+  return el;
 }
 
 /* ---------------------------------------------------------------- os campos de cada bloco */
@@ -737,7 +858,7 @@ function campoImagem(atual: Img | null | undefined, definir: (i: Img | null) => 
           const r = await reduzir(f, { largura: 1600, teto: 580_000 });
           const id = uid();
           await IDB.por(id, r.blob, r.largura, r.altura);
-          atual = { id, alt: '', credito: R.autor.nome ? `Foto: ${R.autor.nome}` : '' };
+          atual = { id, alt: '', credito: '' }; // vazio = "Foto: <nome do autor>" (creditoDe)
           definir(atual);
           await redesenhar();
           mudou();
@@ -746,7 +867,7 @@ function campoImagem(atual: Img | null | undefined, definir: (i: Img | null) => 
           status.textContent = `Não consegui usar esta imagem: ${(e as Error).message}.`;
         }
       });
-      caixa.append(h('label', { class: 'imagem-campo__vazio' }, h('span', {}, o.rotulo), input, h('small', {}, 'JPG ou PNG. O editor reduz para o tamanho do site.')), status);
+      caixa.append(h('label', { class: 'imagem-campo__vazio' }, h('span', {}, o.rotulo), input, h('small', {}, 'Ou cole a foto (Ctrl V) / arraste para o texto. O editor reduz sozinho.')), status);
       return;
     }
     const url = await urlDaImagem(img.id);
@@ -754,8 +875,9 @@ function campoImagem(atual: Img | null | undefined, definir: (i: Img | null) => 
       h('div', { class: 'imagem-campo__cheio' },
         url ? h('img', { src: url, alt: '' }) : h('span', { class: 'imagem-campo__perdida' }, 'imagem não encontrada neste navegador — escolha de novo'),
         h('div', { class: 'imagem-campo__textos' },
-          linha(img.alt, 'O que há na imagem (para quem não vê)', (v) => (img.alt = v)),
-          o.semCredito ? null : linha(img.credito, 'Crédito — Foto: quem fez', (v) => (img.credito = v)),
+          linha(img.alt, 'O que a foto mostra — ex.: o menu de parâmetros do inversor', (v) => (img.alt = v)),
+          // o crédito é opcional: vazio, vale "Foto: <o seu nome>"; só se escreve quando a foto é de outra pessoa
+          o.semCredito ? null : linha(img.credito, `Crédito (se vazio: Foto: ${R.autor.nome.trim() || 'o seu nome'})`, (v) => (img.credito = v), 'campo-doc--secundario'),
           h('button', { type: 'button', class: 'botao-texto', onclick: () => { atual = null; definir(null); redesenhar(); mudou(); } }, 'Trocar imagem'),
         ),
       ),
@@ -768,13 +890,20 @@ function campoImagem(atual: Img | null | undefined, definir: (i: Img | null) => 
 function campos(b: Bloco): Node {
   const para = rotuloDe(b.tipo).para;
   switch (b.tipo) {
-    case 'paragrafo':
-      return area(b.texto ?? '', 'Escreva aqui…', (v) => (b.texto = v), { classe: 'campo-doc--obra', linhas: 3, rotulo: 'Parágrafo' });
-    case 'subtitulo': {
-      const nivel = h('select', { class: 'campo campo--mini', 'aria-label': 'Nível do subtítulo', onchange: (e: Event) => { b.nivel = Number((e.target as HTMLSelectElement).value) as 2 | 3; mudou(); } },
-        h('option', { value: '2', selected: b.nivel !== 3 }, 'Seção'), h('option', { value: '3', selected: b.nivel === 3 }, 'Subseção'));
-      return h('div', { class: 'subtitulo-campo' }, linha(b.texto ?? '', 'Subtítulo', (v) => (b.texto = v), b.nivel === 3 ? 'campo-doc--h3' : 'campo-doc--h2'), nivel);
+    case 'paragrafo': {
+      const el = area(b.texto ?? '', 'Escreva aqui…  ( / abre os blocos )', (v) => (b.texto = v), { classe: 'campo-doc--obra', linhas: 2, rotulo: 'Parágrafo' });
+      // "/" sozinho num parágrafo abre o menu de blocos ali mesmo, como nos editores de hoje
+      el.addEventListener('input', () => {
+        if (el.value.trim() !== '/') return;
+        const ins = el.closest('[data-bloco]')?.previousElementSibling as HTMLElement | null;
+        if (ins) abrirMenu.get(ins)?.(b.id);
+      });
+      return el;
     }
+    case 'subtitulo':
+      // sem seletor de nível: ele cortava o subtítulo e quase ninguém usava — subtítulo é seção
+      // campo que quebra a linha: subtítulo comprido era cortado no celular (a quebra some no texto: umaLinha)
+      return area(b.texto ?? '', 'Subtítulo', (v) => (b.texto = v), { linhas: 1, classe: b.nivel === 3 ? 'campo-doc--h3' : 'campo-doc--h2', rotulo: 'Subtítulo' });
     case 'lista': case 'numerada':
       return area(b.texto ?? '', 'Um item por linha', (v) => (b.texto = v), { linhas: 3 });
     case 'citacao':
@@ -898,26 +1027,33 @@ function formulaEditavel(b: Bloco): HTMLElement {
 }
 
 function quizEditavel(b: Bloco): HTMLElement {
+  /* O mais direto possível: a pergunta, a resposta certa e as erradas — sem
+     marcar rádio. A certa fica sempre no primeiro campo aqui; no texto
+     publicado, `embaralhar` a põe numa posição que muda de pergunta a pergunta. */
   const caixa = h('div', { class: 'grade-campos' });
+  for (const q of b.questoes ?? []) {
+    const certa = q.opcoes.findIndex((o) => o.certa);
+    if (certa > 0) q.opcoes.unshift(...q.opcoes.splice(certa, 1)); // rascunho antigo: a certa vai para o primeiro campo
+    q.opcoes.forEach((o, k) => (o.certa = k === 0));
+  }
   const redesenhar = () => {
     caixa.textContent = '';
-    caixa.append(tituloOpcional(b, 'Título (padrão: Teste o que ficou)'), h('small', { class: 'dica-campo' }, 'Três a cinco perguntas sobre o que o artigo ensinou. Marque a certa no círculo.'));
+    caixa.append(h('small', { class: 'dica-campo' }, 'Uma a cinco perguntas sobre o que o artigo ensinou. O site embaralha as respostas.'));
     b.questoes!.forEach((q, n) => {
-      const nome = `certa-${b.id}-${n}`;
       caixa.append(
-        h('fieldset', { class: 'questao-campo' },
-          h('legend', {}, `Pergunta ${n + 1}`),
+        h('div', { class: 'questao-campo' },
+          h('span', { class: 'questao-campo__n' }, `Pergunta ${n + 1}`),
           linha(q.pergunta, 'A pergunta', (v) => (q.pergunta = v), 'item__titulo'),
           ...q.opcoes.map((o, k) =>
-            h('div', { class: 'questao-campo__opcao' },
-              h('input', { type: 'radio', name: nome, checked: o.certa, 'aria-label': `Opção ${k + 1} é a certa`, onchange: () => { q.opcoes.forEach((x, m) => (x.certa = m === k)); mudou(); } }),
-              linha(o.texto, `Opção ${k + 1}`, (v) => (o.texto = v)),
-              h('button', { type: 'button', class: 'item__tirar', 'aria-label': 'Tirar esta opção', disabled: q.opcoes.length <= 2, onclick: () => { const eraCerta = o.certa; q.opcoes.splice(k, 1); if (eraCerta) q.opcoes[0]!.certa = true; redesenhar(); mudou(); } }, '×'),
+            h('div', { class: `questao-campo__opcao questao-campo__opcao--${k === 0 ? 'certa' : 'errada'}` },
+              h('span', { class: 'questao-campo__marca', 'aria-hidden': 'true' }, k === 0 ? '✓' : '✕'),
+              linha(o.texto, k === 0 ? 'A resposta certa' : 'Uma resposta errada (mas plausível)', (v) => (o.texto = v)),
+              k > 1 ? h('button', { type: 'button', class: 'item__tirar', 'aria-label': 'Tirar esta resposta', onclick: () => { q.opcoes.splice(k, 1); redesenhar(); mudou(); } }, '×') : h('span', {}),
             )),
           h('p', { class: 'questao-campo__acoes' },
-            h('button', { type: 'button', class: 'botao-texto', disabled: q.opcoes.length >= 5, onclick: () => { q.opcoes.push({ texto: '', certa: false }); redesenhar(); mudou(); } }, '+ opção'),
-            h('button', { type: 'button', class: 'botao-texto', onclick: () => { b.questoes!.splice(n, 1); redesenhar(); mudou(); } }, 'tirar pergunta')),
-          linha(q.explica, 'Por que a certa é a certa (aparece depois que o leitor responde)', (v) => (q.explica = v)),
+            h('button', { type: 'button', class: 'botao-texto', disabled: q.opcoes.length >= 5, onclick: () => { q.opcoes.push({ texto: '', certa: false }); redesenhar(); mudou(); } }, '+ errada'),
+            b.questoes!.length > 1 ? h('button', { type: 'button', class: 'botao-texto', onclick: () => { b.questoes!.splice(n, 1); redesenhar(); mudou(); } }, 'tirar pergunta') : null),
+          linha(q.explica, 'Por que a certa é a certa — opcional, aparece depois da resposta', (v) => (q.explica = v), 'campo-doc--secundario'),
         ),
       );
     });
@@ -987,13 +1123,12 @@ function conferir(): { achados: Achado[]; md: string } {
   if (!R.meta.nivel) a.push({ nivel: 'erro', texto: 'Escolha o nível: iniciante, intermediário ou avançado.' });
   const n = palavras(md);
   if (md.length < 300) a.push({ nivel: 'erro', texto: 'O texto ainda está curto demais para enviar.' });
-  else if (n < 350) a.push({ nivel: 'aviso', texto: `${n} palavras — um artigo costuma ter de 600 a 1.500. Curto pode, mas confira se falta alguma seção.` });
+  else if (n < 250) a.push({ nivel: 'aviso', texto: `${n} palavras — curto pode (um bom passo a passo com fotos cabe em 400), mas confira se falta alguma seção.` });
   if (!r.blocos.includes('quiz')) a.push({ nivel: 'aviso', texto: 'Sem quiz no fim. Três perguntas bastam — é a marca do Instituto.' });
   if (!r.blocos.includes('resumo')) a.push({ nivel: 'aviso', texto: 'Sem resumo rápido no alto. Quem tem um minuto lê só ele.' });
   const vazios = R.blocos.filter(vazio).filter((b) => b.tipo !== 'paragrafo');
   if (vazios.length) a.push({ nivel: 'aviso', texto: `${vazios.length} bloco(s) vazio(s) — não vão no texto: ${[...new Set(vazios.map((b) => rotuloDe(b.tipo).rotulo))].join(', ')}.` });
-  for (const b of R.blocos) for (const i of [b.img, b.antes, b.depois]) if (i && !i.alt.trim()) a.push({ nivel: 'erro', texto: 'Uma imagem está sem a descrição do que há nela.' });
-  for (const b of R.blocos) if (b.tipo === 'imagem' && b.img && !b.img.credito.trim()) a.push({ nivel: 'erro', texto: 'Uma imagem está sem crédito — escreva quem fez a foto (ex.: Foto: o seu nome).' });
+  for (const b of R.blocos) for (const i of [b.img, b.antes, b.depois]) if (i && !i.alt.trim()) a.push({ nivel: 'erro', texto: 'Uma foto está sem a frase do que ela mostra.' });
   return { achados: [...new Map(a.map((x) => [x.texto, x])).values()], md };
 }
 
@@ -1021,7 +1156,7 @@ function autorOk(): { ok: boolean; falta: string[] } {
   if (a.bio.trim().length < 40) falta.push('a bio (40 letras ou mais)');
   if (a.link.trim() && !/^https?:\/\//.test(a.link.trim())) falta.push('o link começando com https://');
   const c = R.consentimentos;
-  if (!c.autoria || !c.imagens || !c.privacidade) falta.push('as três confirmações');
+  if (!c.autoria || !c.imagens || !c.privacidade) falta.push('a confirmação do fim');
   return { ok: falta.length === 0, falta };
 }
 
@@ -1059,11 +1194,21 @@ function desenharEnviar() {
   };
   void desenharFoto();
 
-  const confirma = (chave: keyof Rascunho['consentimentos'], texto: Node | string) => {
-    const el = h('input', { type: 'checkbox', checked: R.consentimentos[chave] });
-    el.addEventListener('change', () => { R.consentimentos[chave] = el.checked; salvar(); atualizarConferencia(); atualizarFalta(); });
-    return h('label', { class: 'confirma' }, el, h('span', {}, texto));
-  };
+  /* UMA confirmação cobre as três (autoria, imagens, privacidade): o servidor
+     continua recebendo e conferindo as três, mas o autor marca uma vez. */
+  const c = R.consentimentos;
+  const confirma = h('input', { type: 'checkbox', checked: c.autoria && c.imagens && c.privacidade });
+  confirma.addEventListener('change', () => {
+    c.autoria = c.imagens = c.privacidade = confirma.checked;
+    salvar();
+    atualizarConferencia();
+    atualizarFalta();
+  });
+  const selecionar = <K extends 'formato' | 'nivel'>(chave: K, opcoes: Record<string, string>, rotulo: string) =>
+    h('label', { class: 'campo-rotulo' }, h('span', {}, rotulo),
+      h('select', { class: 'campo', onchange: (e: Event) => { R.meta[chave] = (e.target as HTMLSelectElement).value as Rascunho['meta'][K]; mudou(); } },
+        ...Object.entries(opcoes).map(([k, v]) => h('option', { value: k, selected: R.meta[chave] === k }, v))));
+  const jaConhecido = a.nome.trim().split(/\s+/).length >= 2 && /@/.test(a.email) && a.bio.trim().length >= 40;
 
   const falta = h('p', { class: 'enviar__falta', 'aria-live': 'polite' });
   const atualizarFalta = () => {
@@ -1073,26 +1218,30 @@ function desenharEnviar() {
   const resultado = h('div', { class: 'enviar__resultado', 'aria-live': 'polite' });
   const botao = h('button', { type: 'button', id: 'enviar-artigo', class: 'botao-acao', onclick: () => enviar(botao, resultado) }, 'Enviar para o editor');
 
+  // quem já escreveu antes não preenche de novo: o autor fica guardado neste navegador
+  const quem = h('details', { class: 'enviar__quem', open: !jaConhecido },
+    h('summary', {}, jaConhecido ? h('span', {}, 'Assina: ', h('strong', {}, a.nome), ' · trocar') : h('strong', {}, 'Quem assina')),
+    h('p', { class: 'enviar__nota' }, 'Vai na sua página de autor. O e-mail não aparece em lugar nenhum — é só para o editor responder.'),
+    campo('Nome e sobrenome *', entrada('nome', 'text', { autocomplete: 'name', maxlength: 120 })),
+    campo('E-mail *', entrada('email', 'email', { autocomplete: 'email', maxlength: 200 })),
+    campo('Quem você é, em duas frases *', bio, 'Ex.: o que você faz e onde. Vai na sua página.'),
+    h('details', { class: 'enviar__mais' },
+      h('summary', {}, 'Mais sobre você (opcional): o que faz, link do currículo, foto'),
+      campo('O que você faz', entrada('papel', 'text', { maxlength: 80, placeholder: 'Engenheiro de automação, técnico, integrador…' })),
+      campo('Link do currículo', entrada('link', 'url', { maxlength: 300, placeholder: 'https://www.linkedin.com/in/…' }), 'LinkedIn, Lattes ou site.'),
+      foto,
+    ),
+  );
+
   painelEnviar.append(
     h('div', { class: 'enviar' },
       h('div', { class: 'enviar__coluna' },
-        h('h2', { class: 'enviar__titulo' }, 'Quem assina'),
-        h('p', { class: 'enviar__nota' }, 'É o que vai na sua página de autor. O e-mail não aparece em lugar nenhum — é só para o editor responder.'),
-        campo('Nome e sobrenome *', entrada('nome', 'text', { autocomplete: 'name', maxlength: 120 })),
-        campo('E-mail *', entrada('email', 'email', { autocomplete: 'email', maxlength: 200 })),
-        campo('O que você faz', entrada('papel', 'text', { maxlength: 80, placeholder: 'Engenheiro de automação, técnico, integrador…' })),
-        campo('Bio *', bio, 'Duas ou três frases: quem você é e o que faz. Vai na sua página.'),
-        campo('Link do currículo', entrada('link', 'url', { maxlength: 300, placeholder: 'https://www.linkedin.com/in/…' }), 'LinkedIn, Lattes ou site — opcional.'),
-        foto,
+        quem,
+        h('div', { class: 'grade-campos__linha' }, selecionar('formato', DADOS.formatos, 'Formato'), selecionar('nivel', DADOS.niveis, 'Nível')),
       ),
       h('div', { class: 'enviar__coluna' },
-        h('h2', { class: 'enviar__titulo' }, 'Conferência'),
         conferencia,
-        h('div', { class: 'enviar__confirmas' },
-          confirma('autoria', 'Escrevi este texto. Não foi gerado por máquina, e o que veio de outro lugar está creditado.'),
-          confirma('imagens', 'As imagens são minhas ou tenho permissão para publicá-las.'),
-          confirma('privacidade', h('span', {}, `Entendo que os meus dados servem para ${DADOS.finalidade}. `, h('a', { href: '/privacidade', target: '_blank' }, 'Privacidade'))),
-        ),
+        h('label', { class: 'confirma' }, confirma, h('span', {}, 'Escrevi este texto (não foi gerado por máquina), as fotos são minhas ou autorizadas, e concordo com o uso dos meus dados para publicá-lo. ', h('a', { href: '/privacidade', target: '_blank' }, 'Privacidade'))),
         falta,
         h('p', { class: 'enviar__acoes' }, botao, h('button', { type: 'button', class: 'botao-secundario', onclick: () => baixarMd() }, 'Baixar o .md')),
         resultado,

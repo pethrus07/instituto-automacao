@@ -22,7 +22,8 @@
 > apuração (seção 2e). O primeiro saiu, e a partir de agora sai sozinho toda segunda.
 >
 > **27/09: a aba Escrever e a pauta que pergunta** (seções 2g e 2h). O que a reunião de 24/09
-> pediu do Instituto está feito: o plano editorial (66 pautas em séries de 3, 5 e 10), o padrão
+> pediu do Instituto está feito: o plano editorial (95 pautas em séries de 3, 5 e 10, com trilhas de
+> fundamentos, IA e educação), o padrão
 > do artigo em blocos (com o quiz), o editor "como um Google Docs" com prévia e envio, e a
 > pergunta semanal que a máquina faz ao Pedro. **Não feito:** as "100 notícias" de nascimento
 > (são 27) e a produção (A2).
@@ -367,10 +368,10 @@ o que o Pedro respondeu — e o estado, medido, em 27/09:
 | "O processo de aceitação estava pedindo muito mais informação do lado de cá do que precisava" · "qual é a notícia principal é decisão de cá; você tem de escolher da lista" | Pedro | **Feito:** a pergunta pede duas coisas — quais viram notícia e qual abre a capa (`principal: N`). Veredito, texto e imagem vêm prontos para ler antes de ir ao ar |
 | "Hoje vai sair os resumos todos, o retroativo, e a partir da próxima semana já vai automático" | Pedro | **Os Giros retroativos saíram em 24/09** (s37 e s38). O automático **falha na segunda 28/09** se os segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` não estiverem no GitHub — conferido em 27/09: **não estão** |
 | "Pelo menos ele nasce com as **100 notícias**" | sócio, e o Pedro confirmou | **Não feito.** São 27. Notícia é texto assinado pelo Pedro, e a regra é que ele leia antes; as 7 de 24/09 ainda esperam essa leitura. A pauta semanal é o caminho para crescer sem furar a regra |
-| **Guia de temas:** "um cronograma dos 300 que a gente quer até o fim do ano", desmembrado em **séries** (isolado, de 3, de 5, de 10) por área — predial do 1 ao 5, telecom do 1 ao 5, "a diferença do cabo cat6" na série de informática — com "um descritivo básico, 50% do caminho andado" | sócio | **Feito como proposta:** `src/pautas.ts` — 66 pautas, 11 séries (3, 5 e 10), 10 trilhas, cada uma com objetivo, esqueleto e blocos sugeridos. Público em `/escrever`. **O corte é do Pedro e do sócio** |
+| **Guia de temas:** "um cronograma dos 300 que a gente quer até o fim do ano", desmembrado em **séries** (isolado, de 3, de 5, de 10) por área — predial do 1 ao 5, telecom do 1 ao 5, "a diferença do cabo cat6" na série de informática — com "um descritivo básico, 50% do caminho andado" | sócio | **Feito como proposta:** `src/pautas.ts` — 95 pautas, 15 séries (3, 5 e 10), 13 trilhas (com Fundamentos, IA e Educação, pedidos pelo Pedro no mesmo dia), cada uma com objetivo, esqueleto e blocos sugeridos. Público em `/escrever`. **O corte é do Pedro e do sócio** |
 | **O padrão do artigo** — o HTML "Padrão Artigo Instituto" (configuração, fórmula, dica, código, tabela comparativa, atalhos, antes e depois, top 5 armadilhas, how-to) | sócio | **Feito:** os vinte recursos viraram o dialeto de blocos (ARQUITETURA §19.1), vestidos no sistema visual do site; guia público em `/escrever/blocos` |
 | **Quiz** de 3 a 5 perguntas no fim, "podia até ser uma marca do site" | sócio | **Feito:** bloco `quiz`, zero script. Toda pauta o sugere, o editor já o traz montado, e o compilador lista artigo sem quiz a cada build |
-| "Vai ter uma **abazinha chamada Escrever**… como se fosse um **Google Docs**, com todas as formas do teu padrão" — para convidado e para estranho | Pedro | **Feito:** "Escrever" na navegação; `/escrever/editor` com blocos, barra de formatação, prévia idêntica ao site, rascunho salvo no navegador e envio com imagens |
+| "Vai ter uma **abazinha chamada Escrever**… como se fosse um **Google Docs**, com todas as formas do teu padrão" — para convidado e para estranho | Pedro | **Feito, e simplificado no mesmo dia** ("deve ser rápido e fácil"): uma página, fotos por colar/arrastar, `/` para os blocos, esqueleto leve, uma confirmação só (ARQUITETURA §19.3) |
 | O autor tem de poder escrever **em 20 a 30 minutos**, "mesmo que seja com três imagens: como configurar um inversor" | sócio | **Feito:** a pauta vira esqueleto no editor; imagem entra reduzida sozinha; há a pauta "Como configurar um inversor em 20 minutos, com fotos do painel" |
 | "Tem que ter um **antes e depois** para ele de como vai ficar o artigo dele" | sócio | **Feito:** a prévia ao lado (desktop) ou na aba "Ver como fica" é o mesmo renderizador da página |
 | "Não sei se vale melhorar o texto dele com **IA** na hora" | sócio | **Não.** Zero IA em produção continua valendo; o site promete em toda página que quem assina escreve |
@@ -462,7 +463,7 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [x] ~~Botão "Enviar um evento" fora da capa?~~ — **fora**, e da navbar inteira.
 - [x] ~~Cadência: semanal, ou capa diária?~~ — **semanal**, capa mexendo sozinha.
 - [x] ~~A s36 sai atrasada ou fica pulada?~~ — **pulada**.
-- [ ] **Cortar e completar o plano editorial** (`src/pautas.ts`, 66 pautas) — com o sócio: o que
+- [ ] **Cortar e completar o plano editorial** (`src/pautas.ts`, 95 pautas) — com o sócio: o que
       sai, o que falta, quem pega qual série. Pauta reservada = `reservada: Nome` na entrada.
 - [ ] **Pôr os segredos da Cloudflare no GitHub** — agora trava DOIS fluxos (Giro e pauta).
 - [ ] As "100 notícias" de nascimento: decidir se é meta (e então a pauta semanal é o caminho) ou

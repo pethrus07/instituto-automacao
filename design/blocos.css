@@ -281,6 +281,10 @@
   background: transparent; border: 1px solid var(--codigo-traco); border-radius: var(--radius-s); padding: 0.1rem 0.6rem; cursor: pointer;
 }
 .b-codigo__copiar:hover { border-color: var(--codigo-fraco); }
+/* Sem script o botão não funciona e não aparece — mas o LUGAR dele fica
+   reservado: quando o script o revelava, o cabeçalho crescia e a página
+   pulava (CLS 0,26 medido em /escrever/blocos). */
+.b-codigo__copiar[hidden] { display: inline-block; visibility: hidden; }
 .b-codigo__copiar[data-copiado] { color: var(--codigo-ok); border-color: var(--codigo-ok); }
 .b-codigo pre, .b-terminal pre {
   margin: 0; padding: var(--space-s) var(--space-m); overflow-x: auto;

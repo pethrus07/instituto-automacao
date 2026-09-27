@@ -641,6 +641,11 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
   de leitura (`.peca`, `.peca__cabeca`, `.peca__corpo`, `.guia-blocos`) usa `minmax(0, 1fr)`.
 - **Dica invisível ainda ocupa lugar.** `opacity: 0` na definição do `{{termo|…}}` fazia a página
   rolar para o lado no celular; ela é `display: none` até o hover ou o foco.
+- **Botão revelado por script tem de ter o lugar reservado.** O "Copiar" nasce `hidden`; quando o
+  script o mostrava, o cabeçalho do código crescia e a página pulava. `[hidden]` dele é
+  `visibility: hidden`, não `display: none`.
+- **O CLS da `npm run revisao` oscila contra o servidor local** (0,26 numa rodada, 0 na seguinte, em
+  página que não mudou). Antes de caçar, medir a página sozinha num contexto limpo.
 - **O editor precisa de `blob:` em `img-src`.** A miniatura e a prévia das imagens do autor são
   `blob:` do próprio navegador. Tirar da CSP deixa a imagem "carregada e invisível", sem erro.
 
@@ -653,7 +658,7 @@ tema, sem padrão, sem vontade de abrir o Word. Três peças resolvem:
 
 ```mermaid
 flowchart LR
-  P[src/pautas.ts<br/>66 pautas · 11 séries · 10 trilhas] --> H[/escrever<br/>hub e página da pauta/]
+  P[src/pautas.ts<br/>95 pautas · 15 séries · 13 trilhas] --> H[/escrever<br/>hub e página da pauta/]
   H --> E[/escrever/editor<br/>blocos + prévia/]
   B[src/ui/markdown.ts<br/>o dialeto] --> E
   B --> W[página do artigo]
@@ -711,7 +716,8 @@ os blocos que costumam servir. O estado é derivado: **publicada** quando um art
 `pauta: <slug>`; **reservada** quando alguém preencheu `reservada:` à mão; **livre** no resto.
 `testar-pautas.ts` confere que toda série tem exatamente as partes que promete.
 
-O catálogo inicial (66) é **proposta** para o Pedro e o sócio cortarem e completarem.
+O catálogo (66 no primeiro dia; 95 desde que entraram, no mesmo 27/09, as trilhas **Fundamentos**,
+**IA na automação** e **Aprender e ensinar**) é **proposta** para o Pedro e o sócio cortarem e completarem.
 
 ### 19.3 O editor (`src/escrever/editor.ts`)
 
@@ -730,6 +736,21 @@ de blocos; `serializar()` a transforma no dialeto, e a prévia é `converterObra
   obrigatório (quiz no fim, resumo no alto, texto curto). Com erro, o botão não envia.
 - **Sem IA.** O sócio perguntou se valia "melhorar o texto com IA na hora". Não: quem assina
   escreve, e o site promete isso em toda página.
+
+**A segunda versão (27/09, à tarde), pedida pelo Pedro — "como não pagamos, deve ser rápido e fácil":**
+
+| Antes | Agora |
+|---|---|
+| três abas (Escrever · Ver como fica · Enviar) | uma página: a prévia ao lado na tela larga, um botão no celular; **Enviar** abre um painel (`<dialog>`) |
+| o esqueleto trazia todos os blocos sugeridos, vazios | o esqueleto é resumo + a promessa + as seções + 1 pergunta; os sugeridos são **botões de um clique** no alto |
+| imagem só pelo botão de arquivo, com alt e crédito obrigatórios | **colar** (Ctrl V) ou **arrastar várias fotos de uma vez**; só se pede "o que a foto mostra"; crédito vazio vale "Foto: <autor>" |
+| menu só pelo + | também **`/`** num parágrafo vazio, que é trocado pelo bloco escolhido |
+| quiz com rádio para marcar a certa | pergunta · resposta certa · erradas; a posição da certa no texto é embaralhada por `embaralhar()` |
+| formato e nível no alto, três confirmações, todos os campos do autor | formato e nível pré-escolhidos no painel; **uma** confirmação (o servidor segue conferindo as três); autor lembrado, o opcional recolhido |
+| — | **progresso**: "3 de 5 seções escritas" |
+
+No celular a faixa que gruda tem 52 px: a barra de formatação sai (quase ninguém formata no
+telefone), ficam o progresso e os dois botões.
 
 ### 19.4 O envio e a caixa de entrada
 

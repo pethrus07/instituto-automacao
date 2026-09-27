@@ -23,7 +23,8 @@
  * frontmatter e o site deriva o estado (ver `estadoDaPauta`). Só a RESERVA —
  * alguém disse "essa é minha" — se escreve aqui, em `reservada`.
  *
- * O catálogo inicial (66 pautas) foi proposto em 27/09/2026 para o Pedro e o
+ * O catálogo inicial (66 pautas, 95 desde que entraram Fundamentos, IA e Educação no mesmo
+ * 27/09) foi proposto em 27/09/2026 para o Pedro e o
  * sócio cortarem, trocarem e completarem. Não é lista fechada: pauta nova é
  * uma entrada a mais neste arquivo.
  */
@@ -87,21 +88,32 @@ export const EXPLICA_FORMATO_ARTIGO: Record<FormatoArtigo, string> = {
 /* ------------------------------------------------------------- trilhas */
 
 export const TRILHAS: readonly Trilha[] = [
+  /* 27/09/2026 — o Pedro sentiu falta de temas EDUCACIONAIS e de IA. A base
+     (fundamentos) abre a lista porque é por onde o leitor novo entra; IA vem
+     logo depois dos dados, que é de onde ela depende; e "aprender e ensinar"
+     fala com estudante e professor, o público da ponte acadêmica. */
+  { slug: 'fundamentos', titulo: 'Fundamentos da automação', descricao: 'A base que todo o resto pressupõe: elétrica, lógica, sinais, comandos e pneumática.' },
   { slug: 'clp', titulo: 'CLP e programação', descricao: 'Do primeiro contato ao programa que outra pessoa consegue manter.' },
   { slug: 'redes-industriais', titulo: 'Redes e protocolos industriais', descricao: 'Modbus, RS-485, Profinet, CANopen, OPC UA — como as máquinas conversam.' },
   { slug: 'acionamentos', titulo: 'Inversores, servos e motores', descricao: 'Fazer o motor girar certo: partida, parametrização, comando pela rede.' },
   { slug: 'instrumentacao', titulo: 'Sensores e instrumentação', descricao: 'Medir direito: escolher, ligar, calibrar e confiar no sinal.' },
   { slug: 'ihm-dados', titulo: 'IHM, supervisório e dados', descricao: 'Da máquina à tela do operador e ao celular do gestor.' },
+  { slug: 'ia', titulo: 'IA na automação', descricao: 'O que a inteligência artificial resolve de verdade no chão de fábrica — e o que ainda é demonstração.' },
   { slug: 'predial', titulo: 'Automação predial e residencial', descricao: 'Iluminação, clima, acesso e integração em prédio e casa.' },
   { slug: 'rede-ti', titulo: 'Rede e TI para automação', descricao: 'Cabo, IP, switch e segurança — a parte de TI que quem monta painel precisa.' },
   { slug: 'seguranca', titulo: 'Segurança de máquinas e elétrica', descricao: 'NR-10, NR-12 e o que protege gente antes de proteger máquina.' },
   { slug: 'robotica', titulo: 'Robótica e visão', descricao: 'Robô industrial, cobot e câmera na célula de produção.' },
+  { slug: 'educacao', titulo: 'Aprender e ensinar automação', descricao: 'Para quem estuda e para quem ensina: roteiro, bancada, simulador, laboratório e TCC.' },
   { slug: 'negocio', titulo: 'Carreira e negócio', descricao: 'Orçar, propor, vender e crescer trabalhando com automação.' },
 ];
 
 /* ------------------------------------------------------------- séries */
 
 export const SERIES: readonly Serie[] = [
+  { slug: 'fundamentos-do-zero', trilha: 'fundamentos', titulo: 'Fundamentos do zero', partes: 10, descricao: 'Dez artigos curtos com a base que o técnico usa todo dia — para quem está começando e para quem quer rever sem vergonha.' },
+  { slug: 'ia-no-chao-de-fabrica', trilha: 'ia', titulo: 'IA no chão de fábrica', partes: 5, descricao: 'Do conceito ao risco: onde a IA entra numa planta, com que dado, e o que ela não resolve.' },
+  { slug: 'ia-na-pratica', trilha: 'ia', titulo: 'IA na prática', partes: 3, descricao: 'Mão na massa: dado de máquina, um modelo simples e o modelo rodando na borda.' },
+  { slug: 'aprender-automacao', trilha: 'educacao', titulo: 'Aprender automação', partes: 5, descricao: 'O roteiro de quem quer entrar na área: o que estudar, com que equipamento e em que ordem.' },
   { slug: 'clp-do-zero', trilha: 'clp', titulo: 'CLP do zero', partes: 10, descricao: 'Do relé ao PID: a série inteira de quem nunca programou até quem entrega a máquina testada.' },
   { slug: 'modbus-de-ponta-a-ponta', trilha: 'redes-industriais', titulo: 'Modbus de ponta a ponta', partes: 5, descricao: 'O protocolo mais usado da indústria, do cabo ao valor na tela — e o que fazer quando a leitura não vem.' },
   { slug: 'protocolos-lado-a-lado', trilha: 'redes-industriais', titulo: 'Protocolos lado a lado', partes: 3, descricao: 'Quando cada rede faz sentido, para quem já sabe Modbus.' },
@@ -122,6 +134,218 @@ const CONCEITO: Sugestao[] = ['resumo', 'aprender', 'tabela', 'curiosidade', 'qu
 const EXPERIENCIA: Sugestao[] = ['resumo', 'antesdepois', 'armadilhas', 'notadoautor', 'quiz'];
 
 export const PAUTAS: readonly Pauta[] = [
+  /* ---------------- Fundamentos do zero (10) — 27/09/2026 */
+  {
+    slug: 'tensao-corrente-e-a-lei-de-ohm', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 1,
+    titulo: 'Tensão, corrente e a lei de Ohm sem decoreba', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Entender tensão, corrente, resistência e potência pelo que acontece no painel, e fazer a conta que dimensiona um fio ou um fusível.',
+    cobrir: ['A analogia que funciona (e onde ela quebra)', 'Lei de Ohm e potência com um exemplo de painel', 'Corrente contínua e alternada: o 24 V e o 220 V do mesmo painel'],
+    blocos: ['resumo', 'formula', 'curiosidade', 'quiz'],
+  },
+  {
+    slug: 'multimetro-sem-medo', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 2,
+    titulo: 'Multímetro sem medo: medir tensão, continuidade e corrente', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Usar o multímetro com segurança para achar o defeito mais comum de um painel: o fio que não chega.',
+    cobrir: ['As escalas e onde ligar as pontas', 'Medir tensão sem virar curto', 'Continuidade: o teste que acha 80% dos defeitos'],
+    blocos: ['resumo', 'passos', 'imagem', 'perigo', 'quiz'],
+  },
+  {
+    slug: 'logica-booleana-e-tabela-verdade', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 3,
+    titulo: 'Lógica booleana: E, OU, NÃO e a tabela verdade', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Traduzir uma regra da máquina ("liga se A e B, desde que não C") em lógica — a base de todo programa de CLP.',
+    cobrir: ['E, OU e NÃO com botões e lâmpadas', 'Montar a tabela verdade de uma regra real', 'Da tabela para o contato em série e em paralelo'],
+    blocos: ['resumo', 'tabela', 'dica', 'quiz'],
+  },
+  {
+    slug: 'binario-hexadecimal-e-bits', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 4,
+    titulo: 'Binário, hexadecimal e por que o CLP pensa em bits', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Ler um valor em binário e hexadecimal e entender bit, byte e palavra — o que aparece em todo mapa de memória.',
+    cobrir: ['Contar em binário', 'Hexadecimal: o atalho para ler binário', 'Bit, byte, palavra e palavra dupla'],
+    blocos: ['resumo', 'tabela', 'curiosidade', 'quiz'],
+  },
+  {
+    slug: 'lendo-diagrama-eletrico', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 5,
+    titulo: 'Lendo um diagrama elétrico: símbolos, folhas e referências', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Abrir o diagrama de uma máquina e seguir um circuito da alimentação até a carga.',
+    cobrir: ['Os símbolos que aparecem sempre', 'Folha, coluna e referência cruzada', 'Seguir um circuito de ponta a ponta'],
+    blocos: ['resumo', 'imagem', 'tabela', 'dica', 'quiz'],
+  },
+  {
+    slug: 'comandos-eletricos-contator-e-rele', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 6,
+    titulo: 'Comandos elétricos: contator, relé térmico e botoeira', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Montar a partida direta com contator e entender por que ela é a mãe de todo programa de CLP.',
+    cobrir: ['Contator: bobina e contatos', 'Relé térmico: o que ele protege', 'A partida direta com selo, na bancada'],
+    blocos: ['resumo', 'passos', 'imagem', 'perigo', 'quiz'],
+  },
+  {
+    slug: 'sinal-digital-e-sinal-analogico', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 7,
+    titulo: 'Sinal digital e sinal analógico: liga-desliga e o que varia', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Separar os dois tipos de sinal e saber qual entrada do CLP cada sensor usa.',
+    cobrir: ['Digital: 0 ou 24 V', 'Analógico: 4–20 mA e 0–10 V', 'Qual sensor manda o quê'],
+    blocos: ['resumo', 'tabela', 'proscontras', 'quiz'],
+  },
+  {
+    slug: 'malha-aberta-e-malha-fechada', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 8,
+    titulo: 'Malha aberta e malha fechada: quando a máquina se corrige sozinha', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Entender realimentação com exemplos do dia a dia e da planta — a porta de entrada do controle.',
+    cobrir: ['O forno de casa e o forno da indústria', 'Sensor, controlador e atuador', 'Por que a malha fechada oscila'],
+    blocos: ['resumo', 'roteiro', 'curiosidade', 'quiz'],
+  },
+  {
+    slug: 'pneumatica-basica', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 9,
+    titulo: 'Pneumática básica: cilindro, válvula e ar comprimido', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Ler um circuito pneumático simples e saber o que cada componente faz.',
+    cobrir: ['Do compressor ao cilindro', 'Válvulas: vias e posições', 'Cilindro de simples e dupla ação'],
+    blocos: ['resumo', 'imagem', 'tabela', 'quiz'],
+  },
+  {
+    slug: 'eletropneumatica-na-bancada', trilha: 'fundamentos', serie: 'fundamentos-do-zero', parte: 10,
+    titulo: 'Eletropneumática na bancada: o solenoide que junta os dois mundos', formato: 'guia', nivel: 'intermediario',
+    objetivo: 'Comandar um cilindro com válvula solenoide e sensor de fim de curso — o primeiro ciclo automático.',
+    cobrir: ['Válvula solenoide e o sinal do CLP', 'Sensor de fim de curso no cilindro', 'Um ciclo de avanço e retorno'],
+    blocos: ['resumo', 'passos', 'imagem', 'armadilhas', 'quiz'],
+  },
+
+  /* ---------------- IA no chão de fábrica (5) — 27/09/2026 */
+  {
+    slug: 'ia-para-quem-e-de-automacao', trilha: 'ia', serie: 'ia-no-chao-de-fabrica', parte: 1,
+    titulo: 'IA para quem é de automação: o que muda e o que não muda', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Separar aprendizado de máquina, visão computacional e IA generativa, e saber onde cada uma entra numa planta.',
+    cobrir: ['Programa com regra × modelo que aprende com exemplo', 'Os três tipos que aparecem na indústria', 'O que a IA precisa que a planta nem sempre tem: dado'],
+    blocos: ['resumo', 'aprender', 'tabela', 'curiosidade', 'quiz'],
+  },
+  {
+    slug: 'manutencao-preditiva-com-vibracao', trilha: 'ia', serie: 'ia-no-chao-de-fabrica', parte: 2,
+    titulo: 'Manutenção preditiva: prever a falha pela vibração', formato: 'conceito', nivel: 'intermediario',
+    objetivo: 'Entender como sensor de vibração e modelo simples avisam antes da quebra — e quanto dado isso exige.',
+    cobrir: ['Corretiva, preventiva e preditiva', 'O sinal de vibração e o que ele conta', 'Quando a preditiva paga a conta'],
+    blocos: ['resumo', 'proscontras', 'antesdepois', 'quiz'],
+  },
+  {
+    slug: 'inspecao-visual-com-ia', trilha: 'ia', serie: 'ia-no-chao-de-fabrica', parte: 3,
+    titulo: 'Inspeção visual com IA: quando ela bate a regra fixa', formato: 'conceito', nivel: 'intermediario',
+    objetivo: 'Saber quando o defeito pede um modelo treinado e quando a visão tradicional resolve mais barato.',
+    cobrir: ['Visão por regra × visão por aprendizado', 'Quantas fotos de defeito são precisas', 'Falso positivo e o custo de parar a linha'],
+    blocos: ['resumo', 'antesdepois', 'tabela', 'armadilhas', 'quiz'],
+  },
+  {
+    slug: 'deteccao-de-anomalia-em-dado-de-processo', trilha: 'ia', serie: 'ia-no-chao-de-fabrica', parte: 4,
+    titulo: 'Detecção de anomalia: quando o processo sai do normal', formato: 'conceito', nivel: 'intermediario',
+    objetivo: 'Usar o histórico de temperatura, pressão e corrente para achar o comportamento estranho antes do alarme.',
+    cobrir: ['Alarme por limite × anomalia por padrão', 'O histórico que você já tem no supervisório', 'Anomalia não é defeito: o papel de quem opera'],
+    blocos: ['resumo', 'formula', 'dica', 'quiz'],
+  },
+  {
+    slug: 'ia-generativa-para-programar-clp', trilha: 'ia', serie: 'ia-no-chao-de-fabrica', parte: 5,
+    titulo: 'IA generativa para programar CLP: o que ajuda e o que é risco', formato: 'experiencia', nivel: 'intermediario',
+    objetivo: 'Contar, com exemplo, onde um assistente de IA economiza tempo no programa e onde ele erra de forma perigosa.',
+    cobrir: ['O que pedi e o que ele devolveu', 'Onde acertou e onde errou', 'A regra: quem assina o programa é quem testou'],
+    blocos: ['resumo', 'codigo', 'perigo', 'armadilhas', 'quiz'],
+  },
+  /* ---------------- IA na prática (3) */
+  {
+    slug: 'preparar-dado-de-maquina-para-ia', trilha: 'ia', serie: 'ia-na-pratica', parte: 1,
+    titulo: 'Preparar dado de máquina para IA: coletar, limpar, rotular', formato: 'guia', nivel: 'intermediario',
+    objetivo: 'Transformar o histórico bruto de uma máquina num conjunto de dados que um modelo consegue usar.',
+    cobrir: ['Que dado coletar e com que frequência', 'Limpar: buraco, pico e unidade errada', 'Rotular: o trabalho que ninguém quer e que decide tudo'],
+    blocos: ['resumo', 'passos', 'tabela', 'armadilhas', 'quiz'],
+  },
+  {
+    slug: 'classificador-de-defeito-sem-programar', trilha: 'ia', serie: 'ia-na-pratica', parte: 2,
+    titulo: 'Um classificador de produto bom e produto com defeito, sem programar', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Treinar um modelo simples de imagem com ferramenta gratuita e ver na prática o que é treino, teste e erro.',
+    cobrir: ['As fotos: quantas e como tirar', 'Treinar e testar', 'O que o resultado ensina sobre IA de verdade'],
+    blocos: ['resumo', 'passos', 'imagem', 'dica', 'quiz'],
+  },
+  {
+    slug: 'modelo-rodando-na-borda', trilha: 'ia', serie: 'ia-na-pratica', parte: 3,
+    titulo: 'O modelo rodando na borda: IA ao lado da máquina', formato: 'guia', nivel: 'avancado',
+    objetivo: 'Pôr um modelo treinado num computador pequeno junto da linha e mandar o resultado para o CLP.',
+    cobrir: ['Por que na borda e não na nuvem', 'O hardware e o tempo de resposta', 'Do resultado do modelo ao sinal do CLP'],
+    blocos: ['resumo', 'roteiro', 'codigo', 'perigo', 'quiz'],
+  },
+  /* ---------------- IA avulsas */
+  {
+    slug: 'humanoides-o-que-e-real', trilha: 'ia',
+    titulo: 'Humanoides na fábrica: o que é real e o que é demonstração', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Separar o vídeo de lançamento da instalação que produz, com o que se sabe das fábricas que já testam.',
+    cobrir: ['O que os humanoides fazem hoje de fato', 'O gargalo: dado de treinamento da tarefa', 'Quando isso chega a uma PME brasileira'],
+    blocos: ['resumo', 'proscontras', 'curiosidade', 'quiz'],
+  },
+  {
+    slug: 'agentes-de-ia-na-rotina-da-manutencao', trilha: 'ia',
+    titulo: 'Agentes de IA na rotina da manutenção e do escritório', formato: 'experiencia', nivel: 'iniciante',
+    objetivo: 'Mostrar uma automação de rotina com IA — ordem de serviço, relatório, estoque — e o que ela exige de revisão humana.',
+    cobrir: ['A rotina antes', 'O que foi automatizado e com quê', 'O que continua sendo conferido por gente'],
+    blocos: EXPERIENCIA,
+  },
+  {
+    slug: 'riscos-de-usar-ia-na-industria', trilha: 'ia',
+    titulo: 'Os riscos de usar IA na indústria: dado, segurança e responsabilidade', formato: 'conceito', nivel: 'intermediario',
+    objetivo: 'Saber o que perguntar antes de pôr IA perto de uma máquina ou de um dado do cliente.',
+    cobrir: ['Dado do cliente saindo da planta', 'IA perto de função de segurança', 'Quem responde quando o modelo erra'],
+    blocos: ['resumo', 'perigo', 'checklist', 'quiz'],
+  },
+
+  /* ---------------- Aprender automação (5) — 27/09/2026 */
+  {
+    slug: 'roteiro-de-estudos-em-automacao', trilha: 'educacao', serie: 'aprender-automacao', parte: 1,
+    titulo: 'Roteiro de estudos em automação: por onde começar', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Dar a ordem de estudo que evita pular etapa — da elétrica ao CLP, das redes à IA.',
+    cobrir: ['A base que não dá para pular', 'A ordem sugerida, com tempo estimado', 'Como saber que está pronto para a próxima'],
+    blocos: ['resumo', 'roteiro', 'checklist', 'quiz'],
+  },
+  {
+    slug: 'bancada-de-estudos-barata', trilha: 'educacao', serie: 'aprender-automacao', parte: 2,
+    titulo: 'Uma bancada de estudos barata: o que comprar e o que não', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Montar uma bancada para treinar CLP e comandos gastando pouco, com lista de compra.',
+    cobrir: ['O mínimo: fonte, CLP pequeno, botões e lâmpadas', 'Comprar usado com segurança', 'O que parece útil e não é'],
+    blocos: ['resumo', 'tabela', 'imagem', 'armadilhas', 'quiz'],
+  },
+  {
+    slug: 'simuladores-gratuitos-de-automacao', trilha: 'educacao', serie: 'aprender-automacao', parte: 3,
+    titulo: 'Simuladores gratuitos para treinar CLP sem equipamento', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Conhecer os simuladores gratuitos que permitem praticar Ladder e processos sem bancada.',
+    cobrir: ['Os simuladores, lado a lado', 'Um primeiro exercício passo a passo', 'O limite do simulador'],
+    blocos: ['resumo', 'tabela', 'passos', 'quiz'],
+  },
+  {
+    slug: 'tecnico-tecnologo-ou-engenharia', trilha: 'educacao', serie: 'aprender-automacao', parte: 4,
+    titulo: 'Técnico, tecnólogo ou engenharia: qual formação para qual trabalho', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Comparar as formações pelo que cada uma permite fazer, pelo tempo e pelo custo — com o que o mercado pede.',
+    cobrir: ['O que cada formação ensina de verdade', 'O que o mercado pede em cada vaga', 'Atribuição profissional e registro'],
+    blocos: ['resumo', 'tabela', 'proscontras', 'quiz'],
+  },
+  {
+    slug: 'certificacoes-e-cursos-que-valem', trilha: 'educacao', serie: 'aprender-automacao', parte: 5,
+    titulo: 'Certificações e cursos livres: quais valem no currículo', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Separar o curso que abre porta do certificado que só enfeita, com critérios para escolher.',
+    cobrir: ['Fabricante, instituição e curso livre', 'O que o recrutador olha', 'Portfólio vale mais que certificado?'],
+    blocos: ['resumo', 'checklist', 'margem', 'quiz'],
+  },
+  /* ---------------- Educação avulsas */
+  {
+    slug: 'ensinar-automacao-com-pouco-laboratorio', trilha: 'educacao',
+    titulo: 'Ensinar automação com pouco laboratório', formato: 'experiencia', nivel: 'intermediario',
+    objetivo: 'Contar como montar aulas práticas de automação com poucos kits, simulador e trabalho em grupo.',
+    cobrir: ['A turma e o laboratório que havia', 'As aulas que funcionaram', 'O que faria diferente'],
+    blocos: EXPERIENCIA,
+  },
+  {
+    slug: 'tcc-em-automacao-como-escolher-o-tema', trilha: 'educacao',
+    titulo: 'TCC em automação: como escolher um tema que dá para terminar', formato: 'guia', nivel: 'iniciante',
+    objetivo: 'Escolher e delimitar um tema de TCC com problema real, dado disponível e prazo que cabe no semestre.',
+    cobrir: ['O problema real e o recorte', 'O dado ou o equipamento que você tem acesso', 'O cronograma que cabe'],
+    blocos: ['resumo', 'checklist', 'armadilhas', 'quiz'],
+  },
+  {
+    slug: 'arduino-e-esp32-como-porta-de-entrada', trilha: 'educacao',
+    titulo: 'Arduino e ESP32 como porta de entrada — e onde eles param', formato: 'conceito', nivel: 'iniciante',
+    objetivo: 'Usar microcontrolador para aprender automação sabendo a diferença para um CLP industrial.',
+    cobrir: ['O que se aprende bem com Arduino', 'Por que a indústria usa CLP', 'A ponte: do protótipo ao painel'],
+    blocos: ['resumo', 'proscontras', 'codigo', 'quiz'],
+  },
+
   /* ---------------- CLP do zero (10) */
   {
     slug: 'o-que-um-clp-faz-que-um-rele-nao-faz', trilha: 'clp', serie: 'clp-do-zero', parte: 1,
