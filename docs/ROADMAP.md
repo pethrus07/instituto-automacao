@@ -1,6 +1,6 @@
 # Instituto Automação — Roadmap · v2
 
-> **Estado em 24/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
+> **Estado em 27/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
 > Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
 > **31/12/2026** (acordo interno).
 >
@@ -21,7 +21,14 @@
 > **boletim gerado dos números medidos** — sem modelo de linguagem, por função pura sobre a
 > apuração (seção 2e). O primeiro saiu, e a partir de agora sai sozinho toda segunda.
 >
-> ⚠️ Segue parado o que é **editorial**: notícia e artigo. Último texto de gente em 04/09.
+> **27/09: a aba Escrever e a pauta que pergunta** (seções 2g e 2h). O que a reunião de 24/09
+> pediu do Instituto está feito: o plano editorial (66 pautas em séries de 3, 5 e 10), o padrão
+> do artigo em blocos (com o quiz), o editor "como um Google Docs" com prévia e envio, e a
+> pergunta semanal que a máquina faz ao Pedro. **Não feito:** as "100 notícias" de nascimento
+> (são 27) e a produção (A2).
+>
+> ⚠️ Os **segredos da Cloudflare no GitHub** seguem faltando (conferido em 27/09): sem eles o
+> Giro de segunda 28/09 e a pauta de sábado falham.
 
 ---
 
@@ -37,7 +44,7 @@
 | **`/privacidade`** e a finalidade declarada ao lado do formulário (11/09) | **Relógio medindo** — o agrupamento não forma par (seção 2c) |
 | **Rótulo de publicidade no código** — `patrocinada: true` sai rotulada em toda superfície (11/09) | **Primeira venda** de artigo patrocinado |
 | Marca prototipal e prancha em `/marca` | **Logo** definitiva |
-| Tour narrado, **QA 1025 asserções**, revisão Playwright (0 axe, CLS 0, 0 link quebrado) | Formulário de **submissão de artigo** (texto, imagens, arquivos) |
+| Tour narrado, **QA 1341 asserções**, revisão Playwright (0 axe, CLS 0, 0 link quebrado) | ~~Formulário de submissão de artigo~~ — **editor em /escrever, 27/09** |
 | Coletor vivo no cron da homologação desde 06/09, série contínua | Redes sociais e comunidade |
 
 ---
@@ -348,6 +355,53 @@ YouTube — que são justamente on-topic. O Reddit · PLC é a perda mais sentid
 
 ---
 
+## 2g · A reunião de 24/09 e o que ficou feito em 27/09
+
+Ata: `atas/atas-salvas/2026-09-24_1142_alinhamento 24_09.md` (53 min; a primeira metade é
+IoT, que tem conversa própria). Os "Participante N" são o sócio. O que ele trouxe do Instituto,
+o que o Pedro respondeu — e o estado, medido, em 27/09:
+
+| O que foi dito | Quem | Estado em 27/09 |
+|---|---|---|
+| "Todo o fluxo não humano está **100% automatizado já**. Da coleta, a leitura, ele só faz a pergunta para mim — esse e esse está liberado de subir — e eu aprovo" | Pedro | **Era meia verdade.** A coleta, sim; a PERGUNTA não existia (a pauta era `npm run colher`, manual, no banco local). **Feito:** `npm run pauta` + `.github/workflows/pauta-semanal.yml` abrem toda sábado uma issue com os assuntos candidatos e os artigos recebidos; responder é marcar (seção 2h) |
+| "O processo de aceitação estava pedindo muito mais informação do lado de cá do que precisava" · "qual é a notícia principal é decisão de cá; você tem de escolher da lista" | Pedro | **Feito:** a pergunta pede duas coisas — quais viram notícia e qual abre a capa (`principal: N`). Veredito, texto e imagem vêm prontos para ler antes de ir ao ar |
+| "Hoje vai sair os resumos todos, o retroativo, e a partir da próxima semana já vai automático" | Pedro | **Os Giros retroativos saíram em 24/09** (s37 e s38). O automático **falha na segunda 28/09** se os segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` não estiverem no GitHub — conferido em 27/09: **não estão** |
+| "Pelo menos ele nasce com as **100 notícias**" | sócio, e o Pedro confirmou | **Não feito.** São 27. Notícia é texto assinado pelo Pedro, e a regra é que ele leia antes; as 7 de 24/09 ainda esperam essa leitura. A pauta semanal é o caminho para crescer sem furar a regra |
+| **Guia de temas:** "um cronograma dos 300 que a gente quer até o fim do ano", desmembrado em **séries** (isolado, de 3, de 5, de 10) por área — predial do 1 ao 5, telecom do 1 ao 5, "a diferença do cabo cat6" na série de informática — com "um descritivo básico, 50% do caminho andado" | sócio | **Feito como proposta:** `src/pautas.ts` — 66 pautas, 11 séries (3, 5 e 10), 10 trilhas, cada uma com objetivo, esqueleto e blocos sugeridos. Público em `/escrever`. **O corte é do Pedro e do sócio** |
+| **O padrão do artigo** — o HTML "Padrão Artigo Instituto" (configuração, fórmula, dica, código, tabela comparativa, atalhos, antes e depois, top 5 armadilhas, how-to) | sócio | **Feito:** os vinte recursos viraram o dialeto de blocos (ARQUITETURA §19.1), vestidos no sistema visual do site; guia público em `/escrever/blocos` |
+| **Quiz** de 3 a 5 perguntas no fim, "podia até ser uma marca do site" | sócio | **Feito:** bloco `quiz`, zero script. Toda pauta o sugere, o editor já o traz montado, e o compilador lista artigo sem quiz a cada build |
+| "Vai ter uma **abazinha chamada Escrever**… como se fosse um **Google Docs**, com todas as formas do teu padrão" — para convidado e para estranho | Pedro | **Feito:** "Escrever" na navegação; `/escrever/editor` com blocos, barra de formatação, prévia idêntica ao site, rascunho salvo no navegador e envio com imagens |
+| O autor tem de poder escrever **em 20 a 30 minutos**, "mesmo que seja com três imagens: como configurar um inversor" | sócio | **Feito:** a pauta vira esqueleto no editor; imagem entra reduzida sozinha; há a pauta "Como configurar um inversor em 20 minutos, com fotos do painel" |
+| "Tem que ter um **antes e depois** para ele de como vai ficar o artigo dele" | sócio | **Feito:** a prévia ao lado (desktop) ou na aba "Ver como fica" é o mesmo renderizador da página |
+| "Não sei se vale melhorar o texto dele com **IA** na hora" | sócio | **Não.** Zero IA em produção continua valendo; o site promete em toda página que quem assina escreve |
+| Artigo **isolado sem compromisso**: "ele passa um currículo e uma foto para a gente fazer uma página dele" | sócio | **Feito:** o editor pede nome, bio, link e foto; `npm run submissoes --abrir` cria a página de autor junto com o artigo |
+| **Engajamento** de quem lê (quiz, "curso depois") e de quem escreve (currículo, página) | sócio | quiz e página de autor feitos; curso é ideia |
+| "Vamos colocar o instituto no ar pra rodar — tiver dois, três colunistas, tudo bem, mas tá rodando" | sócio | **Produção continua travada no A2** (acesso à Cloudflare dele) |
+
+⚠️ **Decisão revertida, e registrada:** em 08/09 ficou "formulário de submissão, sem editor de
+texto nem backoffice". Em 24/09 o Pedro prometeu o editor. O que se manteve da decisão de 08/09:
+**não há backoffice** — o envio cai numa caixa de entrada, e publicar continua sendo commit.
+
+---
+
+## 2h · Como fica o aceite, de ponta a ponta
+
+```
+sábado 09:00   a issue "Pauta da semana" chega por e-mail
+               → o Pedro marca as notícias, comenta "principal: N", marca os artigos liberados
+sessão         npm run pauta -- --aprovadas <nº>        o que foi marcado
+               notícias: lidas na fonte (npm run ler), escritas, compiladas, lidas pelo Pedro
+               artigos:  npm run submissoes -- --homolog --abrir IA-…   → o .md no git
+               npm run compilar · npm run qa · commit · deploy
+               npm run submissoes -- --homolog --estado IA-… publicada   e responder o autor
+segunda 09:00  o Giro sai sozinho
+```
+
+O que continua sendo do Pedro, e só dele: **o que vira notícia, qual abre a capa, e ler antes de
+ir ao ar**. O resto é máquina ou é quem escreve.
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência
@@ -385,9 +439,9 @@ alheia inteira**. As três já estão ou cabem no método atual.
 | **até 30/09** | **Mais fontes brasileiras** — virou pré-requisito do Panorama, não backlog (seção 2d) | Pedro, com o sócio |
 | ~~até **20/09**~~ | **FEITO em 11/09**, nove dias antes: privacidade + finalidade no cadastro · notas internas fora de Blueprints · "Como funciona" alongado · artigo fixo na capa · botão de evento fora · relógio fora da capa · vocabulário · rótulo de publicidade | — |
 | **setembro** | **Logo:** opções do sócio → escolha do Pedro → prancha e ícones refeitos (`/marca`, favicon, OG) | sócio, depois eu |
-| **setembro** | **Instruções para autores** publicadas em `/autores#escrever` (o que se pede já está; falta formato, tamanho, fonte, imagem, revisão) | os dois |
+| ~~**setembro**~~ | **FEITO 27/09:** instruções para autores = `/escrever` (o que se pede) + `/escrever/blocos` (o padrão, bloco a bloco) + a pauta com esqueleto | — |
 | **set–out** | **Primeiro artigo** — de um autor do sócio ou do Pedro | sócio, Pedro |
-| **outubro** | **Formulário de submissão de artigo** (texto, imagens, arquivos) → eu diagramo → autor aprova | eu |
+| ~~**outubro**~~ | **FEITO 27/09:** editor com envio → `npm run submissoes --abrir` → o `.md` no git (seção 2g) | — |
 | **outubro** | **Produção na conta do sócio:** acesso + domínio (A2), `wrangler deploy` sem `--env`, `db:remoto` + sementes + `db:migrar:remoto`, tirar o `noindex`, Search Console, sitemap | **sócio** (A2) |
 | **outubro** | **Primeiro parceiro**, por commit em `src/parceiros.ts`, rotulado | sócio |
 | **novembro** | Definir quem toca redes e comunidade; começar por uma | Pedro |
@@ -408,6 +462,11 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [x] ~~Botão "Enviar um evento" fora da capa?~~ — **fora**, e da navbar inteira.
 - [x] ~~Cadência: semanal, ou capa diária?~~ — **semanal**, capa mexendo sozinha.
 - [x] ~~A s36 sai atrasada ou fica pulada?~~ — **pulada**.
+- [ ] **Cortar e completar o plano editorial** (`src/pautas.ts`, 66 pautas) — com o sócio: o que
+      sai, o que falta, quem pega qual série. Pauta reservada = `reservada: Nome` na entrada.
+- [ ] **Pôr os segredos da Cloudflare no GitHub** — agora trava DOIS fluxos (Giro e pauta).
+- [ ] As "100 notícias" de nascimento: decidir se é meta (e então a pauta semanal é o caminho) ou
+      se 27 bastam para abrir a produção.
 - [ ] `link:` do currículo e texto da bio em `conteudo/autores/pedro-oliveira.md`.
 - [ ] Qual notícia leva `destaque: true` (hoje NVIDIA × Hugging Face).
 - [ ] Fonte brasileira dentro de Notícias, com a tagline dizendo "lá fora".
@@ -453,7 +512,9 @@ Seis fechadas em 11/09 (seção 2b). O que sobrou:
 - [x] ~~**Automatizar o Giro**~~ — **24/09**: boletim gerado dos números, sem modelo de linguagem,
       com aviso na página, auditoria em duas camadas e fluxo semanal no GitHub Actions que aborta
       antes de publicar errado. O vigia horário do `/saude` entrou junto.
-- [ ] Formulário de submissão de artigo com upload → `contato` ou tabela própria → eu diagramo.
+- [x] ~~Formulário de submissão de artigo~~ — **27/09**: editor em `/escrever/editor`, tabela `submissao` (009), `npm run submissoes`.
+- [x] ~~A pergunta semanal ao editor~~ — **27/09**: `npm run pauta` + `pauta-semanal.yml` (issue todo sábado).
+- [ ] Migração 009 na produção quando ela existir (`npm run db:migrar:remoto`).
 - [ ] Reescrever ou arquivar os docs da v1 (`CONCEITO`, `ARQUITETURA`, `FLUXOS`, `MODELO-DADOS`, `CAPACIDADE`, `ORGANOGRAMA`, `roadmap.html`).
 - [ ] Lint e formatação.
 - [ ] PageSpeed Insights quando a cota liberar; cartão OG no WhatsApp e LinkedIn a partir da homologação.
@@ -524,6 +585,11 @@ em dezembro; dataset com DOI junto dele.
 | **O filtro vale para o que o boletim CONTA, não para o que a base MEDE** | 24/09 |
 | **Fórum e rede social não ancoram o relógio; o dossiê conta comunidade à parte** | 23/09 |
 | **`assunto` é derivado: dá para reprocessar a base inteira quando o método melhorar** | 23/09 |
+| **O artigo segue o padrão do sócio, em blocos; o quiz no fim é a marca do site** | 24/09 · 27/09 |
+| **Editor sim, backoffice não: o envio cai numa caixa de entrada e publicar continua sendo commit** | 24/09 · 27/09 |
+| **O plano editorial é trilha → série (3, 5, 10) → pauta com esqueleto; e há o avulso** | 24/09 · 27/09 |
+| **A máquina pergunta, a pessoa escolhe: a pauta semanal ordena por fórmula publicada** | 27/09 |
+| **Sem IA no editor — nem para "melhorar" o texto de quem assina** | 24/09 |
 
 ## 8 · Backlog sem data
 

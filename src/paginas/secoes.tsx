@@ -6,9 +6,10 @@ import type { Context } from 'hono';
 import { Documento } from '../ui/Documento';
 import { Aviso, Vazio, Secao, Arte, Etiquetas, AssinaturaPeca, PecaDestaque, PecaCard, PecaLinha, FonteCaixa, VereditoCaixa, AutorCaixa, PatrocinioCaixa, GeradoCaixa } from '../ui/pecas';
 import { ldJson, colecaoLd, pecaLd, trilhaLd } from '../ui/jsonld';
-import { renderizarObra } from '../ui/markdown';
 import { CACHE, type Env } from '../config';
 import { porSecao, obter, caminho, autorDe, pecasDoAutor, ROTULO_SECAO, SECOES, type Secao as ChaveSecao, type Peca } from '../conteudo';
+import { pautasDaSerie, seriePorSlug } from '../pautas';
+import { CSS_ARTIGO_ROTA } from '../estilo';
 import { novaApp, pagina, type Ambiente } from './app';
 
 export const secoes = novaApp();
@@ -34,7 +35,7 @@ const VAZIO_SECAO: Record<ChaveSecao, { titulo: string; texto: unknown }> = {
       <>
         Artigo aqui é um guia ou um conceito, assinado por quem faz automação: com página de autor,
         bio e link para o currículo. Escreve sobre o assunto?{' '}
-        <a href="/autores#escrever">Publique no Instituto</a>.
+        <a href="/escrever">Publique no Instituto</a>.
       </>
     ),
   },
@@ -127,7 +128,7 @@ for (const s of SECOES) {
  * leu e quer conferir.
  */
 export function paginaDaPeca(p: Peca, env: Env) {
-  const html = renderizarObra(p.corpo);
+  const html = p.html;
   const outras = porSecao(p.secao).filter((x) => x.slug !== p.slug).slice(0, 3);
   const autor = autorDe(p);
   const base = env.SITE_URL;
@@ -141,6 +142,8 @@ export function paginaDaPeca(p: Peca, env: Env) {
       descricao={p.lead}
       url={url}
       tipoOg="article"
+      // a folha dos blocos só vem se o texto usa bloco (ou é artigo, pela série e pelo número do intertítulo)
+      estilos={p.secao === 'artigos' || html.includes('class="b-') ? [CSS_ARTIGO_ROTA] : undefined}
       imagemOg={p.imagem ? { url: p.og, largura: p.imagem.largura, altura: p.imagem.altura, alt: p.imagem.alt } : { url: p.og, largura: 1200, altura: 630, alt: p.titulo }}
       artigo={{ publicado: p.data, autor: p.autor ?? env.SITE_NOME, secao: ROTULO_SECAO[p.secao] }}
       ld={[
@@ -148,12 +151,14 @@ export function paginaDaPeca(p: Peca, env: Env) {
         ldJson(trilhaLd([{ nome: 'Capa', url: `${base}/` }, { nome: ROTULO_SECAO[p.secao], url: `${base}/${p.secao}` }, { nome: p.tituloCurto ?? p.titulo, url }])),
       ]}
     >
-      <article class="peca" data-peca={p.slug} data-formato={p.formato}>
+      {p.secao === 'artigos' && <div class="progresso-leitura" aria-hidden="true"></div>}
+      <article class="peca" data-peca={p.slug} data-formato={p.formato} data-secao={p.secao}>
         <header class="peca__cabeca">
           <Etiquetas peca={p} />
           <h1 class="peca__titulo">{p.titulo}</h1>
           <p class="peca__lead">{p.lead}</p>
           <AssinaturaPeca peca={p} completa />
+          {p.serie && <FaixaSerie peca={p} />}
         </header>
 
         {/* O rótulo de publicidade vem ANTES da arte e do corpo: a lei fala em
@@ -173,17 +178,23 @@ export function paginaDaPeca(p: Peca, env: Env) {
           </div>
 
           <footer class="peca__pe">
+            {p.secao === 'artigos' && <Compartilhar peca={p} url={url} />}
             <Aviso>
               <strong>Como este texto foi feito.</strong>{' '}
               {p.gerado
                 ? 'Montado a partir dos números apurados pelo coletor, por uma função que dá sempre o mesmo texto para os mesmos dados. Sem modelo de linguagem, e sem número que não esteja na apuração.'
-                : p.fonte
-                  ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
-                  : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
+                : p.secao === 'artigos'
+                  ? `Escrito e assinado por ${p.autor}, que responde pelo que ensina aqui. Lido pelo editor antes de publicar; nada foi redigido por máquina.`
+                  : p.fonte
+                    ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
+                    : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
             </Aviso>
           </footer>
         </div>
       </article>
+      {/* O único script opcional do artigo: o botão Copiar do código. Só vem
+          onde há código, e sem ele o botão nem aparece (nasce com hidden). */}
+      {html.includes('b-codigo__copiar') && <script src="/js/artigo.js" defer></script>}
 
       {outras.length > 0 && (
         <section class="bloco">
@@ -198,3 +209,45 @@ export function paginaDaPeca(p: Peca, env: Env) {
     </Documento>
   );
 }
+
+/* ---------------------------------------------------------------- a série */
+
+/**
+ * "Parte 3 de 5" — e o caminho das outras. A parte publicada é link; a que
+ * ainda não saiu aparece tracejada, com o título da pauta: o leitor vê a
+ * série inteira que vem, e o autor da próxima parte vê onde ela vai entrar.
+ */
+const FaixaSerie = (p: { peca: Peca }) => {
+  const s = p.peca.serie && seriePorSlug(p.peca.serie.slug);
+  if (!s) return null;
+  const publicadas = new Map(porSecao('artigos').filter((a) => a.pauta).map((a) => [a.pauta!, a]));
+  return (
+    <nav class="serie-faixa" aria-label={`Série ${s.titulo}`}>
+      <span>
+        <span class="serie-faixa__titulo">Série {s.titulo}</span> · parte {p.peca.serie!.parte} de {s.partes}
+      </span>
+      <ol>
+        {pautasDaSerie(s.slug).map((pauta) => {
+          const artigo = publicadas.get(pauta.slug);
+          if (artigo === p.peca) return <li><span class="serie-faixa__parte" aria-current="page">{pauta.parte}</span></li>;
+          if (artigo) return <li><a href={caminho(artigo)} title={artigo.titulo}>{pauta.parte}</a></li>;
+          return <li><span class="serie-faixa__parte serie-faixa__parte--futura" title={`Ainda não publicada: ${pauta.titulo}`}>{pauta.parte}</span></li>;
+        })}
+      </ol>
+    </nav>
+  );
+};
+
+/** Compartilhar sem script de rede social: são só endereços. */
+const Compartilhar = (p: { peca: Peca; url: string }) => {
+  const u = encodeURIComponent(p.url);
+  const t = encodeURIComponent(p.peca.titulo);
+  return (
+    <p class="compartilhar">
+      <span>Compartilhar:</span>
+      <a href={`https://wa.me/?text=${t}%20${u}`} rel="noopener" target="_blank">WhatsApp</a>
+      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${u}`} rel="noopener" target="_blank">LinkedIn</a>
+      <a href={`https://x.com/intent/post?url=${u}&text=${t}`} rel="noopener" target="_blank">X</a>
+    </p>
+  );
+};

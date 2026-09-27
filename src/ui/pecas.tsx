@@ -4,6 +4,7 @@
  * Elas vestem design/components.css — não trazem estilo próprio. E nenhuma
  * sabe de banco: recebem a peça pronta e desenham.
  */
+import { ROTULO_NIVEL } from '../pautas';
 import { raw } from 'hono/html';
 import { gerarCapa } from './capa';
 import { simbolo } from './marca';
@@ -284,6 +285,7 @@ export const AssinaturaPeca = (p: { peca: Peca; completa?: boolean }) => {
       )}
       <span class="u-dado">{dataPeca(q.data, false)}</span>
       {p.completa && <span>{minutos} min de leitura</span>}
+      {p.completa && q.nivel && <span>Nível {ROTULO_NIVEL[q.nivel].toLowerCase()}</span>}
       {q.fonte && (
         <span class="assinatura__fonte">
           a partir de{' '}
@@ -492,7 +494,7 @@ export const QuemEscreve = (p: { autores: readonly Autor[]; contar: (a: Autor) =
     ))}
     <div role="listitem">
       <article class="autor-card autor-card--convite">
-        <a href="/autores#escrever" class="autor-card__link">
+        <a href="/escrever" class="autor-card__link">
           <span class="monograma monograma--convite" aria-hidden="true">
             +
           </span>

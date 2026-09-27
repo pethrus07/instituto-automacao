@@ -1,0 +1,18 @@
+{
+  // O editor de /escrever: TypeScript que roda no navegador. Importa o mesmo
+  // renderizador da página (../ui/markdown.ts) — é por isso que a prévia é o
+  // site, e não uma imitação dele. Empacotado pelo compilador com o esbuild.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["./*.ts", "../ui/markdown.ts"]
+}

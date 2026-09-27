@@ -30,7 +30,7 @@ type Props = {
   tituloCurto?: string;
   descricao?: string;
   /** a seção atual, para o estado ativo da navegação */
-  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca' | 'autores' | 'apoie' | 'privacidade';
+  secao?: Secao | 'agenda' | 'glossario' | 'blueprints' | 'marca' | 'autores' | 'apoie' | 'privacidade' | 'escrever';
   /** URL canônica, absoluta */
   url?: string;
   /** JSON-LD já serializado e escapado (ver ui/jsonld.ts); um ou vários blocos */
@@ -43,6 +43,8 @@ type Props = {
   artigo?: { publicado: string; autor: string; secao: string };
   /** páginas de erro e utilitárias não entram no índice */
   naoIndexar?: boolean;
+  /** folhas de estilo a mais, só desta página (o editor de /escrever tem a dele) */
+  estilos?: string[];
   children?: unknown;
 };
 
@@ -52,6 +54,10 @@ const NAV: { href: string; texto: string; chave: Props['secao'] }[] = [
   { href: '/relatorios', texto: 'Relatórios', chave: 'relatorios' },
   { href: '/agenda', texto: 'Agenda', chave: 'agenda' },
   { href: '/giro', texto: 'Giro da Semana', chave: 'giro' },
+  /* 24/09/2026: "vai ter uma abazinha chamada Escrever" — a promessa da
+     reunião. Fica na navegação de toda página porque o autor é o ativo do
+     Instituto, e o convite tem de estar onde o leitor já está. */
+  { href: '/escrever', texto: 'Escrever', chave: 'escrever' },
 ];
 
 /**
@@ -115,6 +121,7 @@ export const Documento = (p: Props) => {
         <link rel="preload" href="/fontes/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin="" />
         <link rel="preload" href="/fontes/plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin="" />
         <link rel="stylesheet" href={CSS_ROTA} />
+        {p.estilos?.map((href) => <link rel="stylesheet" href={href} />)}
 
         {lds.map((ld) => (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld }} />
@@ -218,7 +225,7 @@ export const Documento = (p: Props) => {
               <div>
                 <span class="rodape__rotulo">O Instituto</span>
                 <a href="/autores">Quem escreve</a>
-                <a href="/autores#escrever">Escreva no Instituto</a>
+                <a href="/escrever">Escreva no Instituto</a>
                 <a href="/apoie">Apoie</a>
                 <a href="/marca">Marca</a>
                 <a href="/privacidade">Privacidade</a>

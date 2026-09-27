@@ -10,7 +10,7 @@
 import { ARTES, AUTORES, PECAS } from '../conteudo.gerado';
 import type { Autor, Peca, Secao } from './tipos';
 
-export type { Autor, Peca, Secao, Tema, Formato, Veredito } from './tipos';
+export type { Autor, Peca, Secao, Tema, Formato, Veredito, Nivel } from './tipos';
 export { SECOES, TEMAS, VEREDITOS } from './tipos';
 
 /** Todas, da mais recente para a mais antiga. */
@@ -131,6 +131,7 @@ export const ROTULO_FORMATO: Record<Peca['formato'], string> = {
   contexto: 'Notícia',
   guia: 'Guia',
   conceito: 'Conceito',
+  experiencia: 'O que eu fiz',
   caso: 'Caso',
   analise: 'Análise',
   panorama: 'Panorama',

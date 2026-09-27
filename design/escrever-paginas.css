@@ -1,0 +1,106 @@
+/* =========================================================================
+   ESCREVER — a aba do autor (27/09/2026)
+   O hub, a página da pauta e o guia de blocos. Vai na folha do ARTIGO
+   (src/estilo.ts › CSS_ARTIGO), junto com design/blocos.css: quem só lê
+   notícia não baixa nada disto. O editor tem ainda a folha dele.
+   Regra da casa para esta aba: pouca informação à vista, muito ar. As 66
+   pautas moram em trilhas RECOLHIDAS — o hub mostra o caminho, não o mapa.
+   ========================================================================= */
+button.botao-acao, button.botao-secundario { border: 0; cursor: pointer; font: inherit; font-size: var(--step--1); }
+button.botao-secundario { border: var(--border-firm); }
+button.botao-acao:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.escrever-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s); margin-block-start: var(--space-m); }
+.escrever-nota { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+
+.escrever-passos {
+  list-style: none; padding: 0; margin-block: var(--space-xl) 0; counter-reset: passo;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--space-m);
+}
+.escrever-passos li {
+  counter-increment: passo; font-family: var(--face-fluxo); font-size: var(--step-0); color: var(--ink-muted);
+}
+.escrever-passos li::before { content: counter(passo); margin-inline-end: var(--space-xs); font-family: var(--face-dado); font-weight: var(--weight-bold); color: var(--marca); }
+.escrever-passos strong { color: var(--ink); }
+
+.compromissos { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-l); }
+.compromisso { display: grid; gap: var(--space-3xs); align-content: start; font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.compromisso strong { font-size: var(--step-0); color: var(--ink); }
+.compromisso__n { font-family: var(--face-obra); font-size: var(--step-4); font-weight: var(--weight-semibold); line-height: 1; color: var(--marca); }
+
+.trilhas { display: grid; border-block-start: var(--border-hair); }
+.trilha { border-block-end: var(--border-hair); }
+.trilha > summary {
+  display: grid; gap: var(--space-3xs); padding: var(--space-s) var(--space-l) var(--space-s) 0; cursor: pointer; list-style: none; position: relative;
+}
+.trilha > summary::-webkit-details-marker { display: none; }
+.trilha > summary::after {
+  content: "+"; position: absolute; inset-inline-end: 0; inset-block-start: var(--space-s);
+  font-family: var(--face-fluxo); font-size: var(--step-1); color: var(--marca);
+}
+.trilha[open] > summary::after { content: "−"; }
+.trilha > summary:hover .trilha__titulo { color: var(--marca); }
+.trilha__titulo { font-family: var(--face-obra); font-size: var(--step-1); font-weight: var(--weight-semibold); }
+.trilha__resumo { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.trilha__resumo .u-dado { margin-inline-start: var(--space-2xs); color: var(--ink-faint); white-space: nowrap; }
+.trilha__corpo { display: grid; gap: var(--space-l); padding-block: var(--space-2xs) var(--space-l); }
+.serie { display: grid; gap: var(--space-2xs); }
+.serie__cabeca { font-family: var(--face-fluxo); font-size: var(--step-0); }
+.serie__partes { margin-inline-start: var(--space-2xs); font-size: var(--step--2); letter-spacing: var(--tracking-kicker); text-transform: uppercase; color: var(--ink-faint); }
+.serie__descricao { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); max-width: var(--measure); }
+
+.lista-pautas { list-style: none; padding: 0; margin: 0; display: grid; }
+.linha-pauta {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-3xs) var(--space-s);
+  padding-block: var(--space-2xs); border-block-end: 1px dotted var(--rule);
+}
+.linha-pauta a { display: inline-flex; gap: var(--space-xs); align-items: baseline; text-decoration: none; color: var(--ink); min-block-size: 1.5rem; }
+.linha-pauta a:hover .linha-pauta__titulo { color: var(--marca); text-decoration: underline; }
+.linha-pauta__parte { color: var(--marca); font-size: var(--step--1); }
+.linha-pauta__titulo { font-family: var(--face-obra); font-size: var(--step-0); }
+.linha-pauta__meta { font-family: var(--face-fluxo); font-size: var(--step--2); color: var(--ink-faint); display: inline-flex; gap: var(--space-2xs); align-items: baseline; }
+.linha-pauta--publicada .linha-pauta__titulo { color: var(--ink-muted); }
+.estado-pauta {
+  padding: 0 var(--space-2xs); border-radius: var(--radius-pill); font-family: var(--face-fluxo); font-size: var(--step--2);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase; border: var(--border-hair); color: var(--ink-muted);
+}
+.estado-pauta--livre { border-color: var(--v-chega-ink); color: var(--v-chega-ink); }
+.estado-pauta--reservada { border-color: var(--v-caminho-ink); color: var(--v-caminho-ink); }
+.estado-pauta--publicada { background: var(--paper-sunken); }
+
+.escrever-blocos-chips { display: flex; flex-wrap: wrap; gap: var(--space-2xs); }
+.chip {
+  display: inline-block; padding: 0.1rem var(--space-xs); border: var(--border-hair); border-radius: var(--radius-pill);
+  font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted);
+}
+
+/* "Mais opções" com resumo: o que é secundário fica recolhido, mas diz o que tem. */
+.mais-opcoes { border-block-start: var(--border-hair); padding-block: var(--space-s); }
+.mais-opcoes:last-child { border-block-end: var(--border-hair); }
+.mais-opcoes > summary { display: grid; gap: var(--space-3xs); cursor: pointer; list-style: none; padding-inline-end: var(--space-l); position: relative; font-family: var(--face-fluxo); }
+.mais-opcoes > summary::-webkit-details-marker { display: none; }
+.mais-opcoes > summary::after { content: "+"; position: absolute; inset-inline-end: 0; inset-block-start: 0; color: var(--marca); font-size: var(--step-1); }
+.mais-opcoes[open] > summary::after { content: "−"; }
+.mais-opcoes > summary span { font-size: var(--step--1); color: var(--ink-muted); }
+
+.pauta__meta { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-m); align-items: center; font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.pauta__esqueleto { max-width: var(--measure); padding-inline-start: var(--space-m); font-family: var(--face-obra); font-size: var(--step-1); line-height: var(--leading-normal); }
+.pauta__esqueleto li + li { margin-block-start: var(--space-2xs); }
+
+/* O guia de blocos: explicação à esquerda, o bloco de verdade à direita. */
+.guia-blocos { display: grid; grid-template-columns: minmax(0, 1fr); }
+.guia-bloco {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-xl);
+  padding-block: var(--space-l); border-block-end: var(--border-hair); scroll-margin-top: var(--space-2xl);
+}
+.guia-bloco__texto { display: grid; gap: var(--space-2xs); align-content: start; font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); }
+.guia-bloco__texto h2 { font-family: var(--face-obra); font-size: var(--step-2); color: var(--ink); }
+.guia-bloco__texto summary { cursor: pointer; color: var(--marca); }
+.guia-bloco__fonte {
+  margin-block-start: var(--space-2xs); padding: var(--space-s); border-radius: var(--radius-m); background: var(--paper-sunken);
+  font-family: var(--face-dado); font-size: var(--step--2); line-height: 1.6; white-space: pre-wrap; overflow-x: auto; color: var(--ink);
+}
+.guia-bloco__amostra.peca { display: block; max-width: none; margin: 0; }
+.guia-bloco__amostra .obra { font-size: var(--step-0); }
+.guia-bloco__amostra .obra > [class^="b-"] { margin-block: 0; }
+@media (max-width: 52rem) { .guia-bloco { grid-template-columns: minmax(0, 1fr); gap: var(--space-m); } }

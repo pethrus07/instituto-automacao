@@ -1,0 +1,56 @@
+# A PAUTA DA SEMANA — a pergunta que a máquina faz ao editor, todo sábado.
+#
+# Reunião de 24/09/2026: "ele só faz a pergunta para mim — esse e esse está
+# liberado de subir — e eu aprovo". Até então a pergunta não existia: a pauta
+# era um comando manual. Agora ela chega sozinha, como issue do GitHub, e o
+# GitHub avisa por e-mail. Responder é marcar as caixas e comentar
+# `principal: N`.
+#
+# Sábado 09:00 em São Paulo (12:00 UTC): a publicação é aos domingos, então a
+# pergunta chega na véspera, com a semana quase inteira colhida.
+#
+# O que isto NÃO faz: escrever notícia. A ordem da lista é contagem (fórmula
+# publicada em scripts/pauta.ts); o texto é escrito e lido por gente depois.
+# Sem modelo de linguagem em lugar nenhum.
+
+name: Pauta da Semana
+
+on:
+  schedule:
+    - cron: '0 12 * * 6' # sábado, 12:00 UTC = 09:00 em São Paulo
+  workflow_dispatch:
+
+concurrency:
+  group: pauta-semanal
+  cancel-in-progress: false
+
+jobs:
+  perguntar:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # abrir a issue da semana
+      contents: read
+    env:
+      # os mesmos do Giro: é o que deixa ler o D1 da homologação, onde o cron colhe
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Montar a pauta
+        run: npm run --silent pauta -- --homolog --issue > pauta.md
+
+      - name: Abrir a issue
+        run: |
+          gh label create pauta --color 0d47a1 --description "A pergunta semanal da máquina ao editor" 2>/dev/null || true
+          titulo="$(head -1 pauta.md | sed 's/^## //')"
+          gh issue create --title "$titulo" --body-file pauta.md --label pauta

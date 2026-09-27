@@ -46,6 +46,11 @@ const PAGINAS = [
   ['autores', '/autores'],
   ['autor', '/autores/pedro-oliveira'],
   ['apoie', '/apoie'],
+  // 27/09/2026 — a aba Escrever
+  ['escrever', '/escrever'],
+  ['pauta', '/escrever/pauta/entrada-analogica-4-20-ma'],
+  ['blocos', '/escrever/blocos'],
+  ['editor', '/escrever/editor?pauta=configurar-um-inversor-em-vinte-minutos'],
   ['404', '/nao-existe'],
 ];
 const LARGURAS = {

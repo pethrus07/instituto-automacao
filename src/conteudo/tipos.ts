@@ -15,7 +15,10 @@
  */
 export type Secao = 'noticias' | 'artigos' | 'relatorios' | 'giro';
 export type Tema = 'industria' | 'processos';
-export type Formato = 'curta' | 'contexto' | 'guia' | 'conceito' | 'caso' | 'analise' | 'panorama' | 'giro';
+export type Formato = 'curta' | 'contexto' | 'guia' | 'conceito' | 'experiencia' | 'caso' | 'analise' | 'panorama' | 'giro';
+
+/** Para quem o artigo foi escrito. Só em artigos — é o que o padrão do sócio põe na linha de assinatura. */
+export type Nivel = 'iniciante' | 'intermediario' | 'avancado';
 export type Veredito = 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito';
 
 /**
@@ -134,6 +137,18 @@ export type Peca = {
   og: string;
   /** o markdown, sem o frontmatter */
   corpo: string;
+  /**
+   * o corpo já em HTML, convertido NO BUILD (scripts/compilar.ts). A fórmula
+   * precisa do KaTeX, e o KaTeX não precisa ir para o bundle do Worker: o
+   * compilador converte uma vez e a página só imprime.
+   */
+  html: string;
+  /** só em artigos: iniciante, intermediário ou avançado */
+  nivel?: Nivel;
+  /** só em artigos: a pauta de src/pautas.ts que este texto cumpre — é assim que a pauta vira "publicada" */
+  pauta?: string;
+  /** só em artigos de série: qual série e qual parte, lidos da pauta */
+  serie?: { slug: string; parte: number };
   /** palavras do corpo, para o tempo de leitura */
   palavras: number;
 };
@@ -169,6 +184,7 @@ export const SECOES: readonly Secao[] = ['noticias', 'artigos', 'relatorios', 'g
 export const TEMAS: readonly Tema[] = ['industria', 'processos'];
 export const VEREDITOS: readonly Veredito[] = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
 export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria'];
+export const NIVEIS: readonly Nivel[] = ['iniciante', 'intermediario', 'avancado'];
 
 /**
  * Onde publicidade PODE existir.
@@ -193,7 +209,7 @@ export const SECOES_PATROCINAVEIS: readonly Secao[] = ['artigos', 'relatorios'];
 /** Que formatos cabem em cada seção. Notícia não vira caso; giro não vira nota. */
 export const FORMATOS_POR_SECAO: Record<Secao, readonly Formato[]> = {
   noticias: ['curta', 'contexto'],
-  artigos: ['guia', 'conceito'],
+  artigos: ['guia', 'conceito', 'experiencia'],
   relatorios: ['caso', 'analise', 'panorama'],
   giro: ['giro'],
 };

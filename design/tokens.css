@@ -188,6 +188,17 @@
   --accent-wash: var(--acento-wash);
 
   /* --------------------------------------------------------------- SUPERFÍCIE */
+  /* Código e terminal (27/09/2026, padrão de artigo do sócio): o bloco de
+     código é escuro nos DOIS temas — é a convenção que o leitor técnico
+     reconhece —, então tem par próprio em vez de reusar paper-invert, que
+     no escuro vira claro. */
+  --codigo-fundo:  #111827;
+  --codigo-cabeca: #0b1220;
+  --codigo-texto:  #e5e7eb;
+  --codigo-fraco:  #9ca3af;
+  --codigo-ok:     #4ade80;
+  --codigo-traco:  #1f2937;
+
   --radius-xs: 2px;
   --radius-s:  4px;
   --radius-m:  8px;
@@ -217,6 +228,9 @@
 /* --- ESCURO por escolha explícita (o toggle vence nos dois sentidos) ---- */
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --codigo-fundo:  #0b0f17;
+  --codigo-cabeca: #060910;
+  --codigo-traco:  #1a2230;
   --paper:        #0d0d0f;
   --paper-raised: #18181b;
   --paper-sunken: #0b0b0d;

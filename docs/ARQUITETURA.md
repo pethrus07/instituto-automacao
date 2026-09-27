@@ -275,7 +275,7 @@ mudar de tema junto com a página.
 
 ## 7 · O banco (D1)
 
-Oito tabelas. Quem escreve em cada uma:
+Onze tabelas (as oito da v2, o índice `assunto_token` da 007 e as duas da caixa de entrada do editor, 009). Quem escreve em cada uma:
 
 | Tabela | O que guarda | Quem escreve | Quem lê |
 |---|---|---|---|
@@ -287,10 +287,15 @@ Oito tabelas. Quem escreve em cada uma:
 | `correcao` | Registro público de correções, apontando para a peça pelo caminho | gente via SQL | Blueprints |
 | `assinante` | E-mail, origem, `atuacao`, `empresa` (006) | `POST /assinar` | ninguém ainda (a lista não envia) |
 | `contato` | Quem quer escrever ou apoiar: tipo, nome, e-mail, empresa, mensagem (006) | `POST /autores/escrever`, `POST /apoie/enviar` | gente, via SQL |
+| `submissao` | O artigo que chega pelo editor de `/escrever`: protocolo, pauta, título, autor (nome, e-mail, bio, link), o markdown, e o `estado` (`recebida` → `em_edicao` → `publicada` \| `recusada`) (009) | `POST /escrever/enviar` | `npm run submissoes`, `npm run pauta` |
+| `submissao_arquivo` | As imagens do envio (BLOB ≤ 600 KB; a foto do autor ≤ 200 KB), pelo nome que o markdown cita (009) | `POST /escrever/enviar` | `npm run submissoes -- --abrir` |
+
+`submissao` é **caixa de entrada, não banco de conteúdo**: nada dali vai ao ar sem
+`npm run submissoes` escrever o arquivo no git e alguém compilar (seção 19).
 
 **Instalação limpa:** `schema.sql` começa com `DROP TABLE` e recria tudo; `fontes.sql`,
 `vozes.sql` e `seed.sql` semeiam. **Banco que já tem dado:** só migrações (`migracoes/001` a
-`006`), porque item colhido não volta. Comandos na seção 15.
+`009`), porque item colhido não volta. Comandos na seção 15.
 
 Um detalhe de nome: no banco o **tema** ainda se chama `nucleo` (fonte, assunto, evento). É
 herança da v1, e mudar o nome da coluna não valia o risco.
@@ -401,10 +406,12 @@ não é onde o coletor contínuo escreve.
 | `npm run dossie [-- 2026-s37] [--homolog]` | semanal | Os números da semana ISO que fechou, em SQL puro, para `colheita/dossie-<semana>.md`. O Giro é escrito em cima, e a auditoria confere cada inteiro da prosa contra ele. **Use `--homolog`:** o coletor contínuo roda no cron da borda, não no banco local (ver armadilha abaixo). Semana ainda aberta exige `--parcial`, e dossiê sem item nenhum aborta |
 | `npm run reagrupar [-- --homolog] [--aplicar]` | manutenção | Refaz `assunto` a partir de `item` quando o método de agrupamento muda. Ensaio por padrão |
 | `npm run giro [-- 2026-s39] [--homolog] [--gravar] [--refazer]` | semanal | **Gera** o boletim da semana dos números medidos e escreve `conteudo/giro/`. Ensaio por padrão. Roda sozinho toda segunda pelo GitHub Actions |
+| `npm run pauta [-- --homolog] [--issue] [--aprovadas N]` | semanal | **A pergunta ao editor:** os assuntos do setor que ainda não viraram notícia, em ordem por fórmula, e os artigos recebidos. Roda sozinho todo sábado e abre a issue; `--aprovadas` lê o que foi marcado (seção 19.5) |
+| `npm run submissoes [-- --homolog] [--abrir IA-…] [--estado IA-… publicada]` | editorial | A caixa de entrada do editor de `/escrever`: lista, traz o envio para o git (`.md`, imagens, autor novo) e muda o estado (seção 19.4) |
 | `npm run compilar` | 4 · publicar | Seção 5.4 |
 | `npm run cadencia` | medição | Quanto cada fonte publica por semana, medido no feed inteiro |
 | `npm run sondar` · `npm run sondar:vozes` | fontes | Testa candidatos a fonte e a voz contra o nosso parser e o robots. Toda fonte nasce `resumo` |
-| `npm test` | conferência | As suítes de unidade: parser de feed e canonicalização, robots, semana ISO e auditoria |
+| `npm test` | conferência | As suítes de unidade: o dialeto do artigo (e a segurança dele), o plano editorial, parser de feed e canonicalização, robots, semana ISO e auditoria |
 | `npm run qa [-- <url>]` | conferência | Seção 11 |
 | `npm run revisao [-- <url>]` | conferência | Seção 11 |
 | `npm run tour` | vídeo | Seção 12 |
@@ -624,3 +631,130 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
 - **Rótulo de publicidade é do compilador, não do editor.** `patrocinada: true` sem
   `patrocinador` não compila, e `patrocinador` sem a flag também não — este segundo é o erro de
   digitação que publicaria peça paga sem rótulo nenhum.
+- **O frontmatter não aceita comentário na mesma linha.** `tema: industria # confira` vira o
+  valor `industria # confira` e o build aborta. Comentário vai em linha própria, começando com `#`.
+- **Texto com barra invertida (TeX) é frágil em toda ponte.** `\frac` escrito numa string
+  JavaScript comum vira *form feed* + `rac`; o compilador aborta com "fórmula que o KaTeX não
+  entende" — e a causa está em quem gerou o texto, não no KaTeX. Em script e teste, `String.raw`.
+- **Grade CSS com coluna automática cresce até o conteúdo mais largo.** Uma fórmula em MathML ou
+  a fileira de 10 partes da série empurravam o artigo para 438 px num celular de 390. Toda grade
+  de leitura (`.peca`, `.peca__cabeca`, `.peca__corpo`, `.guia-blocos`) usa `minmax(0, 1fr)`.
+- **Dica invisível ainda ocupa lugar.** `opacity: 0` na definição do `{{termo|…}}` fazia a página
+  rolar para o lado no celular; ela é `display: none` até o hover ou o foco.
+- **O editor precisa de `blob:` em `img-src`.** A miniatura e a prévia das imagens do autor são
+  `blob:` do próprio navegador. Tirar da CSP deixa a imagem "carregada e invisível", sem erro.
+
+---
+
+## 19 · A aba Escrever, o dialeto do artigo e a pauta que pergunta (27/09/2026)
+
+Vem da reunião de 24/09 com o sócio. Ele convidou autores, todos toparam — e travaram: sem
+tema, sem padrão, sem vontade de abrir o Word. Três peças resolvem:
+
+```mermaid
+flowchart LR
+  P[src/pautas.ts<br/>66 pautas · 11 séries · 10 trilhas] --> H[/escrever<br/>hub e página da pauta/]
+  H --> E[/escrever/editor<br/>blocos + prévia/]
+  B[src/ui/markdown.ts<br/>o dialeto] --> E
+  B --> W[página do artigo]
+  B --> C[compilador<br/>aborta com os erros]
+  E -->|POST /escrever/enviar| S[(submissao<br/>caixa de entrada)]
+  S -->|npm run submissoes --abrir| G[conteudo/artigos/*.md<br/>+ imagens + autor]
+  G --> C --> W
+  D[(D1 · item, assunto)] -->|npm run pauta<br/>sábado, Actions| I[issue da semana<br/>marque o que vira notícia]
+  S --> I
+```
+
+### 19.1 O dialeto (`src/ui/markdown.ts`)
+
+O "Padrão Artigo Instituto" do sócio é um HTML com vinte recursos de didática. Cada um virou um
+**bloco** do markdown: `:::tipo argumento` … `:::`. O catálogo `BLOCOS` (tipo, rótulo, para que
+serve, exemplo) é a fonte única — o guia público `/escrever/blocos` sai dele, e o teste
+`testar-obra.ts` exige que todo exemplo publicado renderize sem erro, para o guia nunca ensinar o
+que o compilador recusa.
+
+| Grupo | Blocos |
+|---|---|
+| abertura | `resumo` · `aprender` · `roteiro` |
+| avisos | `dica` · `atencao` · `perigo` · `nota` · `curiosidade` · `margem` |
+| fazer | `passos` (checkbox com contador em CSS puro) · `armadilhas` (título, o que acontece, como evitar) · `checklist` |
+| técnico | cerca de código com linguagem (botão Copiar) · cerca `terminal` · `formula` ($$ TeX $$, vira MathML no build) · tabela com `(sim)` `(não)` `(parcial)` · `arvore` |
+| imagem | `![alt](arquivo.jpg "crédito")` · `antesdepois` · `frase` · `proscontras` |
+| fecho | `quiz` (? pergunta · + certa · - errada · > explicação — zero script, `:has(:checked)`) · `recursos` · `notadoautor` |
+| na linha | `[[Ctrl]]` tecla · `{{termo|definição}}` termo explicado sem sair do texto |
+
+Três garantias do desenho:
+
+- **A ordem é a segurança.** Tudo é escapado antes de converter; a única saída que não é nossa é
+  a do KaTeX, que escapa o que recebe. `testar-obra.ts` tenta injetar script, atributo de evento,
+  `javascript:` e caminho de arquivo por cada bloco novo.
+- **O mesmo código roda em três lugares:** no compilador (`converterObra` devolve `erros`, e
+  qualquer erro aborta o build), no navegador (a prévia do editor) e no guia. A prévia não imita
+  o site — é o site.
+- **O HTML do corpo é feito no build** (`Peca.html`), com a fórmula em MathML. O KaTeX nunca vai
+  para o Worker nem para a página do leitor; só o editor o carrega, para a prévia.
+
+A folha desses blocos é `design/blocos.css`, servida **à parte** (`CSS_ARTIGO`, junto com
+`design/escrever-paginas.css`): somados à folha geral, levavam-na de 48 para 73 KB, e quem lê
+notícia pagaria por um quiz que não vê. Vai só na peça que usa bloco e em `/escrever`.
+
+O artigo ganhou no frontmatter `nivel:` e `pauta:`. A pauta decide a série e a parte ("parte 3 de
+5" nunca é digitado), e a página mostra a faixa da série com as partes publicadas como link e as
+futuras tracejadas. Formatos de artigo: `guia`, `conceito` e `experiencia` ("O que eu fiz").
+Intertítulo de artigo é numerado (01, 02…) por CSS; notícia não.
+
+### 19.2 O plano editorial (`src/pautas.ts`)
+
+Trilhas → séries de **3, 5 ou 10** com começo, meio e fim → pautas; mais o **avulso**, para
+quem quer zero compromisso. Cada pauta traz objetivo, o esqueleto (cada item vira um subtítulo) e
+os blocos que costumam servir. O estado é derivado: **publicada** quando um artigo diz
+`pauta: <slug>`; **reservada** quando alguém preencheu `reservada:` à mão; **livre** no resto.
+`testar-pautas.ts` confere que toda série tem exatamente as partes que promete.
+
+O catálogo inicial (66) é **proposta** para o Pedro e o sócio cortarem e completarem.
+
+### 19.3 O editor (`src/escrever/editor.ts`)
+
+TypeScript de navegador, sem framework, empacotado pelo compilador com o esbuild em
+`publico/js/escrever.js` (fora do git; tem `tsconfig` próprio, com DOM). O artigo é uma lista
+de blocos; `serializar()` a transforma no dialeto, e a prévia é `converterObra` do mesmo texto.
+
+- **O rascunho fica no navegador:** texto no `localStorage`, imagens no IndexedDB, já reduzidas
+  (≤ 1600 px, ≤ 580 KB; retrato 480 px quadrado, ≤ 190 KB). Nada sai antes do Enviar — é o que a
+  página de privacidade promete.
+- **A pauta vira esqueleto:** o "o que você vai aprender" vem com o objetivo, o roteiro com os
+  subtítulos, e os blocos sugeridos distribuídos entre as seções, vazios. Bloco vazio não vai
+  para o texto; a conferência avisa.
+- **A conferência** junta os erros do renderizador e as regras do envio (título, linha fina,
+  formato, nível, crédito e descrição de imagem) e avisa o que é marca do site sem ser
+  obrigatório (quiz no fim, resumo no alto, texto curto). Com erro, o botão não envia.
+- **Sem IA.** O sócio perguntou se valia "melhorar o texto com IA na hora". Não: quem assina
+  escreve, e o site promete isso em toda página.
+
+### 19.4 O envio e a caixa de entrada
+
+`POST /escrever/enviar` repete todas as travas (o editor é do lado de quem envia), roda o
+renderizador no texto, recusa imagem que o texto cita e não chegou, confere a assinatura de
+JPEG/PNG e grava texto e imagens num lote só (`db.ts › registrarSubmissao`). Responde com um
+protocolo `IA-XXXXXX`.
+
+```
+npm run submissoes -- --homolog                     o que chegou
+npm run submissoes -- --homolog --abrir IA-7K2Q9M   escreve o .md, as imagens e o autor novo
+npm run submissoes -- --homolog --estado IA-7K2Q9M publicada
+```
+
+O `--abrir` renomeia as imagens para `<slug>-1.jpg…`, cria `conteudo/autores/<slug>.md` se o
+autor for novo (com a foto) e marca o envio `em_edicao`. **Publicar continua sendo commit.**
+
+### 19.5 A pauta que pergunta (`scripts/pauta.ts` + `pauta-semanal.yml`)
+
+Todo **sábado às 09:00** o Actions lê o D1 da homologação e abre uma **issue** "Pauta da semana":
+até 10 assuntos do setor que ainda não viraram notícia, em caixas de marcar, mais os artigos
+recebidos pelo editor. Responder é marcar e comentar `principal: N`. Na sessão seguinte,
+`npm run pauta -- --aprovadas <nº>` diz o que foi marcado.
+
+A ordem é **fórmula publicada**, não opinião: 3 pontos por fonte que falou do assunto, +2 se lá
+fora falou e o Brasil não, +1 se é imprensa brasileira, desempate pelo mais recente. Só setor,
+só imprensa, sem assunto já publicado (pelo assunto, não pela URL — senão a versão brasileira de
+uma notícia já dada voltava). Precisa dos mesmos segredos do Giro.

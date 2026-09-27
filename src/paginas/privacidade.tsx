@@ -42,6 +42,12 @@ const GUARDAMOS = [
     base: 'Procedimento preliminar a pedido do titular (art. 7º, V) — você escreveu para ser respondido.',
   },
   {
+    o_que: 'O artigo que você enviar, com nome, e-mail, papel, bio, link e foto',
+    onde: 'o editor de "Escrever" (/escrever/editor), só quando você clica em Enviar — o rascunho fica no seu navegador até lá',
+    para_que: `Para ${FINALIDADES.artigo}.`,
+    base: 'Procedimento a pedido do titular (art. 7º, V) — você enviou o texto para ser publicado.',
+  },
+  {
     o_que: 'Os dados do evento que você enviar',
     onde: 'o formulário da Agenda',
     para_que: `Para ${FINALIDADES.evento}. O evento é público; quem enviou, não.`,
@@ -151,7 +157,8 @@ privacidade.get('/privacidade', (c) => {
               O e-mail da lista fica enquanto você quiser receber. Quando você pedir para sair,
               ele é <strong>apagado</strong> — não marcado como inativo, não guardado numa lista
               de descadastrados. Mensagem de contato fica enquanto a conversa fizer sentido, e no
-              máximo dois anos.
+              máximo dois anos. Artigo enviado e não publicado é apagado em até seis meses; o
+              publicado fica no site com o seu nome enquanto você quiser — peça, e ele sai.
             </p>
           </div>
         </section>

@@ -10,7 +10,7 @@
  */
 import { raw } from 'hono/html';
 import { Documento } from '../ui/Documento';
-import { Secao, Aviso, AutorCard, Monograma, PecaLinha, FormularioContato, dataPeca } from '../ui/pecas';
+import { Secao, Aviso, AutorCard, Monograma, PecaLinha, dataPeca } from '../ui/pecas';
 import { ldJson, perfilLd, trilhaLd } from '../ui/jsonld';
 import { renderizarObra } from '../ui/markdown';
 import { CACHE } from '../config';
@@ -19,20 +19,6 @@ import { autores, autorPorSlug, caminhoAutor, pecasDoAutor } from '../conteudo';
 import { novaApp, pagina } from './app';
 
 export const paginasDeAutor = novaApp();
-
-const O_QUE_O_AUTOR_GANHA = [
-  ['Assinatura em todo texto', 'Nome no alto, com link para a sua página — e no RSS, no JSON-LD e no cartão de compartilhamento.'],
-  ['Página própria', 'Papel, bio, tudo o que publicou aqui e o link para o seu currículo, LinkedIn ou Lattes.'],
-  ['Leitor certo', 'Quem lê o Instituto opera, integra ou ensina automação no Brasil. É para eles que você escreve.'],
-  ['Edição de gente', 'O editor lê, questiona e devolve. Nada aqui passa por máquina — nem para "melhorar".'],
-] as const;
-
-const O_QUE_SE_PEDE = [
-  ['Guia ou conceito', 'Um artigo ensina algo: como se faz, ou como funciona. Notícia é outra seção, e é o Instituto que escreve.'],
-  ['Fonte creditada', 'O que vem de outro lugar tem nome e link. A regra vale para texto e para imagem.'],
-  ['Sem texto de máquina', 'O site diz "nada aqui é gerado por máquina" em toda página. É promessa sua também.'],
-  ['Assinado com nome e sobrenome', 'É currículo. Pseudônimo não entra.'],
-] as const;
 
 paginasDeAutor.get('/autores', (c) => {
   const lista = autores();
@@ -64,38 +50,21 @@ paginasDeAutor.get('/autores', (c) => {
           ))}
         </div>
 
+        {/* O convite para escrever mudou de casa em 27/09/2026: virou a aba
+            /escrever, com pautas, padrão e editor. Aqui fica a porta, com a
+            âncora antiga (#escrever) viva para quem guardou o link. */}
         <section class="bloco" id="escrever" style="scroll-margin-top: var(--space-2xl)">
           <Secao
             titulo="Escreva no Instituto"
-            nota="Artigo aqui é o que ensina: um guia ou um conceito de automação, assinado por quem faz. É o coração do site — e é onde quem escreve aparece."
+            nota="Escolha uma pauta — ela já vem com o esqueleto pronto —, escreva no editor e publique com o seu nome e a sua página."
+            acao={{ texto: 'escolher uma pauta', href: '/escrever' }}
           />
-          <div class="duas-colunas duas-colunas--justas">
-            <div>
-              <h3 class="lista-regras__titulo">O que você ganha</h3>
-              <ul class="regras">
-                {O_QUE_O_AUTOR_GANHA.map(([t, d]) => (
-                  <li>
-                    <strong>{t}</strong>
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 class="lista-regras__titulo">O que se pede</h3>
-              <ul class="regras">
-                {O_QUE_SE_PEDE.map(([t, d]) => (
-                  <li>
-                    <strong>{t}</strong>
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div class="bloco--curto" style="margin-block-start: var(--space-l)">
-            <FormularioContato acao="/autores/escrever" tipo="autor" enviado={enviado} />
-          </div>
+          {enviado && (
+            <Aviso>
+              <strong>Recebido.</strong> Alguém lê e responde pelo e-mail que você deixou — não é resposta automática,
+              então pode levar uns dias.
+            </Aviso>
+          )}
         </section>
       </Documento>,
     ),
@@ -160,7 +129,7 @@ paginasDeAutor.get('/autores/:slug', (c) => {
 paginasDeAutor.post('/autores/escrever', async (c) => {
   const f = await c.req.formData();
   const texto = (k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
-  if (texto('sitio')) return c.redirect('/autores?enviado=1#escrever', 303);
+  if (texto('sitio')) return c.redirect('/escrever?enviado=1#conversar', 303);
 
   const nome = texto('nome', 120);
   const email = texto('email');
@@ -173,7 +142,7 @@ paginasDeAutor.post('/autores/escrever', async (c) => {
           <h1>Envio não aceito</h1>
           <div class="bloco--curto">
             <Aviso>
-              <strong>{erro}</strong> <a href="/autores#escrever">Voltar ao formulário</a>.
+              <strong>{erro}</strong> <a href="/escrever#conversar">Voltar ao formulário</a>.
             </Aviso>
           </div>
         </Documento>,
@@ -182,5 +151,5 @@ paginasDeAutor.post('/autores/escrever', async (c) => {
   }
 
   await registrarContato(c.env.DB, { tipo: 'autor', nome, email, empresa: texto('empresa', 120) || null, mensagem: texto('mensagem', 1000) || null });
-  return c.redirect('/autores?enviado=1#escrever', 303);
+  return c.redirect('/escrever?enviado=1#conversar', 303);
 });

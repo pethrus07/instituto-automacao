@@ -26,3 +26,6 @@ publico/og/
 
 # arquivos de trabalho do tour narrado (áudio, gravação bruta, partes) — o vídeo final fica em publico/tour/
 tour/.trabalho/
+
+# o editor de /escrever, empacotado pelo compilador a partir de src/escrever/
+publico/js/escrever.js

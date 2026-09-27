@@ -155,6 +155,8 @@ const rotas = [
   ['/favicon.svg', 200], ['/feed.xml', 200], ['/feed/noticias.xml', 200], ['/feed/artigos.xml', 200], ['/sitemap.xml', 200], ['/robots.txt', 200],
   ...pecas.map((p) => [`/${p.secao}/${p.slug}`, 200]),
   ['/noticias/nao-existe', 404], ['/relatorios/nao-existe', 404], ['/qualquer-coisa', 404], ['/feed/inventado.xml', 404],
+  ['/escrever', 200], ['/escrever/blocos', 200], ['/escrever/editor', 200], ['/escrever/editor?pauta=entrada-analogica-4-20-ma', 200],
+  ['/escrever/pauta/configurar-um-inversor-em-vinte-minutos', 200], ['/escrever/pauta/nao-existe', 404], ['/js/escrever.js', 200], ['/js/artigo.js', 200],
 ];
 const respostas = {};
 for (const [caminho, esperado] of rotas) {
@@ -205,7 +207,10 @@ const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name 
    que faz o agrupamento por termo raro achar o assunto de um título novo. É
    índice DERIVADO — `npm run reagrupar` o reconstrói inteiro a partir de
    `item`, e nada se perde se ele for apagado. */
-const esperadas = ['assinante', 'assunto', 'assunto_token', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item'];
+/* `submissao` e `submissao_arquivo` entraram em 27/09/2026 (migração 009): a
+   caixa de entrada do editor de /escrever. NÃO é banco de conteúdo — nada dali
+   vai ao ar sem `npm run submissoes` escrever o arquivo no git. */
+const esperadas = ['assinante', 'assunto', 'assunto_token', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item', 'submissao', 'submissao_arquivo'];
 checar('B', `as ${esperadas.length} tabelas da v2, e só elas`, JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
 for (const morta of ['obra', 'giro', 'custo_dia']) checar('B', `a tabela ${morta} não existe mais`, !tabelas.includes(morta));
 
@@ -439,6 +444,42 @@ const tokensCss = readFileSync(join(RAIZ, 'design', 'tokens.css'), 'utf8');
 checar('B', 'o tema NÃO segue a preferência do sistema', !/@media[^{]*prefers-color-scheme/.test(tokensCss));
 checar('B', 'o escuro só existe sob [data-theme="dark"]', tokensCss.includes(':root[data-theme="dark"]'));
 checar('B', 'não há mais tokens de núcleo', !/--industria-ink|--observatorio-ink|--operacao-ink|--edificacoes-ink/.test(tokensCss));
+
+/* 27/09/2026 — a aba Escrever: plano editorial, padrão do artigo e editor.
+   O que não pode quebrar calado: a aba na navegação, o catálogo inteiro à
+   vista, o guia sem exemplo com erro, o editor com o script e a pauta, o envio
+   recusando o que não passa — e a folha do artigo FORA da página de notícia. */
+titulo('B · Conformidade — a aba Escrever');
+{
+  const hub = respostas['/escrever'].corpo;
+  const guia = respostas['/escrever/blocos'].corpo;
+  const editor = respostas['/escrever/editor?pauta=entrada-analogica-4-20-ma'].corpo;
+  const pauta = respostas['/escrever/pauta/configurar-um-inversor-em-vinte-minutos'].corpo;
+  checar('B', 'Escrever está na navegação de toda página', /<a href="\/escrever"[^>]*>Escrever<\/a>/.test(capa));
+  checar('B', '/escrever mostra as 10 trilhas recolhidas e as 66 pautas', (hub.match(/<details class="trilha"/g) ?? []).length === 10 && (hub.match(/class="linha-pauta /g) ?? []).length === 66, `${(hub.match(/<details class="trilha"/g) ?? []).length} trilhas · ${(hub.match(/class="linha-pauta /g) ?? []).length} pautas`);
+  checar('B', '/escrever/blocos publica os 20 blocos, cada um renderizado', (guia.match(/<section class="guia-bloco" id="bloco-/g) ?? []).length === 20 && /class="b-quiz"/.test(guia) && /<math/.test(guia));
+  checar('B', 'a fórmula do guia sai em MathML (KaTeX no build, nada no navegador)', /<math[^>]*display="block"/.test(guia) && !/katex\.min\.js/.test(guia));
+  checar('B', 'a pauta tem esqueleto e o botão para o editor', /class="pauta__esqueleto"/.test(pauta) && /href="\/escrever\/editor\?pauta=configurar-um-inversor-em-vinte-minutos"/.test(pauta));
+  checar('B', 'o editor carrega o script próprio e a pauta em JSON inerte', /<script src="\/js\/escrever\.js" type="module">/.test(editor) && /<script type="application\/json" id="editor-dados">\{"pauta":\{"slug":"entrada-analogica-4-20-ma"/.test(editor));
+  checar('B', 'o editor não é indexado nem guardado em cache', /name="robots" content="noindex/.test(editor) && respostas['/escrever/editor'].cab['cache-control'] === 'no-store');
+  checar('B', 'a folha do artigo vem em /escrever e NÃO na notícia', /href="\/a\/artigo-[a-z0-9]+\.css"/.test(hub) && !/href="\/a\/artigo-/.test(respostas[`/noticias/${pecas.find((p) => p.secao === 'noticias').slug}`].corpo));
+  const privacidade = respostas['/privacidade'].corpo;
+  checar('B', '/privacidade declara a coleta do editor (LGPD: finalidade na coleta)', /O artigo que você enviar/.test(privacidade) && /\/escrever\/editor/.test(privacidade));
+
+  const enviar = async (campos) => {
+    const f = new FormData();
+    for (const [k, v] of Object.entries(campos)) f.append(k, v);
+    const r = await fetch(BASE + '/escrever/enviar', { method: 'POST', body: f });
+    return { status: r.status, j: await r.json().catch(() => ({})) };
+  };
+  const vazio = await enviar({ dados: '{}', markdown: '' });
+  checar('B', 'envio sem autor é recusado com motivo', vazio.status === 400 && vazio.j.ok === false && /nome/.test(vazio.j.erro ?? ''), JSON.stringify(vazio));
+  const dadosOk = JSON.stringify({ meta: { titulo: 'Um título de teste do QA', lead: 'Uma linha fina de teste do QA, longa o bastante.', formato: 'guia', nivel: 'iniciante' }, autor: { nome: 'QA Teste', email: 'qa@example.com', bio: 'Autor fictício do QA automatizado, que confere o envio do editor.' }, consentimentos: { autoria: true, imagens: true, privacidade: true } });
+  const quebrado = await enviar({ dados: dadosOk, markdown: ':::quiz\n? sem resposta certa\n- a\n- b\n:::\n\n' + 'Texto de teste do QA. '.repeat(20) });
+  checar('B', 'envio com bloco errado é recusado pelo mesmo renderizador do site', quebrado.status === 400 && /exatamente uma/.test(quebrado.j.erro ?? ''), JSON.stringify(quebrado.j));
+  const faltaImagem = await enviar({ dados: dadosOk, markdown: '![placa](img-inexistente.jpg "Foto: QA")\n\n' + 'Texto de teste do QA. '.repeat(20) });
+  checar('B', 'envio que cita imagem que não chegou é recusado', faltaImagem.status === 400 && /não chegaram/.test(faltaImagem.j.erro ?? ''), JSON.stringify(faltaImagem.j));
+}
 
 /* -------------------------------------------------------- B. DISTRIBUIÇÃO */
 titulo('B · Conformidade — feeds e sitemap');
@@ -679,7 +720,8 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', '/autores/pedro-oliveira tem h1 com o nome e o papel como kicker', /<h1[^>]*>Pedro Oliveira<\/h1>/.test(autorHtml) && /class="kicker">Editor</.test(autorHtml));
   checar('B', '/autores/pedro-oliveira declara ProfilePage com Person', tiposLd(autorHtml).includes('ProfilePage') && /"@type":"Person"/.test(autorHtml));
   checar('B', '/autores/pedro-oliveira é og:type profile', /property="og:type" content="profile"/.test(autorHtml));
-  checar('B', '/autores lista os autores e convida a escrever (#escrever com formulário)', /class="autor-card"/.test(autoresHtml) && /id="escrever"/.test(autoresHtml) && /action="\/autores\/escrever"/.test(autoresHtml));
+  // 27/09/2026: o convite com formulário mudou para /escrever; aqui fica a porta, e a âncora antiga viva
+  checar('B', '/autores lista os autores e aponta para /escrever (#escrever vivo)', /class="autor-card"/.test(autoresHtml) && /id="escrever"/.test(autoresHtml) && /href="\/escrever"/.test(autoresHtml));
   checar('B', 'a assinatura da peça leva à página do autor (rel=author)', /<a href="\/autores\/pedro-oliveira" rel="author" class="assinatura__autor">/.test(pecaHtml));
   checar('B', 'o JSON-LD da peça aponta o autor para a página dele', /"author":\{"@type":"Person","@id":"[^"]+\/autores\/pedro-oliveira#pessoa"/.test(pecaHtml));
 
@@ -692,8 +734,8 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   const artigos = pecas.filter((p) => p.secao === 'artigos');
   checar('B', '/artigos existe e está na navegação', /<a href="\/artigos"[^>]*>Artigos<\/a>/.test(capaHtml) && respostas['/artigos'].status === 200);
   if (artigos.length === 0) {
-    checar('B', '/artigos vazio diz que o primeiro está sendo escrito e convida a escrever', /O primeiro artigo está sendo escrito/.test(artigosHtml) && /href="\/autores#escrever"/.test(artigosHtml));
-    checar('B', 'a capa tem o bloco Artigos com o convite mesmo sem artigo', /<h2 class="secao__titulo">Artigos<\/h2>/.test(capaHtml) && /href="\/autores#escrever"/.test(capaHtml));
+    checar('B', '/artigos vazio diz que o primeiro está sendo escrito e convida a escrever', /O primeiro artigo está sendo escrito/.test(artigosHtml) && /href="\/escrever"/.test(artigosHtml));
+    checar('B', 'a capa tem o bloco Artigos com o convite mesmo sem artigo', /<h2 class="secao__titulo">Artigos<\/h2>/.test(capaHtml) && /href="\/escrever"/.test(capaHtml));
   }
   checar('B', 'formato de artigo é guia ou conceito', artigos.every((p) => ['guia', 'conceito'].includes(p.meta.formato)));
   checar('B', 'artigo não leva veredito', artigos.every((p) => !p.meta.veredito));
@@ -875,7 +917,7 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
     const alvo = `qa.contato.${Date.now()}@exemplo.com`;
     const rOk = await postar('/autores/escrever', `nome=QA%20Teste&email=${encodeURIComponent(alvo)}&mensagem=${encodeURIComponent('teste do QA')}`);
     const linha = sql(`SELECT tipo, nome, mensagem FROM contato WHERE email='${alvo}'`)[0];
-    checar('B', 'contato: envio válido grava como tipo autor e volta para #escrever', rOk.status === 303 && /#escrever$/.test(rOk.headers.get('location') ?? '') && linha?.tipo === 'autor' && linha?.nome === 'QA Teste', JSON.stringify(linha));
+    checar('B', 'contato: envio válido grava como tipo autor e volta para /escrever#conversar', rOk.status === 303 && /^\/escrever\?enviado=1#conversar$/.test(rOk.headers.get('location') ?? '') && linha?.tipo === 'autor' && linha?.nome === 'QA Teste', JSON.stringify(linha));
     const rPar = await postar('/apoie/enviar', `nome=QA&email=${encodeURIComponent(alvo)}&empresa=QA%20Ltda`);
     checar('B', 'apoie: envio válido grava como tipo parceiro', rPar.status === 303 && sql(`SELECT COUNT(*) n FROM contato WHERE email='${alvo}' AND tipo='parceiro'`)[0].n === 1);
     sql(`DELETE FROM contato WHERE email LIKE '%@exemplo.com'`);

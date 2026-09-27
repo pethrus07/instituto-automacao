@@ -13,6 +13,8 @@
 -- em vez deste arquivo — ele começa com DROP TABLE, e item colhido não volta.
 -- =========================================================================
 
+DROP TABLE IF EXISTS submissao_arquivo;
+DROP TABLE IF EXISTS submissao;
 DROP TABLE IF EXISTS contato;
 DROP TABLE IF EXISTS correcao;
 DROP TABLE IF EXISTS item;
@@ -212,4 +214,40 @@ CREATE TABLE contato (
   empresa   TEXT,
   mensagem  TEXT,
   criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- -------------------------------------------------------------------------
+-- submissao — o artigo que chega pelo editor de /escrever (migração 009)
+-- É caixa de entrada, não banco de conteúdo: o git continua sendo o CMS.
+-- -------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS submissao (
+  id          TEXT PRIMARY KEY,
+  -- o que o autor recebe na tela e cita no e-mail: IA-7K2Q9M
+  protocolo   TEXT NOT NULL UNIQUE,
+  -- a pauta de src/pautas.ts, ou NULL para tema livre
+  pauta       TEXT,
+  titulo      TEXT NOT NULL,
+  autor_nome  TEXT NOT NULL,
+  -- o e-mail NUNCA é publicado: é para o editor responder (ver /privacidade)
+  autor_email TEXT NOT NULL,
+  -- papel, bio, link e se há foto — o que vira conteudo/autores/<slug>.md
+  autor_json  TEXT NOT NULL,
+  -- título, linha fina, formato, nível
+  meta_json   TEXT NOT NULL,
+  markdown    TEXT NOT NULL,
+  estado      TEXT NOT NULL DEFAULT 'recebida'
+              CHECK (estado IN ('recebida', 'em_edicao', 'publicada', 'recusada')),
+  criado_em   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS submissao_estado ON submissao (estado, criado_em);
+
+CREATE TABLE IF NOT EXISTS submissao_arquivo (
+  submissao_id TEXT NOT NULL REFERENCES submissao (id) ON DELETE CASCADE,
+  -- o nome que o markdown cita (img-<id>.jpg) ou "foto.jpg" para o retrato
+  nome         TEXT NOT NULL,
+  tipo         TEXT NOT NULL CHECK (tipo IN ('image/jpeg', 'image/png')),
+  bytes        INTEGER NOT NULL,
+  dados        BLOB NOT NULL,
+  PRIMARY KEY (submissao_id, nome)
 );

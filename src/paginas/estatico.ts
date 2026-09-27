@@ -2,7 +2,7 @@
  * O que não é página: o CSS com hash, o favicon, a saúde, os feeds, o
  * sitemap e o robots.
  */
-import { CSS, CSS_HASH, CSS_ROTA } from '../estilo';
+import { CSS, CSS_ARTIGO, CSS_ESCREVER, CSS_HASH, CSS_ROTA } from '../estilo';
 import { favicon } from '../ui/marca';
 import { saudeColeta } from '../db';
 import { todas, SECOES, type Secao } from '../conteudo';
@@ -15,10 +15,11 @@ const ehSecao = (v: string): v is Secao => (SECOES as readonly string[]).include
 export const estatico = novaApp();
 
 estatico.get('/a/:arquivo', (c) => {
-  if (!c.req.param('arquivo').endsWith('.css')) return c.notFound();
+  const arquivo = c.req.param('arquivo');
+  if (!arquivo.endsWith('.css')) return c.notFound();
   c.header('Content-Type', 'text/css; charset=utf-8');
   c.header('Cache-Control', CACHE.estatico);
-  return c.body(CSS);
+  return c.body(arquivo.startsWith('escrever-') ? CSS_ESCREVER : arquivo.startsWith('artigo-') ? CSS_ARTIGO : CSS);
 });
 
 estatico.get('/favicon.svg', (c) => {

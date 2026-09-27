@@ -479,8 +479,8 @@ a.parceiro__corpo:hover .parceiro__nome { color: var(--marca); }
    da página (100cqi: o <main> é o contêiner). Embaixo do texto, a ficha —
    veredito, fonte, quem escreveu — em colunas. A lateral saiu (07/09/2026).
    ------------------------------------------------------------------------- */
-.peca { display: grid; gap: var(--space-xl); max-width: 52rem; margin-inline: auto; }
-.peca__cabeca { display: grid; gap: var(--space-m); }
+.peca { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); max-width: 52rem; margin-inline: auto; }
+.peca__cabeca { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-m); }
 .peca__titulo {
   font-family: var(--face-obra);
   font-size: var(--step-5);
@@ -500,7 +500,7 @@ a.parceiro__corpo:hover .parceiro__nome { color: var(--marca); }
 @supports (inline-size: 100cqi) {
   .peca__arte.arte { inline-size: 100cqi; margin-inline: calc(50% - 50cqi); }
 }
-.peca__corpo { display: grid; gap: var(--space-xl); }
+.peca__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
 .peca__ficha {
   display: grid; gap: var(--space-l);
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
@@ -905,3 +905,4 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .tour { margin: 0; display: grid; gap: var(--space-s); }
 .tour__video { display: block; inline-size: 100%; block-size: auto; aspect-ratio: 16 / 9; background: var(--capa-fundo); border-radius: var(--radius-m); }
 .tour__legenda { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); max-inline-size: var(--measure); }
+

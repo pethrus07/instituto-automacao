@@ -1,7 +1,7 @@
 /**
  * O sistema de design servido pelo Worker.
  *
- * Os três arquivos de design/ são importados como texto (regra Text no
+ * Os arquivos de design/ são importados como texto (regra Text no
  * wrangler.toml), concatenados e servidos num único CSS com hash no nome e
  * cache imutável. Sem etapa de build: editar design/tokens.css e recarregar.
  *
@@ -11,6 +11,9 @@
 import tokens from '../design/tokens.css';
 import base from '../design/base.css';
 import componentes from '../design/components.css';
+import blocos from '../design/blocos.css';
+import paginasEscrever from '../design/escrever-paginas.css';
+import editor from '../design/escrever.css';
 
 /**
  * O CSS servido, sem os comentários.
@@ -46,3 +49,19 @@ function hash(texto: string): string {
 
 export const CSS_HASH = hash(CSS);
 export const CSS_ROTA = `/a/app-${CSS_HASH}.css`;
+
+/**
+ * A folha do ARTIGO: os blocos do padrão (resumo, avisos, quiz, fórmula…) e
+ * as páginas de /escrever. À parte desde 27/09/2026 — somados à folha geral
+ * eles a levavam de 48 para 73 KB, e quem lê notícia pagaria por um quiz que
+ * nunca vê. Vai só na peça que usa bloco e em /escrever.
+ */
+export const CSS_ARTIGO = enxugar([blocos, paginasEscrever].join('\n'));
+export const CSS_ARTIGO_ROTA = `/a/artigo-${hash(CSS_ARTIGO)}.css`;
+
+/**
+ * A folha do editor de /escrever, à parte: só uma página a usa, e o leitor
+ * de notícia não precisa baixar o CSS de um editor que nunca vai abrir.
+ */
+export const CSS_ESCREVER = enxugar(editor);
+export const CSS_ESCREVER_ROTA = `/a/escrever-${hash(CSS_ESCREVER)}.css`;

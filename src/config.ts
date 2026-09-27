@@ -103,5 +103,6 @@ export const FINALIDADES = {
   lista: 'mandar o Giro da Semana e avisar quando sai texto novo',
   atuacao: 'saber para quem se escreve — o que a lista lê muda o que vale escrever',
   contato: 'responder quem quer escrever no Instituto ou conversar sobre apoiar',
+  artigo: 'ler, editar e publicar o artigo que você enviou — com o seu nome, a sua bio, o seu link e a sua foto na página de autor — e falar com você sobre ele pelo e-mail, que nunca é publicado',
   evento: 'conferir e publicar o evento na agenda, e falar com quem enviou se faltar dado',
 } as const;

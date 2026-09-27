@@ -17,5 +17,8 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  // o editor de /escrever roda no NAVEGADOR (tipos de DOM), não no Worker:
+  // tem o tsconfig dele em src/escrever/, e `npm run tipos` confere os dois
+  "exclude": ["src/escrever/**"]
 }

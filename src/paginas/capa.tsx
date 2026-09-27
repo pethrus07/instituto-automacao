@@ -101,7 +101,7 @@ capa.get('/', async (c) => {
             <Vazio titulo="O primeiro artigo está sendo escrito.">
               Artigo aqui é um guia ou um conceito, assinado por quem faz automação — com página de
               autor, bio e link para o currículo. Escreve sobre o assunto?{' '}
-              <a href="/autores#escrever">Publique no Instituto</a>.
+              <a href="/escrever">Publique no Instituto</a>.
             </Vazio>
           )}
         </section>

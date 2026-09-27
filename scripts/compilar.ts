@@ -25,18 +25,23 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import katex from 'katex';
 import { auditarNumeros } from '../src/giro/auditar.ts';
+import { BLOCOS, converterObra } from '../src/ui/markdown.ts';
+import { PAUTAS, pautaPorSlug } from '../src/pautas.ts';
 import { gerarCapa } from '../src/ui/capa.ts';
 import { TEMA_SCRIPT } from '../src/ui/tema.ts';
 import {
   FORMATOS_POR_SECAO,
   LICENCAS_IMAGEM,
+  NIVEIS,
   SECOES,
   SECOES_PATROCINAVEIS,
   TEMAS,
   VEREDITOS,
   type Autor,
   type LicencaImagem,
+  type Nivel,
   type Peca,
   type Secao,
   type Veredito,
@@ -175,6 +180,9 @@ function medidasDaImagem(caminho: string): { largura: number; altura: number } |
   return null;
 }
 
+/** os blocos que cada peça usou — para as regras brandas do fim (artigo sem quiz, sem resumo) */
+const blocosPorPeca = new Map<Peca, string[]>();
+
 function compilarPeca(caminho: string, secao: Secao): Peca {
   const nome = basename(caminho);
   const mNome = /^(\d{4}-\d{2}-\d{2})-([a-z0-9-]+)\.md$/.exec(nome);
@@ -203,6 +211,7 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     data,
     og: `/og/${secao}-${slug}.png`,
     corpo: naoQuebrar(corpo),
+    html: '', // convertido adiante, depois das travas do frontmatter
     palavras: corpo.trim() ? corpo.trim().split(/\s+/).length : 0,
   };
 
@@ -327,6 +336,51 @@ function compilarPeca(caminho: string, secao: Secao): Peca {
     const arte = meta['arte'] as string;
     if (!existsSync(join(ARTE, arte))) falhar(caminho, `"arte: ${arte}" não existe em conteudo/arte/`);
     peca.arte = arte;
+  }
+
+  /* ------------------------------------------------------- o artigo
+   * O padrão do sócio (24/09/2026) põe o NÍVEL na linha de assinatura, e o
+   * plano editorial (src/pautas.ts) liga cada artigo à pauta que ele cumpre.
+   * A pauta decide a série e a parte — o autor não digita "parte 3 de 5" à
+   * mão, e por isso não erra. */
+  if (secao === 'artigos') {
+    if (typeof meta['nivel'] === 'string') peca.nivel = entre(meta['nivel'] as string, NIVEIS, 'nivel', caminho) as Nivel;
+    if (typeof meta['pauta'] === 'string') {
+      const pauta = pautaPorSlug(meta['pauta'] as string);
+      if (!pauta) falhar(caminho, `"pauta: ${meta['pauta']}" não existe em src/pautas.ts`);
+      peca.pauta = pauta!.slug;
+      if (pauta!.serie && pauta!.parte) peca.serie = { slug: pauta!.serie, parte: pauta!.parte };
+      if (!peca.nivel) peca.nivel = pauta!.nivel;
+    }
+  } else {
+    for (const k of ['nivel', 'pauta']) if (typeof meta[k] === 'string') falhar(caminho, `"${k}" é campo de artigo — "${secao}" não usa`);
+  }
+
+  /* ------------------------------------------------------- o corpo em HTML
+   * O dialeto de blocos (src/ui/markdown.ts) devolve os ERROS do texto: bloco
+   * que não existe, quiz sem resposta certa, imagem sem crédito. Qualquer um
+   * aborta — é o mesmo texto que o editor mostra ao autor antes de enviar,
+   * então aqui ele só chega errado se alguém editou o arquivo à mão. */
+  {
+    const r = converterObra(peca.corpo, {
+      tex: (fonte, emBloco) => {
+        try {
+          return katex.renderToString(fonte, { output: 'mathml', displayMode: emBloco, throwOnError: true });
+        } catch (e) {
+          falhar(caminho, `fórmula que o KaTeX não entende: "${fonte}" — ${(e as Error).message}`);
+        }
+      },
+      medidas: (arquivo) => (existsSync(join(IMAGENS, arquivo)) ? medidasDaImagem(join(IMAGENS, arquivo)) : null),
+    });
+    if (r.erros.length) falhar(caminho, `o corpo tem ${r.erros.length} problema(s):\n  · ${r.erros.join('\n  · ')}`);
+    for (const arquivo of r.imagens) {
+      const f = join(IMAGENS, arquivo);
+      if (!existsSync(f)) falhar(caminho, `imagem do corpo "${arquivo}" não existe em publico/imagens/`);
+      const tamanho = statSync(f).size;
+      if (tamanho > 600_000) falhar(caminho, `imagem do corpo "${arquivo}" com ${(tamanho / 1024).toFixed(0)} KB — o teto é 600 KB`);
+    }
+    peca.html = r.html;
+    blocosPorPeca.set(peca, r.blocos);
   }
 
   /* O Giro: cada número da prosa tem de existir no dossiê. */
@@ -552,6 +606,37 @@ async function renderizar(alvos: Alvo[]) {
 }
 await renderizar(alvos);
 
+/* ------------------------------------------------- o guia de blocos e o editor
+ * /escrever/blocos mostra cada bloco renderizado. A fórmula precisa do KaTeX,
+ * que não vai para o Worker — então os exemplos saem prontos daqui, pela
+ * mesma função e com as mesmas opções das peças.
+ *
+ * O editor de /escrever/editor é TypeScript que roda no navegador e importa o
+ * MESMO renderizador da página (src/ui/markdown.ts): a prévia não é uma
+ * imitação do site, é o site. O esbuild empacota os dois (e o KaTeX, para a
+ * prévia da fórmula) em publico/js/escrever.js, que sobe como asset estático. */
+const exemplos: Record<string, string> = {};
+for (const [tipo, b] of Object.entries(BLOCOS)) {
+  const r = converterObra(b.exemplo, { tex: (f, emBloco) => katex.renderToString(f, { output: 'mathml', displayMode: emBloco, throwOnError: false }) });
+  if (r.erros.length) falhar(join(RAIZ, 'src', 'ui', 'markdown.ts'), `o exemplo do bloco "${tipo}" no guia tem erro: ${r.erros.join(' · ')}`);
+  exemplos[tipo] = r.html;
+}
+{
+  const { build } = await import('esbuild');
+  const saida = join(PUBLICO, 'js', 'escrever.js');
+  await build({
+    entryPoints: [join(RAIZ, 'src', 'escrever', 'editor.ts')],
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    target: 'es2022',
+    legalComments: 'none',
+    outfile: saida,
+    logLevel: 'error',
+  });
+  console.log(`  · editor empacotado: publico/js/escrever.js (${(statSync(saida).size / 1024).toFixed(0)} KB)`);
+}
+
 /* ----------------------------------------------------------------- a CSP */
 const TEMA_SCRIPT_HASH = createHash('sha256').update(TEMA_SCRIPT).digest('base64');
 
@@ -574,6 +659,9 @@ export const AUTORES: readonly Autor[] = ${JSON.stringify(autores, null, 2)};
 
 export const ARTES: Readonly<Record<string, string>> = ${JSON.stringify(artes, null, 2)};
 
+/** Os exemplos de /escrever/blocos, já em HTML (a fórmula em MathML). */
+export const EXEMPLOS_BLOCOS: Readonly<Record<string, string>> = ${JSON.stringify(exemplos, null, 2)};
+
 /** SHA-256 (base64) do único script inline do site — a CSP só o libera por este hash. */
 export const TEMA_SCRIPT_HASH = ${JSON.stringify(TEMA_SCRIPT_HASH)};
 `;
@@ -593,5 +681,18 @@ console.log(`✓ ${pecas.length} peça(s) compiladas (${porSecao}) · ${autores.
     console.log(`  ⚠ ${noticiasSemFoto.length} notícia(s) sem imagem real (arte gerada no lugar):`);
     for (const p of noticiasSemFoto) console.log(`      ${p.data} ${p.slug}`);
   }
+}
+/* Regra branda do artigo: o padrão do sócio abre com o resumo rápido e
+   fecha com o quiz — "podia até ser uma marca do site". Não aborta, porque
+   nem todo artigo precisa; mas a lista na tela impede que a marca se perca
+   por esquecimento. */
+{
+  const artigos = pecas.filter((p) => p.secao === 'artigos');
+  const semQuiz = artigos.filter((p) => !blocosPorPeca.get(p)?.includes('quiz'));
+  const semResumo = artigos.filter((p) => !blocosPorPeca.get(p)?.includes('resumo'));
+  if (semQuiz.length) console.log(`  ⚠ ${semQuiz.length} artigo(s) sem quiz no fim: ${semQuiz.map((p) => p.slug).join(', ')}`);
+  if (semResumo.length) console.log(`  ⚠ ${semResumo.length} artigo(s) sem resumo rápido: ${semResumo.map((p) => p.slug).join(', ')}`);
+  const pautasPublicadas = new Set(artigos.map((p) => p.pauta).filter(Boolean));
+  console.log(`  · plano editorial: ${pautasPublicadas.size} de ${PAUTAS.length} pautas publicadas`);
 }
 console.log(`→ ${SAIDA.replace(RAIZ, '.')}`);

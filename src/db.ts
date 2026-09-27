@@ -279,3 +279,43 @@ export async function contarAssinantes(db: D1Database): Promise<number> {
   const l = await db.prepare(`SELECT COUNT(*) n FROM assinante`).first<{ n: number }>();
   return l?.n ?? 0;
 }
+
+/* ------------------------------------------------------------ submissão de artigo */
+
+export type NovaSubmissao = {
+  protocolo: string;
+  pauta: string | null;
+  titulo: string;
+  autorNome: string;
+  autorEmail: string;
+  autor: Record<string, unknown>;
+  meta: Record<string, unknown>;
+  markdown: string;
+  arquivos: { nome: string; tipo: 'image/jpeg' | 'image/png'; dados: ArrayBuffer }[];
+};
+
+/**
+ * O envio do editor de /escrever. Texto e imagens entram num lote só: ou
+ * chega tudo, ou não chega nada — artigo sem as imagens que ele cita é pior
+ * que envio recusado, porque parece completo.
+ *
+ * É caixa de entrada: nada daqui vai para o ar. `npm run submissoes` baixa,
+ * escreve o arquivo no git, e alguém lê antes de publicar.
+ */
+export async function registrarSubmissao(db: D1Database, s: NovaSubmissao): Promise<void> {
+  const id = crypto.randomUUID();
+  const lote = [
+    db
+      .prepare(
+        `INSERT INTO submissao (id, protocolo, pauta, titulo, autor_nome, autor_email, autor_json, meta_json, markdown, criado_em)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'))`,
+      )
+      .bind(id, s.protocolo, s.pauta, s.titulo, s.autorNome, s.autorEmail.toLowerCase(), JSON.stringify(s.autor), JSON.stringify(s.meta), s.markdown),
+    ...s.arquivos.map((a) =>
+      db
+        .prepare(`INSERT INTO submissao_arquivo (submissao_id, nome, tipo, bytes, dados) VALUES (?1, ?2, ?3, ?4, ?5)`)
+        .bind(id, a.nome, a.tipo, a.dados.byteLength, a.dados),
+    ),
+  ];
+  await db.batch(lote);
+}

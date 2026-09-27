@@ -23,6 +23,7 @@ import { glossario } from './paginas/glossario';
 import { blueprints } from './paginas/blueprints';
 import { marca } from './paginas/marca';
 import { paginasDeAutor } from './paginas/autores';
+import { escrever } from './paginas/escrever';
 import { apoie } from './paginas/apoie';
 import { privacidade } from './paginas/privacidade';
 import { formularios } from './paginas/formularios';
@@ -33,15 +34,19 @@ const app = novaApp();
 
 /* ------------------------------------------------------------ segurança
  * Os cabeçalhos que todo site deveria mandar e quase nenhum manda. A CSP é
- * estrita: o único script permitido é o do tema, pelo hash (ui/tema.ts →
- * compilador → aqui); estilo inline é permitido porque o HTML usa
+ * estrita: o script inline do tema vai pelo hash (ui/tema.ts → compilador →
+ * aqui), e fora ele só arquivo do próprio site; estilo inline é permitido porque o HTML usa
  * `style=""` em alguns lugares; nada de terceiro em lugar nenhum.
  */
 const CSP = [
   "default-src 'self'",
-  `script-src 'sha256-${TEMA_SCRIPT_HASH}'`,
+  // 'self': os dois scripts servidos do próprio site — o botão Copiar do código
+  // no artigo (publico/js/artigo.js) e o editor em /escrever. Terceiro, nunca.
+  `script-src 'self' 'sha256-${TEMA_SCRIPT_HASH}'`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  // blob: é a imagem que o autor escolheu no editor de /escrever, guardada no
+  // navegador dele — a miniatura e a prévia. Não é terceiro: nunca saiu da máquina.
+  "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "form-action 'self'",
@@ -72,6 +77,7 @@ app.route('/', glossario);
 app.route('/', blueprints);
 app.route('/', marca);
 app.route('/', paginasDeAutor);
+app.route('/', escrever);
 app.route('/', apoie);
 app.route('/', privacidade);
 app.route('/', formularios);
