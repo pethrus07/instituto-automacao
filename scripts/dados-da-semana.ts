@@ -22,7 +22,9 @@ const WRANGLER = join(RAIZ, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
 export const BANCOS = {
   local: { nome: 'instituto', args: ['--local'], rotulo: 'D1 local (colheita manual)' },
   homolog: { nome: 'instituto-homolog', args: ['--remote', '--env', 'homolog'], rotulo: 'D1 da homologação (cron da borda)' },
-  producao: { nome: 'instituto', args: ['--remote'], rotulo: 'D1 de produção' },
+  // 28/09/2026: a produção tem ambiente próprio no wrangler.toml; sem o --env
+  // o wrangler pegaria o banco do dev local
+  producao: { nome: 'instituto', args: ['--remote', '--env', 'producao'], rotulo: 'D1 de produção' },
 } as const;
 export type QualBanco = keyof typeof BANCOS;
 

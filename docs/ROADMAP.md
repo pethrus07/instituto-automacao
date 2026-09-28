@@ -403,6 +403,42 @@ ir ao ar**. O resto é máquina ou é quem escreve.
 
 ---
 
+## 2i · 28/09 — a produção vai para a conta do Pedro, no domínio do sócio
+
+**Decisão do Pedro:** a produção roda na Cloudflare dele (a mesma da homologação); o domínio
+**institutoautomacao.com.br** é do sócio. Isso substitui o antigo A2 ("acesso à Cloudflare do
+sócio").
+
+O que se sabe do domínio (conferido em 28/09 no RDAP do Registro.br e no DNS):
+
+| | |
+|---|---|
+| registro | ativo desde 20/11/2025 · **vence em 20/11/2026** |
+| DNS hoje | Hostinger (`ns1/ns2.dns-parking.com`), alterado em 24/09/2026 |
+| o que aponta | raiz e `www` para o **Hotmart** (`connect.pages.hotmart.com`) — e o HTTPS não abre: a página não está no ar |
+| e-mail | nenhum (sem MX) |
+
+**Pronto no código (28/09):** ambiente `[env.producao]` com as rotas de domínio próprio (raiz e
+`www`), `www` → raiz com 301, limite de 5 envios/min por IP nos cinco formulários
+(`paginas/limite.ts`), aviso por e-mail de artigo recebido (`src/aviso.ts`, liga quando a zona
+tiver Email Routing), cópia semanal do banco (`copia-do-banco.yml`), Giro/pauta/vigia apontando
+para a produção, `submissoes` olhando a produção por padrão, `CLOUDFLARE_ACCOUNT_ID` no GitHub.
+
+**A virada, em ordem:**
+
+| # | Quem | O quê |
+|---|---|---|
+| 1 | Pedro | `npx wrangler login` (o OAuth local caiu em 28/09) |
+| 2 | Pedro | Cloudflare → *Add a domain* → `institutoautomacao.com.br`, plano Free; anotar os 2 nameservers |
+| 3 | sócio | Hostinger → o domínio → *Nameservers* → trocar pelos 2 da Cloudflare; confirmar o que fazer com o Hotmart; ligar a renovação automática |
+| 4 | eu | quando a zona ficar *Active*: recriar o D1 `instituto` em `enam`, importar a exportação mais recente da homologação, `npm run deploy`, conferir `/saude`, QA e revisão na produção |
+| 5 | eu | Email Routing: `contato@` → e-mail do Pedro; binding `AVISO` para o aviso de artigo |
+| 6 | Pedro | criar o token de API e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub |
+| 7 | Pedro | Search Console (propriedade de domínio, registro TXT) e enviar o sitemap |
+| 8 | eu | desligar o cron da homologação (vira só vitrine de teste), trocar os links nos docs |
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência

@@ -7,11 +7,13 @@
  */
 import { ehAtuacao } from '../config';
 import { assinar } from '../db';
+import { passouDoLimite } from './limite';
 import { novaApp } from './app';
 
 export const formularios = novaApp();
 
 formularios.post('/assinar', async (c) => {
+  if (await passouDoLimite(c)) return c.text('Muitos envios seguidos deste endereço. Espere um minuto e tente de novo.', 429);
   const f = await c.req.formData();
   const email = String(f.get('email') ?? '').trim().slice(0, 200);
   const sitio = String(f.get('sitio') ?? '').trim();

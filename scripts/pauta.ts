@@ -156,7 +156,7 @@ candidatos.forEach((c, i) =>
 l.push('', `<sub>Ordem por fórmula, não por opinião: 3 por fonte que falou do assunto · +2 se lá fora falou e o Brasil não · +1 se é imprensa brasileira · desempate pelo mais recente. Só fontes do setor, só imprensa, últimos ${DIAS} dias, sem o que já foi publicado.</sub>`, '');
 l.push('### Artigos que chegaram pelo editor', '');
 if (envios.length) {
-  l.push('Marque os que estão **liberados para subir** (a leitura é antes: `npm run submissoes -- --homolog --abrir <protocolo>`).', '');
+  l.push('Marque os que estão **liberados para subir** (a leitura é antes: `npm run submissoes -- --producao --abrir <protocolo>`).', '');
   for (const e of envios) l.push(`- [ ] **${e.protocolo}** — ${e.autor_nome}: ${e.titulo}${e.pauta ? ` · pauta \`${e.pauta}\`` : ' · tema livre'} · recebido ${e.criado_em.slice(0, 10)}`);
 } else {
   l.push('Nenhum artigo novo esta semana.');

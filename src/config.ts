@@ -14,6 +14,12 @@ export type Env = {
   SITE_URL: string;
   /** "1" na homologação: robots fechado e X-Robots-Tag noindex em tudo */
   HOMOLOG?: string;
+  /** limite de envio por IP nos formulários (ver paginas/limite.ts); ausente no dev local */
+  LIMITE_ENVIO?: { limit(o: { key: string }): Promise<{ success: boolean }> };
+  /** aviso por e-mail de artigo recebido (Email Routing da zona); ausente até a zona existir */
+  AVISO?: { send(m: unknown): Promise<void> };
+  /** de onde sai o aviso: um endereço do domínio, com o Email Routing ligado */
+  AVISO_DE?: string;
 };
 
 /**

@@ -31,7 +31,7 @@ jobs:
       issues: write # abrir a issue da semana
       contents: read
     env:
-      # os mesmos do Giro: é o que deixa ler o D1 da homologação, onde o cron colhe
+      # os mesmos do Giro: é o que deixa ler o D1 de produção, onde o cron colhe
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       GH_TOKEN: ${{ github.token }}
@@ -47,7 +47,7 @@ jobs:
       - run: npm ci
 
       - name: Montar a pauta
-        run: npm run --silent pauta -- --homolog --issue > pauta.md
+        run: npm run --silent pauta -- --producao --issue > pauta.md
 
       - name: Abrir a issue
         run: |

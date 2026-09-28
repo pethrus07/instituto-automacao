@@ -15,14 +15,14 @@ compatibility_date = "2026-08-30"
 # D1 — só o que vem de fora (evento enviado, e-mail) e o que a máquina colhe
 # (item, assunto — a base do relógio). Conteúdo NÃO mora aqui.
 #
-# database_id ainda é placeholder: a infra é da conta do sócio e o acesso é
-# a dependência bloqueante do deploy. Tudo roda local sem ele:
+# Este bloco de cima é o do DESENVOLVIMENTO LOCAL (npm run dev). A produção
+# tem ambiente próprio, [env.producao], lá embaixo. Local roda sem nada:
 #   npm run db:local && npm run db:semente && npm run db:fontes && npm run db:vozes
 #   npm run dev
 [[d1_databases]]
 binding = "DB"
 database_name = "instituto"
-database_id = "PREENCHER-APOS-CRIAR"
+database_id = "PREENCHER-APOS-CRIAR" # só o dev local usa; o nome é histórico e é a chave do banco local — não trocar
 
 # O coletor, a cada 15 min. Ele decide sozinho o que está vencido pelo
 # intervalo_min de cada fonte. Não há segundo cron: o Giro é escrito.
@@ -87,3 +87,55 @@ directory = "./publico"
 
 [env.homolog.observability]
 enabled = true
+
+[[env.homolog.ratelimits]]
+name = "LIMITE_ENVIO"
+namespace_id = "7302"
+simple = { limit = 5, period = 60 }
+
+# ---------------------------------------------------------------------------
+# PRODUÇÃO — institutoautomacao.com.br, na conta do Pedro (ryzecode08).
+#
+# Decisão de 28/09/2026: a produção roda na Cloudflare do Pedro (a mesma da
+# homologação); o DOMÍNIO é do sócio, registrado na Hostinger, e entra aqui
+# quando ele troca os nameservers para os da Cloudflare (docs/ROADMAP.md §2i).
+#
+#   npm run deploy          compila e publica AQUI (--env producao)
+#
+# O banco nasceu da exportação do D1 da homologação: a série do coletor desde
+# 06/09 continua a mesma, sem recomeçar do zero (o relógio e o Giro dependem
+# dela). Sem HOMOLOG: robots aberto, sem noindex.
+# ---------------------------------------------------------------------------
+[env.producao]
+name = "instituto-automacao"
+account_id = "c8c7dba80266ce63cfac94490604fa14"
+workers_dev = false
+routes = [
+  { pattern = "institutoautomacao.com.br", custom_domain = true },
+  { pattern = "www.institutoautomacao.com.br", custom_domain = true },
+]
+
+[env.producao.vars]
+SITE_NOME = "Instituto Automação"
+SITE_URL = "https://institutoautomacao.com.br"
+
+[[env.producao.d1_databases]]
+binding = "DB"
+database_name = "instituto"
+database_id = "PREENCHER-QUANDO-O-LOGIN-VOLTAR"
+
+[env.producao.triggers]
+crons = ["*/15 * * * *"]
+
+[env.producao.assets]
+directory = "./publico"
+
+[env.producao.observability]
+enabled = true
+
+# Limite de envio por IP nos formulários (anti-spam sem script de terceiro):
+# 5 envios por minuto. Ver src/paginas/limite.ts.
+[[env.producao.ratelimits]]
+name = "LIMITE_ENVIO"
+namespace_id = "7301"
+simple = { limit = 5, period = 60 }

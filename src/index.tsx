@@ -68,6 +68,19 @@ app.use('*', async (c, next) => {
   if (c.env.HOMOLOG === '1') h.set('X-Robots-Tag', 'noindex, nofollow');
 });
 
+/* ------------------------------------------------------------ um endereço só
+ * www.institutoautomacao.com.br responde (está nas rotas), mas o endereço do
+ * site é um: sem www. 301 para lá, com o caminho — link que alguém guardou
+ * com www continua valendo, e a busca não vê duas cópias do site. */
+app.use('*', async (c, next) => {
+  const u = new URL(c.req.url);
+  if (u.hostname.startsWith('www.')) {
+    u.hostname = u.hostname.slice(4);
+    return c.redirect(u.toString(), 301);
+  }
+  await next();
+});
+
 /* ------------------------------------------------------------ as páginas */
 app.route('/', estatico);
 app.route('/', capa);

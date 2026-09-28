@@ -12,6 +12,7 @@ import { ldJson, trilhaLd } from '../ui/jsonld';
 import { CACHE } from '../config';
 import { registrarContato } from '../db';
 import { PARCEIROS } from '../parceiros';
+import { passouDoLimite } from './limite';
 import { novaApp, pagina } from './app';
 
 export const apoie = novaApp();
@@ -93,6 +94,7 @@ apoie.get('/apoie', (c) => {
 });
 
 apoie.post('/apoie/enviar', async (c) => {
+  if (await passouDoLimite(c)) return c.text('Muitos envios seguidos deste endereço. Espere um minuto e tente de novo.', 429);
   const f = await c.req.formData();
   const texto = (k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
   if (texto('sitio')) return c.redirect('/apoie?enviado=1#conversar', 303);

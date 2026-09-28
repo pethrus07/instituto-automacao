@@ -16,6 +16,7 @@ import { renderizarObra } from '../ui/markdown';
 import { CACHE } from '../config';
 import { registrarContato } from '../db';
 import { autores, autorPorSlug, caminhoAutor, pecasDoAutor } from '../conteudo';
+import { passouDoLimite } from './limite';
 import { novaApp, pagina } from './app';
 
 export const paginasDeAutor = novaApp();
@@ -127,6 +128,7 @@ paginasDeAutor.get('/autores/:slug', (c) => {
 /* ------------------------------------------------------------ o convite */
 
 paginasDeAutor.post('/autores/escrever', async (c) => {
+  if (await passouDoLimite(c)) return c.text('Muitos envios seguidos deste endereço. Espere um minuto e tente de novo.', 429);
   const f = await c.req.formData();
   const texto = (k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
   if (texto('sitio')) return c.redirect('/escrever?enviado=1#conversar', 303);

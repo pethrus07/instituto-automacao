@@ -22,6 +22,7 @@ import { Aviso, Vazio, Secao, EventoNaAgenda, FiltroAgenda, FormularioEvento, pe
 import { ldJson, eventoLd, agendaLd, trilhaLd } from '../ui/jsonld';
 import { CACHE, TEMAS, ORDEM_TEMAS, ehTema } from '../config';
 import { listarAgenda, obterEvento, contarAgenda, type FiltroAgenda as TipoFiltroAgenda } from '../db';
+import { passouDoLimite } from './limite';
 import { novaApp, pagina } from './app';
 
 export const agenda = novaApp();
@@ -112,6 +113,7 @@ agenda.get('/agenda', async (c) => {
 });
 
 agenda.post('/agenda/enviar', async (c) => {
+  if (await passouDoLimite(c)) return c.text('Muitos envios seguidos deste endereço. Espere um minuto e tente de novo.', 429);
   const f = await c.req.formData();
   const texto = (k: string) => String(f.get(k) ?? '').trim().slice(0, 500);
 

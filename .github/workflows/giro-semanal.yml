@@ -63,7 +63,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
 
       - name: Gerar o boletim
-        run: npm run giro -- ${{ inputs.semana }} --homolog --gravar --refazer
+        run: npm run giro -- ${{ inputs.semana }} --producao --gravar --refazer
 
       - name: Compilar (a auditoria de números aborta aqui)
         run: npm run compilar
@@ -80,9 +80,13 @@ jobs:
           done
           npm run qa -- 8788
 
+      # 28/09/2026: a produção (institutoautomacao.com.br) é o site; a
+      # homologação recebe o mesmo boletim para continuar igual a ela.
       - name: Publicar
         if: ${{ !inputs.ensaio }}
-        run: npm run deploy:homolog
+        run: |
+          npm run deploy
+          npm run deploy:homolog
 
       - name: Commitar o boletim
         if: ${{ !inputs.ensaio }}

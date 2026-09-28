@@ -47,6 +47,8 @@ import {
 } from '../pautas';
 import { CSS_ARTIGO_ROTA, CSS_ESCREVER_ROTA } from '../estilo';
 import { guiaDe } from '../guias/index.ts';
+import { passouDoLimite } from './limite';
+import { avisarArtigo } from '../aviso';
 import { novaApp, pagina } from './app';
 
 export const escrever = novaApp();
@@ -532,6 +534,7 @@ const ehJpegOuPng = (b: Uint8Array): 'image/jpeg' | 'image/png' | null =>
   b[0] === 0xff && b[1] === 0xd8 ? 'image/jpeg' : b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 ? 'image/png' : null;
 
 escrever.post('/escrever/enviar', async (c) => {
+  if (await passouDoLimite(c)) return c.json({ ok: false, erro: 'Muitos envios seguidos deste endereço. Espere um minuto e tente de novo — o rascunho está salvo.' }, 429);
   const erro = (msg: string, status: 400 | 413 = 400) => c.json({ ok: false, erro: msg }, status);
   const tamanho = Number(c.req.header('content-length') ?? '0');
   if (tamanho > LIMITE.total) return erro('O envio passou de 9 MB. Tire uma ou outra imagem, ou mande em mais de uma vez.', 413);
@@ -606,5 +609,8 @@ escrever.post('/escrever/enviar', async (c) => {
     markdown,
     arquivos,
   });
+  c.executionCtx.waitUntil(
+    avisarArtigo(c.env, { protocolo: prot, titulo: meta.titulo, autor: autor.nome, pauta, palavras: markdown.split(/\s+/).length, imagens: arquivos.filter((a) => a.nome !== 'foto.jpg').length }),
+  );
   return c.json({ ok: true, protocolo: prot });
 });

@@ -1,9 +1,9 @@
 /**
  * SUBMISSÕES — a ponte entre a caixa de entrada do editor e o git.
  *
- *   npm run submissoes -- --homolog                     o que chegou (ou --producao / --local)
- *   npm run submissoes -- --homolog --abrir IA-7K2Q9M   escreve o artigo no repositório
- *   npm run submissoes -- --homolog --estado IA-7K2Q9M publicada|recusada|em_edicao
+ *   npm run submissoes                                  o que chegou na produção (ou --homolog / --local)
+ *   npm run submissoes -- --abrir IA-7K2Q9M             escreve o artigo no repositório
+ *   npm run submissoes -- --estado IA-7K2Q9M           publicada|recusada|em_edicao
  *
  * O editor de /escrever grava o envio na tabela `submissao` (migração 009).
  * Nada dali vai para o ar sozinho: é isto que transforma o envio em arquivo,
@@ -33,7 +33,7 @@ const valor = (n: string) => {
   const i = args.indexOf(`--${n}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const qual: QualBanco = flag('producao') ? 'producao' : flag('local') ? 'local' : 'homolog';
+const qual: QualBanco = flag('homolog') ? 'homolog' : flag('local') ? 'local' : 'producao'; // desde 28/09 o site é a produção
 const BANCO = BANCOS[qual];
 
 function sql<T = Record<string, unknown>>(comando: string): T[] {
