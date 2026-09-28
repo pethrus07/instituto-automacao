@@ -94,7 +94,10 @@ namespace_id = "7302"
 simple = { limit = 5, period = 60 }
 
 # ---------------------------------------------------------------------------
-# PRODUÇÃO — institutoautomacao.com.br, na conta do Pedro (ryzecode08).
+# PRODUÇÃO — institutoautomacao.com.br, na conta oliveiramichaelpedro (a
+# segunda conta Cloudflare do Pedro, onde ele adicionou o domínio em 28/09).
+# ⚠️ NÃO é a conta da homologação (ryzecode08): um token não cobre as duas,
+# então os fluxos automáticos publicam só aqui.
 #
 # Decisão de 28/09/2026: a produção roda na Cloudflare do Pedro (a mesma da
 # homologação); o DOMÍNIO é do sócio, registrado na Hostinger, e entra aqui
@@ -108,7 +111,7 @@ simple = { limit = 5, period = 60 }
 # ---------------------------------------------------------------------------
 [env.producao]
 name = "instituto-automacao"
-account_id = "c8c7dba80266ce63cfac94490604fa14"
+account_id = "642a4a3988033760c46abb97c122e0dd"
 workers_dev = false
 routes = [
   { pattern = "institutoautomacao.com.br", custom_domain = true },
@@ -122,7 +125,7 @@ SITE_URL = "https://institutoautomacao.com.br"
 [[env.producao.d1_databases]]
 binding = "DB"
 database_name = "instituto"
-database_id = "PREENCHER-QUANDO-O-LOGIN-VOLTAR"
+database_id = "42042f82-4e01-434f-9ed9-29d5c59f6fcc"
 
 [env.producao.triggers]
 crons = ["*/15 * * * *"]

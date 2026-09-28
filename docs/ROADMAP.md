@@ -405,7 +405,17 @@ ir ao ar**. O resto é máquina ou é quem escreve.
 
 ## 2i · 28/09 — a produção vai para a conta do Pedro, no domínio do sócio
 
-**Decisão do Pedro:** a produção roda na Cloudflare dele (a mesma da homologação); o domínio
+**Atualização do mesmo dia:** o domínio foi adicionado na conta **oliveiramichaelpedro**
+(`642a4a39…e0dd`), não na ryzecode08 da homologação — então a produção nasceu lá: D1
+`instituto` em `enam` com a base inteira importada (2.043 itens, 1.880 assuntos, 33 fontes, 20
+eventos, 2 atrasos apurados), Worker publicado com as rotas `institutoautomacao.com.br` e `www`,
+cron a cada 15 min. O sócio trocou os nameservers às 11:16 (glen/lisa.ns.cloudflare.com); o
+Registro.br gravou na hora, e a publicação na zona .br leva de minutos a horas. Um token não cobre
+duas contas de pessoas diferentes: **os fluxos automáticos publicam só a produção**, e a
+homologação (ryzecode08) vira cópia de teste parada. Na ryzecode08 ficou um D1 `instituto` vazio,
+criado por engano em WEUR, para apagar.
+
+**Decisão do Pedro:** a produção roda na Cloudflare dele; o domínio
 **institutoautomacao.com.br** é do sócio. Isso substitui o antigo A2 ("acesso à Cloudflare do
 sócio").
 
@@ -433,7 +443,7 @@ para a produção, `submissoes` olhando a produção por padrão, `CLOUDFLARE_AC
 | 3 | sócio | Hostinger → o domínio → *Nameservers* → trocar pelos 2 da Cloudflare; confirmar o que fazer com o Hotmart; ligar a renovação automática |
 | 4 | eu | quando a zona ficar *Active*: recriar o D1 `instituto` em `enam`, importar a exportação mais recente da homologação, `npm run deploy`, conferir `/saude`, QA e revisão na produção |
 | 5 | eu | Email Routing: `contato@` → e-mail do Pedro; binding `AVISO` para o aviso de artigo |
-| 6 | Pedro | criar o token de API e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub |
+| 6 | Pedro | criar o token de API **na conta oliveiramichaelpedro** e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub (o `CLOUDFLARE_ACCOUNT_ID` já está, apontando para ela) |
 | 7 | Pedro | Search Console (propriedade de domínio, registro TXT) e enviar o sitemap |
 | 8 | eu | apontar o `vigia.yml` para o domínio, desligar o cron da homologação (vira só vitrine de teste), trocar os links nos docs |
 
