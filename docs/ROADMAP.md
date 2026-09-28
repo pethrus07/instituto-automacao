@@ -435,7 +435,7 @@ para a produção, `submissoes` olhando a produção por padrão, `CLOUDFLARE_AC
 | 5 | eu | Email Routing: `contato@` → e-mail do Pedro; binding `AVISO` para o aviso de artigo |
 | 6 | Pedro | criar o token de API e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub |
 | 7 | Pedro | Search Console (propriedade de domínio, registro TXT) e enviar o sitemap |
-| 8 | eu | desligar o cron da homologação (vira só vitrine de teste), trocar os links nos docs |
+| 8 | eu | apontar o `vigia.yml` para o domínio, desligar o cron da homologação (vira só vitrine de teste), trocar os links nos docs |
 
 ---
 

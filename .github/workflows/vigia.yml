@@ -29,8 +29,10 @@ jobs:
     steps:
       - name: A borda responde, e a coleta está em dia?
         run: |
-          # 28/09/2026: vigia a PRODUÇÃO — é ela que o público vê e o cron dela que conta
-          SITE="https://institutoautomacao.com.br"
+          # Continua na homologação ATÉ a virada (ROADMAP §2i, passo 8): o domínio
+          # ainda não responde, e o vigia dispararia alarme de hora em hora.
+          # Na virada: SITE="https://institutoautomacao.com.br"
+          SITE="https://instituto-automacao-homolog.desbravando-utv.workers.dev"
           # O teto é 24 h e não 1 h de propósito: fonte com intervalo longo e
           # fim de semana quieto são normais. O que este alarme pega é a
           # coleta PARADA, não a coleta lenta.
