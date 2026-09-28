@@ -405,6 +405,12 @@ ir ao ar**. O resto é máquina ou é quem escreve.
 
 ## 2i · 28/09 — a produção vai para a conta do Pedro, no domínio do sócio
 
+> ✅ **NO AR desde 28/09/2026, 11:45** — https://institutoautomacao.com.br (e `www` → 301).
+> QA na produção: 1327 ok · 1 falha (o teto de 300 ms, pensado para servidor local; pela
+> internet 414 ms). Revisão visual: 66 páginas, 0 axe, CLS 0,0005, 0 link quebrado. A coleta
+> rodou no domínio na primeira hora. A foto de destaque ganhou `fetchpriority="high"` (a capa no
+> celular mediu 3,4 s na primeira visita, com o cache frio; depois 0,65 a 1,8 s).
+
 **Atualização do mesmo dia:** o domínio foi adicionado na conta **oliveiramichaelpedro**
 (`642a4a39…e0dd`), não na ryzecode08 da homologação — então a produção nasceu lá: D1
 `instituto` em `enam` com a base inteira importada (2.043 itens, 1.880 assuntos, 33 fontes, 20
@@ -438,14 +444,14 @@ para a produção, `submissoes` olhando a produção por padrão, `CLOUDFLARE_AC
 
 | # | Quem | O quê |
 |---|---|---|
-| 1 | Pedro | `npx wrangler login` (o OAuth local caiu em 28/09) |
-| 2 | Pedro | Cloudflare → *Add a domain* → `institutoautomacao.com.br`, plano Free; anotar os 2 nameservers |
-| 3 | sócio | Hostinger → o domínio → *Nameservers* → trocar pelos 2 da Cloudflare; confirmar o que fazer com o Hotmart; ligar a renovação automática |
-| 4 | eu | quando a zona ficar *Active*: recriar o D1 `instituto` em `enam`, importar a exportação mais recente da homologação, `npm run deploy`, conferir `/saude`, QA e revisão na produção |
+| 1 | Pedro | ✅ `npx wrangler login` (conta oliveiramichaelpedro) |
+| 2 | Pedro | ✅ domínio na conta oliveiramichaelpedro · glen/lisa.ns.cloudflare.com |
+| 3 | sócio | ✅ nameservers trocados às 11:16 · ⏳ confirmar a renovação automática e o Hotmart |
+| 4 | eu | ✅ feito em 28/09 |
 | 5 | eu | Email Routing: `contato@` → e-mail do Pedro; binding `AVISO` para o aviso de artigo |
 | 6 | Pedro | criar o token de API **na conta oliveiramichaelpedro** e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub (o `CLOUDFLARE_ACCOUNT_ID` já está, apontando para ela) |
 | 7 | Pedro | Search Console (propriedade de domínio, registro TXT) e enviar o sitemap |
-| 8 | eu | apontar o `vigia.yml` para o domínio, desligar o cron da homologação (vira só vitrine de teste), trocar os links nos docs |
+| 8 | eu | ✅ `vigia.yml` no domínio · ⏳ desligar o cron da homologação (exige login na ryzecode08) |
 
 ---
 

@@ -168,7 +168,10 @@ export const Arte = (p: { peca: Peca; classe?: string; destaque?: boolean; comCr
        imagem: a licença governa, e quem deu a licença aparece. */
     return (
       <figure class={`arte arte--foto ${p.classe ?? ''}`} data-arte="foto" data-licenca={im.licenca}>
-        <img src={`/imagens/${im.arquivo}`} alt={im.alt} loading={p.destaque ? 'eager' : 'lazy'} decoding="async" />
+        {/* fetchpriority na foto de destaque: é o maior elemento da primeira
+            tela (LCP). Na primeira visita ao domínio, 28/09/2026, a capa no
+            celular mediu 3,4 s — a foto esperava na fila com o resto. */}
+        <img src={`/imagens/${im.arquivo}`} alt={im.alt} loading={p.destaque ? 'eager' : 'lazy'} fetchpriority={p.destaque ? 'high' : undefined} decoding="async" />
         {p.comCredito !== false && (
           <figcaption class="arte__credito">
             Imagem: {im.credito} · {ROTULO_LICENCA[im.licenca]}
