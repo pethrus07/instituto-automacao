@@ -1,5 +1,8 @@
 # Instituto Automação — Roadmap · v2
 
+> **06/10/2026:** ideias do sócio para o site girar (convidados, vídeo vira artigo) registradas
+> na seção 2j. Nada começou; esperam a resposta dele.
+>
 > **Estado em 27/09/2026:** site v2 pronto e **em homologação** (conta do Pedro, `noindex`).
 > Produção espera o acesso à Cloudflare do sócio. Compromisso contratado: máquina rodando até
 > **31/12/2026** (acordo interno).
@@ -452,6 +455,30 @@ para a produção, `submissoes` olhando a produção por padrão, `CLOUDFLARE_AC
 | 6 | Pedro | criar o token de API **na conta oliveiramichaelpedro** e pôr `CLOUDFLARE_API_TOKEN` nos segredos do GitHub (o `CLOUDFLARE_ACCOUNT_ID` já está, apontando para ela) |
 | 7 | Pedro | Search Console (propriedade de domínio, registro TXT) e enviar o sitemap |
 | 8 | eu | ✅ `vigia.yml` no domínio · ⏳ desligar o cron da homologação (exige login na ryzecode08) |
+
+## 2j · 05/10 — o sócio quer "ligar o foguete"
+
+Reunião de 3h com o sócio (ata `2026-10-05_2303_alinhamento` no Atas). Ele quer "a cara do
+site mudando todo dia" sem perder a credibilidade. Resumo enviado a ele em 06/10 (cartão 2).
+**Nada começou:** as decisões abaixo voltam com a resposta dele.
+
+**Combinado na conversa:**
+- **Artigos de empresas convidadas.** Ele patrocina; o texto sai do site da empresa e ela revisa
+  antes de publicar (ou assina).
+- **Vídeos e playlists de terceiros viram artigo.** Os primeiros saem na parceria, como teste.
+  **Quem fez o conteúdo original assina**, com crédito da fonte (evita viés e cara de conteúdo
+  patrocinado). Crédito no rodapé não substitui a permissão de quem fez.
+- A aba **Escrever** já monta artigo em poucos cliques: é o caminho para esses textos.
+- **Para os vídeos:** identidade fixa (abertura, moldura e voz), como uma vinheta. Outra voz é
+  possível; clonar a voz dele ainda não está pronto; avatar com rosto não é recomendado para
+  conteúdo técnico.
+
+**Em aberto (decidir com ele):**
+- Quantos textos por semana o site precisa para girar.
+- Um nome melhor que "artigo" para os textos curtos.
+- Um **estudo aprofundado** Pedro + sócio sobre IA na construção de software (peça de autoridade).
+- A frase do site que diz que notícia, artigo e relatório são escritos por gente: ele pediu mudança.
+- O preço do artigo feito a partir de vídeo, fora do plano de conteúdo da Fábrica de Conteúdo.
 
 ---
 
