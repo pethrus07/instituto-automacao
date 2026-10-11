@@ -199,6 +199,24 @@ try {
   checar('A', 'P1 · dry-run do wrangler', false, String(e.stderr ?? e).slice(-400));
 }
 
+/* O dry-run mexe nos mesmos arquivos temporários do `wrangler dev`, e no Linux
+   da máquina do GitHub isso reinicia o servidor local que está sendo testado
+   (11/10/2026: o pedido seguinte caía com "other side closed"). Espera ele
+   responder de novo; se não voltar em 60 s, morreu de verdade — e isso é
+   falha, não ruído. */
+if (!/^https?:\/\//.test(ALVO)) {
+  let voltou = false;
+  for (let i = 0; i < 60 && !voltou; i++) {
+    try {
+      voltou = (await fetch(BASE + '/saude')).status === 200;
+    } catch {
+      /* ainda reiniciando */
+    }
+    if (!voltou) await new Promise((r) => setTimeout(r, 1000));
+  }
+  checar('A', 'o servidor local continua de pé depois do dry-run', voltou, 'não respondeu em 60 s');
+}
+
 /* ------------------------------------------------------------- B. BANCO */
 titulo('B · Conformidade — o banco depois da cirurgia');
 
