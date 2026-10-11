@@ -71,6 +71,13 @@ jobs:
       - name: Testes de unidade
         run: npm test
 
+      # A máquina do GitHub não tem banco: sem isto o site local sobe vazio e o
+      # QA reprova a capa (achado em 11/10/2026, no primeiro Giro que passou do
+      # token). O db:zero monta o banco de teste do schema, das sementes e das
+      # migrações 007/008, que o schema.sql não traz.
+      - name: Banco de teste
+        run: npm run db:zero
+
       - name: Subir o site e rodar o QA inteiro
         run: |
           npx wrangler dev --port 8788 > /tmp/dev.log 2>&1 &
