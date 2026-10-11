@@ -90,6 +90,11 @@ jobs:
       # 28/09/2026: publica a produção (institutoautomacao.com.br). A
       # homologação fica em OUTRA conta Cloudflare, que este token não alcança;
       # ela vira cópia de teste parada, atualizada à mão quando preciso.
+      # Se o QA cair, o registro do servidor local é o que diz por quê.
+      - name: Registro do servidor local (só em falha)
+        if: failure()
+        run: tail -n 120 /tmp/dev.log || true
+
       - name: Publicar
         if: ${{ !inputs.ensaio }}
         run: npm run deploy
