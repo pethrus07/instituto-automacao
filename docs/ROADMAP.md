@@ -482,6 +482,46 @@ site mudando todo dia" sem perder a credibilidade. Resumo enviado a ele em 06/10
 
 ---
 
+## 2k · 11/10 — o site anda sozinho
+
+O Pedro pediu "deixar se atualizando sozinho". O diagnóstico, medido em 11/10:
+
+| O que | Estado |
+|---|---|
+| Coleta a cada 15 min (produção) | ✅ rodando — 725 itens nos últimos 7 dias |
+| Vigia horário do `/saude` | ✅ rodando |
+| **Giro de segunda** | ✗ falhou em 28/09 e 05/10 — **falta `CLOUDFLARE_API_TOKEN` no GitHub** |
+| **Pauta de sábado** | ✗ falhou em 10/10 — mesma causa |
+| **Cópia do banco de domingo** | ✗ falhou em 11/10 — mesma causa |
+| Agenda | ✅ avança sozinha pela data — 14 eventos pela frente |
+
+**Feito em 11/10:**
+- **Giros da s39 e s40 publicados à mão** (gerados da produção). O da s39 foi barrado pela
+  auditoria por um "5" que vinha do **endereço** de uma notícia nossa listada no boletim — o
+  auditor deixou de ler número em destino de link (o texto do link continua auditado).
+- **"Lá fora, hoje"** na capa, logo abaixo da principal: as manchetes do setor colhidas nas
+  últimas 24 h (72 h se o dia foi fraco), fonte estrangeira, só setor, só imprensa, uma por
+  assunto, com link para a fonte e o rótulo "colhido pela máquina e ainda não lido". E o
+  **relógio vivo**: quantos assuntos do setor publicados lá fora nos últimos 7 dias ainda não
+  tiveram menção no Brasil (em 11/10: 28 de 29). Muda sozinho, sem ninguém publicar — é dado
+  listado, não texto redigido.
+- **Cache de borda de verdade.** As páginas declaravam `s-maxage`, mas resposta de Worker não é
+  guardada sozinha: toda visita ia ao D1 (enam). Agora a página pronta fica na borda pelo prazo
+  declarado, com a chave levando a VERSAO do build (cada publicação começa limpa). Duas armadilhas
+  pegas pelo QA: a borda trocava o nosso `max-age=0` pelo Browser Cache TTL da zona (4 h no
+  navegador do leitor) — o cabeçalho declarado volta na resposta guardada; e o CSS geral passou
+  do teto de 48 KB — a faixa reaproveita `Numero`, `secao__nota` e `u-fluxo`.
+
+**Pergunta para o Pedro (divergência, não defeito):** o Giro conta "assuntos que não chegaram ao
+Brasil" sobre **todas** as fontes (211 na s40), inclusive a tecnologia geral que a decisão de
+24/09 tirou do balanço; a capa conta só o **setor** (29 nos últimos 7 dias). Alinhar o Giro ao
+setor muda a série a partir da próxima semana — decidir.
+
+**O que ainda impede o site de andar 100% sozinho:** só o token. Com ele, o Giro sai toda
+segunda, a pauta pergunta todo sábado e o banco é copiado todo domingo, sem ninguém.
+
+---
+
 ## 3 · O juridiquês, por escrito
 
 Na reunião, o Pedro afirmou travas legais que **não existem** e prometeu levar a conferência

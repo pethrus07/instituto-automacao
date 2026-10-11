@@ -662,6 +662,9 @@ export const ARTES: Readonly<Record<string, string>> = ${JSON.stringify(artes, n
 /** Os exemplos de /escrever/blocos, já em HTML (a fórmula em MathML). */
 export const EXEMPLOS_BLOCOS: Readonly<Record<string, string>> = ${JSON.stringify(exemplos, null, 2)};
 
+/** A versão deste build — entra na chave do cache de borda (src/index.tsx): publicou, a chave muda, e ninguém vê página velha. */
+export const VERSAO = ${JSON.stringify(Date.now().toString(36))};
+
 /** SHA-256 (base64) do único script inline do site — a CSP só o libera por este hash. */
 export const TEMA_SCRIPT_HASH = ${JSON.stringify(TEMA_SCRIPT_HASH)};
 `;

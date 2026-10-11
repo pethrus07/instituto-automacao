@@ -906,3 +906,14 @@ textarea.campo { resize: vertical; min-block-size: 4.5rem; }
 .tour__video { display: block; inline-size: 100%; block-size: auto; aspect-ratio: 16 / 9; background: var(--capa-fundo); border-radius: var(--radius-m); }
 .tour__legenda { font-family: var(--face-fluxo); font-size: var(--step--1); color: var(--ink-muted); max-inline-size: var(--measure); }
 
+
+/* =========================================================================
+   LÁ FORA, HOJE — a faixa da capa que muda sozinha (11/10/2026)
+   Lista de fluxo, não obra: sem-serifa, densa, feita para varrer com o olho.
+   O número do relógio é o único destaque, e leva ao método.
+   ========================================================================= */
+.la-fora__cabeca { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: var(--space-l); align-items: end; }
+.la-fora__lista { list-style: none; padding: 0; }
+.la-fora__lista li { padding-block: var(--space-xs); border-block-end: var(--border-hair); }
+.la-fora__meta { display: block; font-size: var(--step--2); color: var(--ink-faint); }
+@media (max-width: 40rem) { .la-fora__cabeca { grid-template-columns: minmax(0, 1fr); align-items: start; } }

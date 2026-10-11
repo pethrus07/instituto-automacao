@@ -319,3 +319,62 @@ export async function registrarSubmissao(db: D1Database, s: NovaSubmissao): Prom
   ];
   await db.batch(lote);
 }
+
+/* ------------------------------------------------------------ a capa que muda sozinha */
+
+export type ManchetaLaFora = { titulo: string; url: string; fonte: string; idioma: string; publicado: string };
+
+/**
+ * "Lá fora, hoje" — as manchetes do setor que o coletor trouxe nas últimas
+ * horas, como estão na fonte. Pedido do sócio (05/10: "a cara do site
+ * mudando todo dia") e decisão do Pedro (11/10).
+ *
+ * É DADO, não texto nosso: título original, fonte e link para ela, com o
+ * rótulo de que ninguém leu ainda. Muda a cada 15 minutos sem ninguém mexer,
+ * e é a vitrine do que pode virar notícia. Não fere o "sem IA": nada aqui é
+ * redigido — é listado.
+ *
+ * Só fonte estrangeira (é "lá fora"), só do SETOR (a coluna `papel`), só
+ * imprensa (fórum e rede social não são manchete), um por assunto. Se as
+ * últimas 24 h trouxeram pouco (fim de semana), a janela abre para 72 h — e
+ * a capa diz qual janela está mostrando.
+ */
+export async function laFora(db: D1Database, n = 5): Promise<{ horas: number; itens: ManchetaLaFora[] }> {
+  for (const horas of [24, 72]) {
+    const { results } = await db
+      .prepare(
+        `SELECT i.titulo, i.url, f.nome AS fonte, i.idioma, i.publicado_fonte AS publicado
+           FROM item i JOIN fonte f ON f.id = i.fonte_id
+          WHERE f.ativo = 1 AND f.papel = 'setor' AND f.tipo NOT IN ('forum', 'social') AND f.pais <> 'BR'
+            AND datetime(i.publicado_fonte) >= datetime('now', ?1) -- o coletor grava ISO com "T"; comparar texto cru erra na borda do dia
+            AND i.publicado_fonte = (SELECT MIN(x.publicado_fonte) FROM item x WHERE x.assunto_id = i.assunto_id)
+          ORDER BY i.publicado_fonte DESC
+          LIMIT ?2`,
+      )
+      .bind(`-${horas} hours`, n)
+      .all<ManchetaLaFora>();
+    if ((results?.length ?? 0) >= 3 || horas === 72) return { horas, itens: results ?? [] };
+  }
+  return { horas: 72, itens: [] };
+}
+
+/**
+ * O relógio vivo da capa: quantos assuntos do SETOR saíram lá fora nos
+ * últimos 7 dias e ainda não tiveram nenhuma menção em fonte brasileira.
+ *
+ * ⚠️ Só o setor, de propósito — o mesmo critério do balanço da semana desde
+ * 24/09 (migração 008). Contar a tecnologia geral faria o número dizer que o
+ * Brasil "não repercutiu" lançamento de celular, que obviamente não chega à
+ * imprensa industrial daqui.
+ */
+export async function naoChegaram(db: D1Database): Promise<{ assuntos: number; semMencao: number }> {
+  const r = await db
+    .prepare(
+      `SELECT COUNT(*) AS assuntos, SUM(CASE WHEN a.primeira_mencao_br IS NULL THEN 1 ELSE 0 END) AS semMencao
+         FROM assunto a JOIN fonte f ON f.id = a.fonte_original
+        WHERE datetime(a.publicado_original) >= datetime('now', '-7 days')
+          AND f.papel = 'setor' AND f.tipo NOT IN ('forum', 'social') AND f.pais <> 'BR'`,
+    )
+    .first<{ assuntos: number; semMencao: number | null }>();
+  return { assuntos: r?.assuntos ?? 0, semMencao: r?.semMencao ?? 0 };
+}

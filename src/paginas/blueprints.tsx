@@ -187,7 +187,7 @@ blueprints.get('/blueprints', async (c) => {
         </section>
 
         {/* --- o relógio --- */}
-        <section class="bloco">
+        <section class="bloco" id="relogio" style="scroll-margin-top: var(--space-l)">
           <Secao titulo="Como medimos o atraso" />
           <div class="obra" style="font-size: var(--step-0)">
             <p>

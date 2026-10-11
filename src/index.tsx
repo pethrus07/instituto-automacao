@@ -12,7 +12,7 @@
  * ordem, e um `/:x` cedo demais engole tudo o que vem depois.
  */
 import type { Env } from './config';
-import { TEMA_SCRIPT_HASH } from './conteudo.gerado';
+import { TEMA_SCRIPT_HASH, VERSAO } from './conteudo.gerado';
 import { coletar } from './coletor';
 import { novaApp } from './paginas/app';
 import { estatico } from './paginas/estatico';
@@ -79,6 +79,42 @@ app.use('*', async (c, next) => {
     return c.redirect(u.toString(), 301);
   }
   await next();
+});
+
+/* ------------------------------------------------------------ o cache da borda
+ * As páginas já diziam `s-maxage` (5 min para listagem, 1 h para peça), mas
+ * resposta de Worker não é guardada pela Cloudflare sozinha — toda visita
+ * ia ao D1, do outro lado do continente (enam). Com "Lá fora, hoje" a capa
+ * passou a fazer três consultas e respondeu em 1,9 s (11/10/2026). Agora a
+ * página pronta fica guardada pelo prazo que ela mesma declara.
+ *
+ * Só GET sem parâmetro (?assinado=1, filtros da agenda e o editor ficam de
+ * fora), só HTML 200, e a chave leva a VERSAO do build: cada publicação
+ * começa com cache limpo. */
+app.use('*', async (c, next) => {
+  const u = new URL(c.req.url);
+  if (c.req.method !== 'GET' || u.search || typeof caches === 'undefined') return next();
+  const chave = new Request(`${u.origin}${u.pathname}?__v=${VERSAO}`);
+  const guardada = await caches.default.match(chave);
+  if (guardada) {
+    c.res = new Response(guardada.body, guardada); // cópia: os cabeçalhos da guardada são imutáveis
+    /* A borda devolve a resposta guardada com o "Browser Cache TTL" da zona
+       (4 h por padrão) no lugar do nosso max-age=0 — o navegador guardaria a
+       capa por 4 horas e o "Lá fora, hoje" envelheceria na mão do leitor
+       (pego pelo QA em 11/10/2026). Volta o cabeçalho que a página declarou. */
+    const declarado = guardada.headers.get('X-Cache-Declarado');
+    if (declarado) c.res.headers.set('Cache-Control', declarado);
+    c.res.headers.delete('X-Cache-Declarado');
+    c.res.headers.set('X-Cache', 'HIT');
+    return c.res;
+  }
+  await next();
+  const r = c.res;
+  if (r.status === 200 && /s-maxage=\d+/.test(r.headers.get('Cache-Control') ?? '') && (r.headers.get('Content-Type') ?? '').includes('text/html')) {
+    const copia = new Response(r.clone().body, r);
+    copia.headers.set('X-Cache-Declarado', r.headers.get('Cache-Control')!);
+    c.executionCtx.waitUntil(caches.default.put(chave, copia));
+  }
 });
 
 /* ------------------------------------------------------------ as páginas */

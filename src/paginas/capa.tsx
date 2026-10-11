@@ -31,10 +31,10 @@
  *     alguma coisa.
  */
 import { Documento } from '../ui/Documento';
-import { Secao, Vazio, EventoNaAgenda, PecaDestaque, PecaCard, PecaLinha, Lista, FaixaParceiro, QuemEscreve } from '../ui/pecas';
+import { Secao, Vazio, EventoNaAgenda, PecaDestaque, PecaCard, PecaLinha, Lista, FaixaParceiro, QuemEscreve, Numero } from '../ui/pecas';
 import { ldJson, organizacaoLd, siteLd } from '../ui/jsonld';
 import { CACHE } from '../config';
-import { listarAgenda } from '../db';
+import { laFora, listarAgenda, naoChegaram } from '../db';
 import { destaque, recentes, ultimoGiro, porSecao, artigoDaCapa, autores, pecasDoAutor } from '../conteudo';
 import { parceiroDaCapa } from '../parceiros';
 import { novaApp, pagina } from './app';
@@ -52,6 +52,8 @@ capa.get('/', async (c) => {
   const outrosArtigos = porSecao('artigos').filter((p) => p !== artigoFixo);
   const quemEscreve = autores().filter((a) => pecasDoAutor(a).length > 0);
   const eventos = await listarAgenda(c.env.DB, {}, 3);
+  // o que muda sozinho, todo dia: o que o coletor trouxe e o relógio da semana
+  const [fora, relogio] = await Promise.all([laFora(c.env.DB, 5), naoChegaram(c.env.DB)]);
   const base = c.env.SITE_URL;
 
   c.header('Cache-Control', CACHE.listagem);
@@ -75,6 +77,14 @@ capa.get('/', async (c) => {
             <a href="/agenda">agenda</a> e o <a href="/blueprints">método</a> já estão aqui.
           </Vazio>
         )}
+
+        {/* LÁ FORA, HOJE — o bloco que muda sozinho (11/10/2026). O sócio
+            pediu "a cara do site mudando todo dia" sem perder a credibilidade;
+            o Pedro escolheu este: manchetes do setor como estão na fonte, com
+            link para ela e o rótulo de que ninguém leu ainda, mais o número
+            vivo do relógio. É dado listado, não texto redigido — o "sem IA"
+            continua inteiro. Só aparece se houver o que mostrar. */}
+        {fora.itens.length > 0 && <LaForaHoje horas={fora.horas} itens={fora.itens} relogio={relogio} />}
 
         {/* O ARTIGO FIXO, em segundo lugar e antes das outras notícias.
             É o coração do Instituto (sócio, 07/09) e o slot que notícia nova
@@ -177,3 +187,43 @@ capa.get('/', async (c) => {
     ),
   );
 });
+
+const quandoFoi = (iso: string) => {
+  const h = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 3_600_000));
+  return h < 1 ? 'agora há pouco' : h < 24 ? `há ${h} h` : `há ${Math.round(h / 24)} ${Math.round(h / 24) === 1 ? 'dia' : 'dias'}`;
+};
+
+const LaForaHoje = (p: { horas: number; itens: { titulo: string; url: string; fonte: string; idioma: string; publicado: string }[]; relogio: { assuntos: number; semMencao: number } }) => (
+  <section class="bloco la-fora" aria-labelledby="la-fora-titulo">
+    <div class="la-fora__cabeca">
+      <div>
+        <h2 class="secao__titulo" id="la-fora-titulo">
+          Lá fora, {p.horas === 24 ? 'hoje' : 'nos últimos dias'}
+        </h2>
+        <p class="secao__nota">
+          O que as fontes do setor publicaram {p.horas === 24 ? 'nas últimas 24 horas' : `nas últimas ${p.horas} horas`}, como saiu
+          lá. Colhido pela máquina e <strong>ainda não lido</strong> por nós — o que virar notícia, a gente escreve.
+        </p>
+      </div>
+      {p.relogio.assuntos > 0 && (
+        <Numero
+          valor={p.relogio.semMencao}
+          rotulo={`de ${p.relogio.assuntos} assuntos do setor publicados lá fora nos últimos 7 dias ainda sem menção no Brasil`}
+          href="/blueprints#relogio"
+        />
+      )}
+    </div>
+    <ol class="la-fora__lista">
+      {p.itens.map((m) => (
+        <li>
+          <a href={m.url} rel="nofollow noopener" target="_blank" lang={m.idioma}>
+            {m.titulo}
+          </a>
+          <span class="la-fora__meta u-fluxo">
+            {m.fonte} · <abbr title={`título original, em ${m.idioma === 'en' ? 'inglês' : m.idioma === 'de' ? 'alemão' : m.idioma === 'es' ? 'espanhol' : m.idioma}`}>{m.idioma.toUpperCase()}</abbr> · {quandoFoi(m.publicado)}
+          </span>
+        </li>
+      ))}
+    </ol>
+  </section>
+);

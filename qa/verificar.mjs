@@ -483,6 +483,24 @@ titulo('B · Conformidade — a aba Escrever');
   checar('B', 'envio que cita imagem que não chegou é recusado', faltaImagem.status === 400 && /não chegaram/.test(faltaImagem.j.erro ?? ''), JSON.stringify(faltaImagem.j));
 }
 
+/* 11/10/2026 — "Lá fora, hoje": o bloco da capa que muda sozinho. Só existe
+   quando o coletor trouxe manchete (o banco local parado não mostra), então a
+   conferência vale quando ele está lá — e quando está, não pode mentir. */
+titulo('B · Conformidade — Lá fora, hoje');
+{
+  const m = /<section class="bloco la-fora"[\s\S]*?<\/section>/.exec(capa);
+  if (!m) {
+    avisar('Lá fora, hoje', 'o bloco não apareceu — o banco consultado não tem manchete do setor nas últimas 72 h (normal no dev local)');
+  } else {
+    const bloco = m[0];
+    const links = [...bloco.matchAll(/<li>\s*<a ([^>]+)>/g)].map((x) => x[1]);
+    checar('B', 'Lá fora: entre 1 e 5 manchetes', links.length >= 1 && links.length <= 5, `${links.length}`);
+    checar('B', 'Lá fora: todo link sai para a fonte, com nofollow e em nova aba', links.every((a) => /href="https?:\/\//.test(a) && /rel="nofollow noopener"/.test(a) && /target="_blank"/.test(a)));
+    checar('B', 'Lá fora: diz que foi colhido pela máquina e ainda não lido', /ainda não lido/.test(bloco) && /Colhido pela máquina/.test(bloco));
+    checar('B', 'Lá fora: o número do relógio leva ao método', !/class="numero"/.test(bloco) || /href="\/blueprints#relogio"/.test(bloco));
+  }
+}
+
 /* -------------------------------------------------------- B. DISTRIBUIÇÃO */
 titulo('B · Conformidade — feeds e sitemap');
 for (const f of ['/feed.xml', '/feed/noticias.xml']) {
