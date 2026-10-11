@@ -649,6 +649,18 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
 - **O editor precisa de `blob:` em `img-src`.** A miniatura e a prévia das imagens do autor são
   `blob:` do próprio navegador. Tirar da CSP deixa a imagem "carregada e invisível", sem erro.
 
+- **O `schema.sql` não basta para um banco do zero.** Ele não traz o `assunto_token` (migração
+  007) nem o papel das fontes (008). Banco novo é `npm run db:zero` — o mesmo que a máquina do
+  GitHub usa antes do QA do Giro.
+- **No Linux, o `wrangler dev` reinicia quando outro processo mexe nos arquivos do wrangler** (o
+  `deploy --dry-run` do P1 e o `d1 execute --local` que o QA usa). No Windows não acontece, e foi
+  por isso que o QA passava aqui e caía no GitHub em pontos diferentes a cada rodada. O QA,
+  contra servidor local, espera o reinício e repete o pedido que caiu por conexão.
+- **Declarar `s-maxage` não é ter cache.** Resposta de Worker não fica na borda sozinha; o
+  middleware de `src/index.tsx` guarda (só em https, só HTML 200, só GET sem parâmetro, chave com
+  a VERSAO do build) e devolve o `Cache-Control` declarado — a zona trocava `max-age=0` pelo
+  Browser Cache TTL dela (4 h no navegador do leitor).
+
 ---
 
 ## 19 · A aba Escrever, o dialeto do artigo e a pauta que pergunta (27/09/2026)

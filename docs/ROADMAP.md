@@ -520,6 +520,17 @@ setor muda a série a partir da próxima semana — decidir.
 **O que ainda impede o site de andar 100% sozinho:** só o token. Com ele, o Giro sai toda
 segunda, a pauta pergunta todo sábado e o banco é copiado todo domingo, sem ninguém.
 
+> ✅ **Resolvido no mesmo dia.** O Pedro criou o token (de conta, `flat-scene-f0c8`, na
+> oliveiramichaelpedro); testado na API e no wrangler, gravado em `CLOUDFLARE_API_TOKEN` no GitHub
+> e anotado no cofre (DÜ SOL). Os três fluxos rodaram de verdade: **pauta** (issue #1),
+> **cópia do banco** (artefato de 1,5 MB, 90 dias) e **Giro** — gerou, compilou, montou o banco
+> de teste, QA 1388 ok, publicou na produção pelo token e chegou ao commit. Para chegar lá, três
+> defeitos do fluxo que o token escondia: a máquina do GitHub subia o site **sem banco**
+> (`npm run db:zero`: schema + sementes + migrações 007/008, que o `schema.sql` não traz); e o
+> `wrangler dev` **reinicia no Linux** quando outro processo mexe nos arquivos dele (o dry-run e
+> as consultas diretas do QA) — o QA agora espera o reinício e repete o pedido que caiu por
+> conexão. O registro do servidor local aparece no fluxo quando algo falha.
+
 ---
 
 ## 3 · O juridiquês, por escrito
