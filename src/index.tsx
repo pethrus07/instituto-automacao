@@ -93,7 +93,9 @@ app.use('*', async (c, next) => {
  * começa com cache limpo. */
 app.use('*', async (c, next) => {
   const u = new URL(c.req.url);
-  if (c.req.method !== 'GET' || u.search || typeof caches === 'undefined') return next();
+  // só na borda de verdade (https): no servidor local o simulador derrubava o
+  // processo no Linux do GitHub com as gravações de cache (11/10/2026)
+  if (c.req.method !== 'GET' || u.search || typeof caches === 'undefined' || !c.env.SITE_URL.startsWith('https://')) return next();
   const chave = new Request(`${u.origin}${u.pathname}?__v=${VERSAO}`);
   const guardada = await caches.default.match(chave);
   if (guardada) {
