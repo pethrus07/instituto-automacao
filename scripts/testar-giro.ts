@@ -66,6 +66,9 @@ conferir('número inventado depois de preposição TAMBÉM reprova', auditarNume
 conferir('norma técnica não é quantidade (IEC 61131-3)', numerosDe('Conforme a IEC 61131-3 e a Indústria 4.0.'), []);
 conferir('ano não é afirmação sobre os dados', numerosDe('Em 2026 saíram 3 peças.'), [3]);
 conferir('versão com ponto não é quantidade', numerosDe('O TIA Portal 19.1 saiu com 3 novidades.'), [3]);
+// o destino de link é endereço, não prosa — e o texto do link continua auditado (Giro s39, 11/10/2026)
+conferir('destino de link não é número', numerosDe('Saíram [a NVIDIA põe agentes](/noticias/nvidia-isaac-ros-5-agentes) e 2 outras.'), [2]);
+conferir('mas o texto do link é', numerosDe('[7 robôs na fábrica](/noticias/x) chegaram.'), [7]);
 conferir('faixa com hífen não é quantidade', numerosDe('Entre 10-15 dias.'), []);
 conferir('a auditoria lista o que usou', auditarNumeros(BOM, PERMITIDOS).usados.length, 6);
 

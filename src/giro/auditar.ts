@@ -26,6 +26,10 @@ const MESES =
 
 export function numerosDe(texto: string): number[] {
   const limpo = texto
+    /* O DESTINO de um link markdown é endereço, não prosa: o Giro da s39
+       (11/10/2026) foi barrado pelo "5" de `/noticias/nvidia-isaac-ros-5-agentes`.
+       Só o `(…)` sai; o texto entre colchetes continua auditado. */
+    .replace(/\]\([^)\s]*\)/g, '] ')
     .replace(/\b\d+(?:[.,]\d+)*\s*-\s*\d+\b/g, ' ')
     .replace(/\b\d+(?:[.,]\d+)+\b/g, ' ')
     // anos são fato de calendário, não afirmação sobre os dados
