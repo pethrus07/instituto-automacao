@@ -22,6 +22,32 @@ const ALVO = process.argv[2] ?? '8787';
 // `npm run qa -- https://…` aponta o QA para um site publicado; um número continua sendo a porta local
 const BASE = /^https?:\/\//.test(ALVO) ? ALVO.replace(/\/$/, '') : `http://127.0.0.1:${ALVO}`;
 
+/* Contra o servidor LOCAL, falha de CONEXÃO não é falha do site: no Linux da
+   máquina do GitHub o `wrangler dev` reinicia quando outro processo mexe nos
+   arquivos do wrangler — o dry-run do P1 e as consultas diretas ao D1 local
+   que este QA faz (11/10/2026: "other side closed" em pontos diferentes a
+   cada rodada). Quem chega no meio do reinício espera o servidor voltar (até
+   60 s) e repete o pedido UMA vez. Resposta errada continua sendo falha; e se
+   o servidor não voltar, o erro sobe com o motivo. */
+if (!/^https?:\/\//.test(ALVO)) {
+  const fetchOriginal = globalThis.fetch;
+  globalThis.fetch = async (url, opcoes) => {
+    try {
+      return await fetchOriginal(url, opcoes);
+    } catch (e) {
+      for (let i = 0; i < 60; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        try {
+          if ((await fetchOriginal(BASE + '/saude')).status === 200) break;
+        } catch {
+          /* ainda reiniciando */
+        }
+      }
+      return fetchOriginal(url, opcoes);
+    }
+  };
+}
+
 let ok = 0;
 const falhas = [];
 const avisos = [];
