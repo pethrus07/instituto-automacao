@@ -19,6 +19,7 @@
     "pauta": "node --experimental-strip-types scripts/pauta.ts",
     "db:criar": "wrangler d1 create instituto",
     "db:local": "wrangler d1 execute instituto --local --file=./schema.sql",
+    "db:zero": "wrangler d1 execute instituto --local --file=./schema.sql && wrangler d1 execute instituto --local --file=./fontes.sql && wrangler d1 execute instituto --local --file=./vozes.sql && wrangler d1 execute instituto --local --file=./seed.sql && wrangler d1 execute instituto --local --file=./migracoes/007-agrupamento-por-token.sql && wrangler d1 execute instituto --local --file=./migracoes/008-papel-da-fonte.sql",
     "db:semente": "wrangler d1 execute instituto --local --file=./seed.sql",
     "db:zerar": "wrangler d1 execute instituto --local --command=\"SELECT 'use db:local para recriar'\"",
     "db:remoto": "wrangler d1 execute instituto --remote --env producao --file=./schema.sql",
