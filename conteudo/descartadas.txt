@@ -8,3 +8,8 @@ https://blog.n8n.io/spotlight-you-com/ 2026-10-14 tutorial de blog de ferramenta
 https://www.home-assistant.io/blog/2026/10/13/ledvance-joins-works-with-home-assistant/ 2026-10-14 automação residencial, parceria sem número
 https://spectrum.ieee.org/anthropic-engineer-ai-agent 2026-10-14 perfil de engenheiro, fora do escopo industrial
 https://blog.n8n.io/devops-automation-tools/ 2026-10-14 lista de ferramentas de DevOps
+https://roboticsandautomationnews.com/2026/10/14/how-long-does-a-dui-stay-on-your-record/105916/ 2026-10-14 fora do tema: não é automação (conteúdo sobre multa de trânsito)
+https://www.eenewseurope.com/en/fortastra-spacecraft-30m-orbital-defence/ 2026-10-14 fora do tema: programa de espaçonave e defesa, não é automação industrial
+https://www.engineering.com/purdue-opens-rittal-and-eplan-engineering-labs/ 2026-10-14 sem imagem utilizável (og:image com 650 px, mínimo 700)
+https://www.designworldonline.com/future-of-engineering-summit-puts-agentic-ai-results-front-and-center/ 2026-10-14 convite para evento online (webinar), sem fato novo nem número
+https://www.automatedwarehouseonline.com/groceryshop-2026-retail-robots-are-scaling-now-what/ 2026-10-14 texto de opinião de colunista sobre feira; único fato (3.000 robôs Tally) é de varejo de gôndola, sem efeito claro aqui
