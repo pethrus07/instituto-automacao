@@ -560,6 +560,14 @@ Descartada a da Timken (publieditorial). Na primeira passada a revisão tinha tr
 só o 1º parágrafo do "muda aqui", confundia "todo" com `TODO`, e conferia notícia antiga
 modificada — os três viraram caso de teste.
 
+**Fontes (14/10, tarde):** a primeira execução agendada descartou as 8 candidatas por escopo — o
+gargalo virou a pauta (~40 itens de notícia do setor por semana). `npm run sondar:setor` testou 25
+candidatas com o leitor e o robots.txt do coletor; entraram 8 pela migração 010 (Robotics &
+Automation News, Design World, Mobile Robot Guide, eeNews Europe, Engineering.com, Inovação
+Tecnológica, Logweb, EMBRAPII): 24 fontes do setor ativas, eram 16. Bloqueiam robô e ficaram de
+fora: Automation.com, The Manufacturer, IndustryWeek, Assembly, Packaging World, New Equipment
+Digest, ABB, Mundo Logística.
+
 **Falta para rodar sem ninguém:** conectar o GitHub à conta do Claude
 (https://claude.ai/connect-github) para a rotina na nuvem clonar e dar push. Até lá, a edição é
 feita numa sessão local pelo mesmo manual.
