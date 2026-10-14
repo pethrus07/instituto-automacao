@@ -124,17 +124,22 @@ imagem para tirar: troque a imagem ou tire o bloco `imagem:` e commite.
 
 ## A rotina agendada
 
-Rotina do Claude Code na nuvem (claude.ai/code/routines), ambiente `Default`, modelo
-`claude-sonnet-5-5`, repositório `pethrus07/instituto-automacao`, ferramentas Bash, Read, Write,
-Edit, Glob, Grep e WebFetch. Roda **duas vezes por dia, 07:30 e 15:30 em São Paulo**
-(`30 10,18 * * *` em UTC), até 2 notícias por execução.
+Roda **no notebook do Pedro**, pelo Agendador de Tarefas do Windows, **às 07:30 e às 15:30**
+(se o notebook estiver desligado no horário, roda quando ligar). Quem escreve é o Claude Code
+que vem com a extensão do VS Code, sem janela (`claude -p`), modelo `claude-sonnet-5-5`, num
+**clone só da redação** em `Projetos/_redacao-instituto/instituto-automacao` — nunca na pasta em
+que o Pedro trabalha. O push usa o git já logado na máquina.
 
-O pedido que ela recebe é curto de propósito — o que vale é este manual: ler este arquivo inteiro
-e as notícias de 24/09 e 14/10 para o tom; seguir os passos 1 a 9; nunca afrouxar trava nem mexer
-em `scripts/`, `src/`, `qa/` ou `.github/`; nunca assinar com nome de pessoa; nunca pôr trailer
-`Co-Authored-By`; sem pauta boa, não publicar; terminar com o resumo do que publicou e do que
-descartou.
+```powershell
+.\scripts\redacao-local.ps1              # roda agora
+.\scripts\redacao-local.ps1 -Instalar    # cria/atualiza a tarefa (copia o script para _redacao-instituto)
+.\scripts\redacao-local.ps1 -Desinstalar
+```
 
-**Pré-requisito:** o GitHub conectado à conta do Claude do Pedro
-(https://claude.ai/connect-github). Sem isso a rotina nem é salva (`github_token_missing`,
-conferido em 14/10).
+Registro de cada execução em `Projetos/_redacao-instituto/logs/`. As ferramentas são
+restritas: ler e escrever arquivo, `npm run`, `npm test`, `git status/diff/add/commit/push/log`
+e apagar só em `publico/imagens/` e `conteudo/noticias/`.
+
+**Por que não a rotina na nuvem do Claude:** ela exige conectar o GitHub à conta do Claude, que
+é compartilhada (Pedro, 14/10). **Alarme:** o vigia do GitHub falha e manda e-mail se a notícia
+mais recente tiver mais de 2 dias (`ultima_noticia` em `/saude`).

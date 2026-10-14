@@ -37,7 +37,9 @@ estatico.get('/saude', async (c) => {
   } catch (e) {
     db = `erro: ${(e as Error).message}`;
   }
-  return c.json({ ok: db === 'ok', ambiente: c.env.HOMOLOG === '1' ? 'homologacao' : 'producao', db, pecas: todas().length, coleta, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
+  // a data da notícia mais recente: o vigia alarma se a redação automática parar (14/10/2026)
+  const ultimaNoticia = todas().find((p) => p.secao === 'noticias')?.data ?? null;
+  return c.json({ ok: db === 'ok', ambiente: c.env.HOMOLOG === '1' ? 'homologacao' : 'producao', db, pecas: todas().length, ultima_noticia: ultimaNoticia, coleta, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
 });
 
 /* A pauta do dia, aberta: o que a redação automática lê para escolher o que

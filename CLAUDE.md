@@ -91,7 +91,10 @@ fica para trás e devolve semana zerada sem parecer defeito.
 ## Regras do Pedro
 
 - **Deploy, push no `main` e qualquer publicação só com OK explícito do Pedro.** Push no `main`
-  já é deploy de produção.
+  já é deploy de produção. **Exceção com OK permanente (Pedro, 14/10/2026):** a redação
+  automática (`scripts/redacao-local.ps1`, seguindo `docs/REDACAO.md`) commita e dá push de
+  notícia — `conteudo/noticias/`, `publico/imagens/`, `conteudo/descartadas.txt` — sem perguntar.
+  Só isso: código, docs e workflows continuam pedindo OK.
 - Commits em português, **sem** trailer `Co-Authored-By` e sem "Generated with Claude Code".
 - Hook global de pre-commit com gitleaks em `C:\Users\olive\.git-hooks\pre-commit`
   (`core.hooksPath` global), que encadeia o hook local do repo. **Nunca usar `--no-verify`.**
