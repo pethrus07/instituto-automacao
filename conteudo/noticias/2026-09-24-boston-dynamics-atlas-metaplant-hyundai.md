@@ -12,7 +12,6 @@ imagem:
   credito:   Boston Dynamics
   licenca:   press
   alt:       Vários humanoides Atlas, pretos e brancos com a cabeça em anel de luz, trabalham em volta de uma bancada com peças dentro de um galpão industrial; ao fundo, a carroceria azul de um veículo e carrinhos com bandejas de componentes
-destaque: true
 veredito: a_caminho
 fonte:
   nome: The Robot Report
