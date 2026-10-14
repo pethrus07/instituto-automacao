@@ -85,8 +85,7 @@ blueprints.get('/blueprints', async (c) => {
               Seu navegador não toca vídeo. <a href="/tour/instituto-automacao-tour.mp4">Baixe o tour</a>.
             </video>
             <figcaption class="tour__legenda">
-              A narração é voz sintética — é o único som de máquina no Instituto, e por isso está
-              dito aqui. As telas são o site de verdade, sem encenação.{' '}
+              A narração é voz sintética. As telas são o site de verdade, sem encenação.{' '}
               <a href="/tour/instituto-automacao-tour-capitulos.txt">Capítulos</a>.
             </figcaption>
           </figure>
@@ -101,63 +100,56 @@ blueprints.get('/blueprints', async (c) => {
         <section class="bloco" id="como-funciona" style="scroll-margin-top: var(--space-l)">
           <Secao
             titulo="Como funciona"
-            nota="Quatro tempos, sempre na mesma ordem. Nenhum deles é automático do começo ao fim."
+            nota="Quatro tempos, sempre na mesma ordem, todo dia."
           />
           <div class="obra" style="font-size: var(--step-0)">
             <p>
-              <strong>A máquina colhe. A gente decide. Alguém escreve. O git publica.</strong> Cada
-              tempo tem um dono diferente, e é essa separação que faz o site ser conferível: o que a
-              máquina faz está todo registrado no banco, e o que uma pessoa fez está assinado.
+              <strong>Colher. Escolher. Escrever. Publicar.</strong> O Instituto anda sozinho, todo
+              dia, e cada tempo deixa registro: o que foi colhido está no banco, o que foi escolhido
+              segue uma fórmula publicada, e o que foi publicado tem autor, data e histórico.
             </p>
           </div>
 
           <ol class="regras" style="margin-block-start: var(--space-m)">
             <li>
-              <strong>1 · A máquina colhe</strong>
+              <strong>1 · Colher</strong>
               Um coletor visita as {rel.fontes} fontes da tabela abaixo a cada quinze minutos e lê o
               feed de cada uma — só o feed, que é o canal que o site publica justamente para ser
               lido. Antes de cada visita ele confere o <code>robots.txt</code> daquele endereço, e
               fonte que não autoriza fica de fora, listada aqui dizendo que ficou. Ele guarda o
-              título, a data, o endereço e a fonte. <em>Não guarda o texto da matéria alheia</em>, e
-              não decide nada: no fim do dia o que existe é uma pauta.
+              título, a data, o endereço e a fonte. <em>Não guarda o texto da matéria alheia</em>.
             </li>
             <li>
-              <strong>2 · Uma pessoa decide</strong>
-              A pauta é lida inteira, por gente, e a maior parte dela é descartada — a maior parte do
-              que sai lá fora não muda nada para quem opera aqui, e dizer isso é parte do trabalho. O
-              que sobra vira notícia. Não há fila automática, não há "assunto em alta" e nenhum item
-              entra no site por ter repercutido muito.
+              <strong>2 · Escolher</strong>
+              A pauta sai de uma fórmula: quantas fontes falaram do assunto, se lá fora já falou e o
+              Brasil ainda não, quão recente é. Só fontes do setor entram, e só imprensa — fórum e
+              rede social não viram notícia. A maior parte do que sai lá fora não muda nada para quem
+              opera aqui, e fica de fora.
             </li>
             <li>
-              <strong>3 · Alguém escreve, e assina</strong>
+              <strong>3 · Escrever e conferir</strong>
               A notícia é escrita em português a partir da fonte, com crédito e link para ela. É texto
-              novo, não tradução: traduzir a matéria de outro inteira exigiria autorização, e resumir
-              sem ler seria repetir o que não se conferiu. Toda notícia leva ainda a seção{' '}
-              <a href="#veredito">o que isso muda aqui</a>, que é a parte que não existe na fonte
-              original — e é para ela que o site existe.
+              novo, não tradução. Antes de publicar, uma revisão automática confere cada número do
+              texto contra a fonte, mede o tamanho, exige imagem com crédito e a seção{' '}
+              <a href="#veredito">o que isso muda aqui</a> — a parte que não existe na fonte
+              original, e é para ela que o site existe. O que não passa não sai.
             </li>
             <li>
-              <strong>4 · O git publica</strong>
+              <strong>4 · Publicar</strong>
               Cada texto é um arquivo no repositório. Publicar é registrar uma alteração nele, com
-              autor, data e o texto exato do que mudou — o mesmo mecanismo que os programadores usam
-              para versionar código. Nada é editado direto no ar, não existe painel de administração,
-              e um texto corrigido guarda a versão anterior em vez de apagá-la.
+              autor, data e o texto exato do que mudou. Nada é editado direto no ar, e um texto
+              corrigido guarda a versão anterior em vez de apagá-la.
             </li>
           </ol>
 
           <div class="obra" style="font-size: var(--step-0); margin-block-start: var(--space-m)">
             <p>
-              <strong>Não há inteligência artificial em produção.</strong> Nenhum texto deste site foi
-              traduzido ou redigido por modelo de linguagem. Notícia, artigo e relatório são escritos
-              por uma pessoa, e a responsabilidade pelo que está escrito é de quem assina. Hoje são{' '}
-              {pecas.length} texto{pecas.length === 1 ? '' : 's'}.
-            </p>
-            <p>
-              <strong>O Giro da Semana é a exceção, e ele diz que é.</strong> Aquele boletim não é
-              escrito por uma pessoa: é montado a partir dos números que o coletor mediu, pela mesma
-              função toda semana — mesmos dados, mesmo texto. Continua não havendo modelo de
-              linguagem no caminho, e cada número da prosa tem de existir na apuração antes, senão o
-              compilador recusa publicar. A página do Giro traz o aviso no alto.
+              <strong>Quem assina.</strong> As notícias do dia saem assinadas pela{' '}
+              <a href="/autores/redacao-do-instituto">Redação do Instituto</a>. Texto com nome de
+              pessoa é texto que essa pessoa escreveu ou leu antes de ir ao ar. O Giro da Semana é
+              montado a partir dos números que o coletor mediu, e o compilador recusa publicá-lo se a
+              prosa tiver número que a apuração não tem. Hoje são {pecas.length} texto
+              {pecas.length === 1 ? '' : 's'}.
             </p>
             <p>
               <strong>E quando um texto for pago, ele diz.</strong> O Instituto pode publicar conteúdo

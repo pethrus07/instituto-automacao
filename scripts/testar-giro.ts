@@ -100,7 +100,7 @@ conferir('o relógio medido aparece com a mediana', /mediana ficou em \*\*6 dias
 conferir('o que não chegou é tratado como achado', /\*\*é o achado\*\*/.test(cheio.corpo), true);
 conferir('comunidade e contexto contados à parte, e dito por quê', /não entram nos números acima/.test(cheio.corpo), true);
 conferir('o contexto aparece nomeado como tecnologia geral', /veículos de tecnologia geral/.test(cheio.corpo), true);
-conferir('o boletim declara que não é modelo de linguagem', /não é escrito por modelo de\s*linguagem/.test(cheio.corpo), true);
+conferir('o boletim declara que é gerado dos dados', /\*\*gerado a partir dos dados\*\*/.test(cheio.corpo), true);
 
 /* Semana vazia: o texto TEM de mudar, e dizer que foi vazia. */
 const magra = redigirGiro({ ...SEMANA_BASE, repercutidos: [], relogio: { medidos: 0, mediana: null, nao_chegaram: 0 }, agenda: [] });

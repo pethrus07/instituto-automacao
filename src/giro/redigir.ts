@@ -220,15 +220,13 @@ export function redigirGiro(s: Semana): GiroRedigido {
   l.push('## Como este boletim é feito');
   l.push('');
   l.push(
-    'Este Giro é **gerado a partir dos dados**, não redigido por uma pessoa — e não é escrito por modelo de ' +
-      'linguagem: é uma função sobre os números que o coletor mediu, então os mesmos dados produzem sempre o ' +
-      'mesmo texto. Cada número acima existe na base antes de existir na frase, e o compilador recusa publicar ' +
+    'Este Giro é **gerado a partir dos dados**: é uma função sobre os números que o coletor mediu, então os ' +
+      'mesmos dados produzem sempre o mesmo texto. Cada número acima existe na base antes de existir na frase, e o compilador recusa publicar ' +
       'o boletim se aparecer na prosa um número que a apuração não tenha.',
   );
   l.push('');
   l.push(
-    'Notícia, artigo e relatório continuam sendo escritos por gente, com nome e responsabilidade. O método de ' +
-      'coleta, o critério de repercussão e a definição do atraso estão em [Blueprints](/blueprints), com a ' +
+    'O método de coleta, o critério de repercussão e a definição do atraso estão em [Blueprints](/blueprints), com a ' +
       'lista de fontes e o que cada uma autoriza.',
   );
 

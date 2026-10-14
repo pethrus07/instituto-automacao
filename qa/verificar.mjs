@@ -313,10 +313,11 @@ for (const p of pecas) {
     p.meta.gerado === 'true' ? html.includes('Gerado dos dados do Instituto') : html.includes(p.meta.autor));
   checar('B', `/${p.secao}/${p.slug} tem arte (foto licenciada, desenhada ou gerada)`, /data-arte="(foto|desenhada|gerada)"/.test(html));
   checar('B', `/${p.secao}/${p.slug} declara como foi feito`, html.includes('Como este texto foi feito'));
-  /* Peça de gente nega a máquina; boletim gerado nega o MODELO DE LINGUAGEM,
-     que é a afirmação que cabe a ele. Nenhum dos dois pode ficar calado. */
-  checar('B', `/${p.secao}/${p.slug} declara o que é, sobre máquina`,
-    p.meta.gerado === 'true' ? html.includes('Sem modelo de linguagem') : html.includes('por máquina'));
+  /* 14/10/2026: o "sem IA" saiu do site por decisão do Pedro. O que fica é a
+     origem: o Giro diz que vem da apuração; a notícia, que os números foram
+     conferidos contra a fonte. */
+  checar('B', `/${p.secao}/${p.slug} declara de onde vem o texto`,
+    p.meta.gerado === 'true' ? html.includes('sem número que não esteja na apuração') : p.secao !== 'noticias' || !p.meta.fonte || html.includes('conferidos contra a fonte'));
   if (p.secao === 'noticias') {
     const ancorasFonte = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]).filter((t) => t.includes(p.meta.fonte.url));
     checar('B', `/${p.secao}/${p.slug} credita a fonte com link`, ancorasFonte.length >= 1);
@@ -423,7 +424,7 @@ const recusadasPagina = (blue.match(/data-robots="não permite"/g) ?? []).length
 if (/127\.0\.0\.1|localhost/.test(BASE)) checar('B', 'as fontes recusadas continuam listadas, dizendo que foram recusadas', recusadasPagina === recusadasDb, `${recusadasPagina} na página, ${recusadasDb} no banco local`);
 else avisar('fontes recusadas: comparação só vale contra o dev local', `a página publicada lista ${recusadasPagina}; o D1 local tem ${recusadasDb} — bancos diferentes`);
 checar('B', 'o método declara que NÃO contornamos bloqueio', blue.includes('sem proxy') && blue.includes('navegador disfarçado'));
-checar('B', 'o método declara que não há IA em produção', blue.includes('Não há inteligência artificial em produção'));
+checar('B', 'o método diz como a notícia é conferida antes de publicar', blue.includes('confere cada número do') && blue.includes('O que não passa não sai'));
 checar('B', 'o método publica as quatro categorias do veredito', ['v-chega', 'v-a_caminho', 'v-nao_chega', 'v-sem_efeito'].every((v) => blue.includes(v)));
 checar('B', 'linka o dataset publicado e diz quando a base completa sai', /href="\/dados\/[^"]+\.csv"/.test(blue) && blue.includes('A base completa sai em dezembro'));
 checar('B', 'o inventário conta itens por fonte', /<th>Itens<\/th>/.test(blue));
@@ -540,7 +541,7 @@ titulo('B · Conformidade — Lá fora, hoje');
     const links = [...bloco.matchAll(/<li>\s*<a ([^>]+)>/g)].map((x) => x[1]);
     checar('B', 'Lá fora: entre 1 e 5 manchetes', links.length >= 1 && links.length <= 5, `${links.length}`);
     checar('B', 'Lá fora: todo link sai para a fonte, com nofollow e em nova aba', links.every((a) => /href="https?:\/\//.test(a) && /rel="nofollow noopener"/.test(a) && /target="_blank"/.test(a)));
-    checar('B', 'Lá fora: diz que foi colhido pela máquina e ainda não lido', /ainda não lido/.test(bloco) && /Colhido pela máquina/.test(bloco));
+    checar('B', 'Lá fora: diz que foi colhido pela máquina, sem leitura nossa', /sem leitura nossa/.test(bloco) && /Colhido pela máquina/.test(bloco));
     checar('B', 'Lá fora: o número do relógio leva ao método', !/class="numero"/.test(bloco) || /href="\/blueprints#relogio"/.test(bloco));
   }
 }
@@ -621,7 +622,7 @@ titulo('C · Qualidade — imagem real: a licença governa, o crédito aparece')
 /* A regra do texto vale para a imagem: só entra o que tem licença declarada,
    e quem deu a licença aparece na tela. O compilador exige; aqui se mede o
    que chegou ao HTML. */
-const LICENCAS = ['press', 'cc-by', 'cedida', 'propria'];
+const LICENCAS = ['press', 'cc-by', 'cedida', 'propria', 'fonte'];
 const comImagem = pecas.filter((p) => p.meta.imagem && typeof p.meta.imagem === 'object');
 medidas.imagensReais = comImagem.length;
 for (const p of comImagem) {
@@ -861,13 +862,13 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', 'boletim gerado declara os números que a prosa pode usar', gerados.every((p) => (p.meta.numeros ?? '').trim().length > 0));
   for (const p of gerados) {
     const html = respostas[`/${p.secao}/${p.slug}`]?.corpo ?? '';
-    checar('B', `/${p.secao}/${p.slug} avisa no alto que é gerado, e nega o modelo de linguagem`,
-      /Boletim gerado dos dados/.test(html) && /Não há modelo de linguagem/.test(html));
+    checar('B', `/${p.secao}/${p.slug} avisa no alto que é gerado dos dados`,
+      /Boletim gerado dos dados/.test(html) && /a partir dos números que o\s+coletor mediu/.test(html));
     checar('B', `/${p.secao}/${p.slug} assina a origem, não uma pessoa`,
       /Gerado dos dados do Instituto/.test(html) && !/rel="author"/.test(html));
   }
-  checar('B', 'o rodapé estreitou a promessa em vez de apagá-la (notícia/artigo/relatório por gente, Giro gerado)',
-    /Notícia, artigo e relatório: escritos por gente/.test(capaHtml) && /Giro é boletim de números, gerado da apuração/.test(capaHtml));
+  checar('B', 'o rodapé diz o que vale para notícia (fonte, crédito, link) e para o Giro (gerado da apuração)',
+    /Toda notícia tem fonte, crédito e link/.test(capaHtml) && /Giro é boletim de números, gerado da apuração/.test(capaHtml));
   /* O balanço da semana é do SETOR. Sem esta separação o boletim da s37 dizia
      que o que repercutiu na automação foi "Trump tossed a grenade into space
      relations" — 10% do corpus era automação, e o resto entrava na conta. */
@@ -876,8 +877,10 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
     checar('B', `/${p.secao}/${p.slug} conta o SETOR e põe contexto e comunidade à parte`,
       /não entram nos números acima/.test(html) || !/acompanha o que corre em volta/.test(html));
   }
-  checar('B', 'Blueprints declara o Giro como a exceção, e diz que segue sem modelo de linguagem',
-    /O Giro da Semana é a exceção/.test(blue) && /sem modelo de\s+linguagem no caminho|não havendo modelo de\s+linguagem/.test(blue));
+  checar('B', 'Blueprints diz quem assina as notícias e como o Giro é montado',
+    /Redação do Instituto/.test(blue) && /O Giro da Semana é\s+montado a partir dos números/.test(blue));
+  checar('B', 'o site não promete mais "sem IA" em lugar nenhum (decisão de 14/10/2026)',
+    !/Sem IA\.|Não há inteligência artificial em produção|redigido por máquina|Sem modelo de linguagem/.test(capaHtml + blue));
 
   /* ------------------------------------------------------- 11/09/2026
      O que as decisões desta data prometeram, virado asserção. */

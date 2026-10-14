@@ -4,7 +4,7 @@
  */
 import { CSS, CSS_ARTIGO, CSS_ESCREVER, CSS_HASH, CSS_ROTA } from '../estilo';
 import { favicon } from '../ui/marca';
-import { saudeColeta } from '../db';
+import { pautaDoDia, saudeColeta } from '../db';
 import { todas, SECOES, type Secao } from '../conteudo';
 import { feed, robots, sitemap } from '../feed';
 import { CACHE } from '../config';
@@ -38,6 +38,15 @@ estatico.get('/saude', async (c) => {
     db = `erro: ${(e as Error).message}`;
   }
   return c.json({ ok: db === 'ok', ambiente: c.env.HOMOLOG === '1' ? 'homologacao' : 'producao', db, pecas: todas().length, coleta, css: CSS_HASH, rota_css: CSS_ROTA, ms: Date.now() - t0 });
+});
+
+/* A pauta do dia, aberta: o que a redação automática lê para escolher o que
+   vira notícia (14/10/2026). Nada aqui é privado — é a mesma matéria-prima de
+   "Lá fora" na capa, com a contagem de fontes ao lado. */
+estatico.get('/pauta.json', async (c) => {
+  c.header('Cache-Control', CACHE.listagem);
+  const dias = Math.min(14, Math.max(1, Number(c.req.query('dias') ?? 7) || 7));
+  return c.json({ gerado: new Date().toISOString(), dias, itens: await pautaDoDia(c.env.DB, dias) });
 });
 
 /* --------------------------------------------------------- distribuição */

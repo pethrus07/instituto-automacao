@@ -16,9 +16,7 @@
  *
  * O que NÃO mudou: o git é o CMS. O envio cai numa caixa de entrada
  * (tabela `submissao`); alguém lê, `npm run submissoes` escreve o arquivo, e
- * só então o texto compila e vai ao ar. Não há backoffice, não há publicação
- * automática, e não há modelo de linguagem "melhorando" o texto de ninguém —
- * o sócio perguntou, e a resposta é a mesma de 03/09: quem assina, escreve.
+ * só então o texto compila e vai ao ar. Não há backoffice.
  */
 import { raw } from 'hono/html';
 import { Documento } from '../ui/Documento';
@@ -66,14 +64,14 @@ const O_QUE_O_AUTOR_GANHA = [
   ['Assinatura em todo texto', 'Nome no alto, com link para a sua página — e no RSS, no dado estruturado e no cartão de compartilhamento.'],
   ['Página própria', 'Papel, bio, foto, tudo o que publicou aqui e o link para o seu currículo, LinkedIn ou Lattes.'],
   ['Leitor certo', 'Quem lê o Instituto opera, integra ou ensina automação no Brasil. É para eles que você escreve.'],
-  ['Edição de gente', 'O editor lê, questiona e devolve. Nada aqui passa por máquina — nem para "melhorar".'],
+  ['Edição de verdade', 'O texto é lido, questionado e devolvido quando precisa — antes de ir ao ar.'],
 ] as const;
 
 const O_QUE_SE_PEDE = [
   ['O que você sabe fazer', 'Um artigo ensina: como se faz, como funciona, ou o que você fez e deu certo.'],
   ['Fonte creditada', 'O que vem de outro lugar tem nome e link. A regra vale para texto e para imagem.'],
   ['Imagem sua ou cedida', 'Foto que você tirou, print da sua tela, desenho seu. Imagem de outro site, não.'],
-  ['Nome e sobrenome', 'É currículo. Pseudônimo não entra — e texto de máquina também não.'],
+  ['Nome e sobrenome', 'É currículo. Pseudônimo não entra.'],
 ] as const;
 
 /* ------------------------------------------------------------------ hub */
@@ -220,7 +218,7 @@ escrever.get('/escrever', (c) => {
           <details class="mais-opcoes">
             <summary>
               <strong>O que você ganha e o que se pede</strong>
-              <span>Assinatura, página própria, edição de gente · o que você sabe fazer, fonte creditada, imagem sua</span>
+              <span>Assinatura, página própria, edição · o que você sabe fazer, fonte creditada, imagem sua</span>
             </summary>
             <div class="duas-colunas duas-colunas--justas" style="margin-block-start: var(--space-m)">
               <div>

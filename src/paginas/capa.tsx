@@ -118,7 +118,7 @@ capa.get('/', async (c) => {
 
         {seguintes.length > 0 && (
           <section class="bloco">
-            <Secao titulo="Também nesta semana" acao={{ texto: 'todas as notícias', href: '/noticias' }} />
+            <Secao titulo={seguintes.every((p) => Date.now() - Date.parse(p.data) < 7 * 86_400_000) ? 'Também nesta semana' : 'Mais notícias'} acao={{ texto: 'todas as notícias', href: '/noticias' }} />
             <div class="grade">
               {seguintes.map((p) => (
                 <PecaCard peca={p} />
@@ -202,7 +202,7 @@ const LaForaHoje = (p: { horas: number; itens: { titulo: string; url: string; fo
         </h2>
         <p class="secao__nota">
           O que as fontes do setor publicaram {p.horas === 24 ? 'nas últimas 24 horas' : `nas últimas ${p.horas} horas`}, como saiu
-          lá. Colhido pela máquina e <strong>ainda não lido</strong> por nós — o que virar notícia, a gente escreve.
+          lá. Colhido pela máquina, ainda sem leitura nossa — o que virar notícia aparece aqui em cima.
         </p>
       </div>
       {p.relogio.assuntos > 0 && (

@@ -234,22 +234,18 @@ export const PatrocinioCaixa = (p: { peca: Peca }) =>
 /**
  * O aviso de boletim gerado — no alto, antes do texto.
  *
- * O site promete que notícia, artigo e relatório são escritos por gente. O
- * Giro não é, e quem chega nele tem de saber disso antes de ler, não depois.
- * O aviso diz as duas coisas que importam: de onde vem o texto, e que não há
- * modelo de linguagem no caminho — porque "gerado" hoje faz todo mundo supor
- * o contrário.
+ * O Giro é montado dos números da semana, e quem chega nele tem de saber
+ * disso antes de ler, não depois: de onde vem o texto, e que todo número dele
+ * existe antes na apuração.
  */
 export const GeradoCaixa = (p: { peca: Peca }) =>
   p.peca.gerado ? (
     <aside class="publi-caixa" aria-label="Aviso de boletim gerado">
       <p class="publi-caixa__rotulo">Boletim gerado dos dados</p>
       <p class="publi-caixa__texto">
-        Este Giro não foi redigido por uma pessoa: é montado <strong>a partir dos números que o
-        coletor mediu</strong>, pela mesma função toda semana — os mesmos dados produzem sempre o
-        mesmo texto. <strong>Não há modelo de linguagem envolvido</strong>, e nenhum número aqui
-        existe sem estar antes na apuração. Notícia, artigo e relatório continuam escritos por
-        gente, com nome. O método está em <a href="/blueprints">Blueprints</a>.
+        Este Giro é montado <strong>a partir dos números que o coletor mediu</strong>, pela mesma
+        função toda semana — os mesmos dados produzem sempre o mesmo texto, e nenhum número aqui
+        existe sem estar antes na apuração. O método está em <a href="/blueprints">Blueprints</a>.
       </p>
     </aside>
   ) : null;

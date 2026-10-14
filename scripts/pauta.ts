@@ -22,8 +22,8 @@
  *
  * ⚠️ CONTAR, NÃO JULGAR (a regra de 24/09). A ordem da lista é fórmula
  * publicada, não opinião: quantas fontes falaram do assunto, se já chegou ao
- * Brasil, quão recente é. A máquina ordena; quem escolhe é gente. Sem modelo
- * de linguagem em lugar nenhum.
+ * Brasil, quão recente é. Desde 14/10/2026 quem escolhe dentro dela é a
+ * redação automática (docs/REDACAO.md); a issue virou aviso, não pergunta.
  *
  * O `.github/workflows/pauta-semanal.yml` roda isto todo sábado de manhã e
  * abre a issue — o GitHub avisa por e-mail. Responder é marcar as caixas.
@@ -146,7 +146,7 @@ const l: string[] = [];
 l.push(`## ${titulo}`, '');
 l.push(
   candidatos.length
-    ? `A máquina separou ${candidatos.length} assuntos do setor que ainda não viraram notícia aqui. **Marque os que valem uma notícia** e, num comentário, escreva \`principal: N\` para o que abre a capa. Só isso: o texto, o veredito proposto e a imagem de imprensa chegam prontos para você ler antes de ir ao ar.`
+    ? `A máquina separou ${candidatos.length} assuntos do setor que ainda não viraram notícia aqui. **A redação automática segue esta ordem** ao longo da semana (até 4 notícias por dia, ver \`docs/REDACAO.md\`) e descarta o que não for notícia. Não precisa responder. Para vetar um assunto, comente \`vetar: N\` — ou rode \`npm run redacao -- descartar <url>\`.`
     : 'Nenhum assunto novo do setor nos últimos dias — ou a coleta parou (confira o /saude).',
   '',
 );

@@ -378,3 +378,60 @@ export async function naoChegaram(db: D1Database): Promise<{ assuntos: number; s
     .first<{ assuntos: number; semMencao: number | null }>();
   return { assuntos: r?.assuntos ?? 0, semMencao: r?.semMencao ?? 0 };
 }
+
+/**
+ * A pauta do dia, pública em /pauta.json (14/10/2026).
+ *
+ * É a mesma lista da pauta de sábado (`scripts/pauta.ts`), servida pelo
+ * próprio site para que a rotina que escreve as notícias não precise de
+ * credencial nenhuma da Cloudflare: o que ela lê aqui é o que a capa já mostra
+ * em "Lá fora". Um item por assunto — o mais antigo, que é quem publicou
+ * primeiro — e, em `urls`, todos os endereços daquele assunto, para quem
+ * consome descartar o que já virou notícia por qualquer uma das fontes.
+ */
+export type CandidatoPauta = {
+  assunto_id: string | null;
+  titulo: string;
+  url: string;
+  fonte: string;
+  pais: string;
+  idioma: string;
+  publicado: string;
+  fontes: number;
+  br: number;
+  atraso: number | null;
+  urls: string;
+};
+
+export async function pautaDoDia(db: D1Database, dias = 7): Promise<CandidatoPauta[]> {
+  const { results } = await db
+    .prepare(
+      `WITH janela AS (
+         SELECT i.*, f.nome AS fonte, f.pais AS pais
+           FROM item i JOIN fonte f ON f.id = i.fonte_id
+          WHERE f.ativo = 1 AND f.tipo NOT IN ('forum','social') AND f.papel = 'setor'
+            AND datetime(i.publicado_fonte) >= datetime('now', ?1)
+       ),
+       por_assunto AS (
+         SELECT i.assunto_id,
+                COUNT(DISTINCT i.fonte_id) AS fontes,
+                SUM(CASE WHEN f.pais = 'BR' THEN 1 ELSE 0 END) AS br,
+                GROUP_CONCAT(i.url, ' ') AS urls
+           FROM item i JOIN fonte f ON f.id = i.fonte_id
+          WHERE i.assunto_id IN (SELECT assunto_id FROM janela)
+          GROUP BY i.assunto_id
+       )
+       SELECT j.assunto_id, j.titulo, j.url, j.fonte, j.pais, j.idioma, j.publicado_fonte AS publicado,
+              COALESCE(p.fontes, 1) AS fontes, COALESCE(p.br, 0) AS br, a.atraso_br_dias AS atraso,
+              COALESCE(p.urls, j.url) AS urls
+         FROM janela j
+         LEFT JOIN por_assunto p ON p.assunto_id = j.assunto_id
+         LEFT JOIN assunto a ON a.id = j.assunto_id
+        WHERE j.publicado_fonte = (SELECT MIN(x.publicado_fonte) FROM janela x WHERE x.assunto_id = j.assunto_id)
+        ORDER BY j.publicado_fonte DESC
+        LIMIT 200`,
+    )
+    .bind(`-${dias} days`)
+    .all<CandidatoPauta>();
+  return results ?? [];
+}

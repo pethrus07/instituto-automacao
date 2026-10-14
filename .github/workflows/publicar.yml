@@ -1,0 +1,78 @@
+# PUBLICAR: todo push no main que mexe no site vai ao ar sozinho, depois do QA.
+#
+# 14/10/2026: a redação automática (docs/REDACAO.md) commita notícia no main
+# todo dia. Este fluxo é a última trava antes do ar: compila (o compilador
+# aborta em frontmatter errado, autor sem arquivo, manchete sem foto), roda os
+# testes, sobe o site com banco de teste e roda o QA inteiro. Só então publica.
+#
+# ⚠️ Se qualquer passo falhar, NADA é publicado — e o GitHub avisa por e-mail.
+# O commit fica no main; a próxima execução da redação parte dele, então a
+# correção é commitar o conserto (ou reverter), nunca publicar à mão por cima.
+#
+# Os commits do Giro (feitos com o GITHUB_TOKEN) não disparam este fluxo — é
+# regra do GitHub — e o Giro já publica sozinho.
+
+name: Publicar
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'conteudo/**'
+      - 'publico/**'
+      - 'src/**'
+      - 'design/**'
+      - 'scripts/compilar.ts'
+      - 'wrangler.toml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+# Um deploy de cada vez, e o Giro na mesma fila.
+concurrency:
+  group: producao
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Compilar
+        run: npm run compilar
+
+      - name: Testes de unidade
+        run: npm test
+
+      - name: Banco de teste
+        run: npm run db:zero
+
+      - name: Subir o site e rodar o QA inteiro
+        run: |
+          npx wrangler dev --port 8788 > /tmp/dev.log 2>&1 &
+          for i in $(seq 1 60); do
+            if [ "$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://127.0.0.1:8788/saude)" = "200" ]; then break; fi
+            sleep 1
+          done
+          npm run qa -- 8788
+
+      - name: Registro do servidor local (só em falha)
+        if: failure()
+        run: tail -n 120 /tmp/dev.log || true
+
+      - name: Publicar
+        run: npm run deploy

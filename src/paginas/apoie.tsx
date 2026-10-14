@@ -20,7 +20,7 @@ export const apoie = novaApp();
 const REGRAS = [
   ['Aparece na capa, em toda visita', 'Nome, logo e uma frase, no alto da capa, carregando com a página — não é anúncio que gira nem banner que some.'],
   ['Identificado como parceiro, sempre', 'O rótulo "Parceiro do Instituto" fica escrito. Leitor sabe o que está vendo.'],
-  ['Não escreve notícia', 'O que o Instituto publica é lido na fonte e escrito por autor com nome. Parceiro não escreve, não revisa, não sugere.'],
+  ['Não escreve notícia', 'O que o Instituto publica é lido na fonte e publicado com crédito e link. Parceiro não escreve, não revisa, não sugere.'],
   ['Não escolhe pauta nem veredito', 'O que entra, o que fica de fora e o "chega aqui / não chega" são decisão editorial, e o critério é público em Blueprints.'],
 ] as const;
 

@@ -4,7 +4,7 @@
 # borda já colheu o fim de semana inteiro, e o boletim sai antes do expediente.
 #
 # O que este fluxo faz, em ordem, e PARA no primeiro erro:
-#   1. gera o boletim dos números medidos (scripts/giro.ts, sem IA)
+#   1. gera o boletim dos números medidos (scripts/giro.ts)
 #   2. compila — e o compilador ABORTA se a prosa tiver número que a apuração
 #      não tem, se o frontmatter estiver errado, se houver dois destaques...
 #   3. roda os testes de unidade e sobe o site para conferir com o QA inteiro
@@ -36,7 +36,7 @@ on:
 
 # Um de cada vez: duas execuções commitando no mesmo branch se atropelam.
 concurrency:
-  group: giro-semanal
+  group: producao
   cancel-in-progress: false
 
 jobs:

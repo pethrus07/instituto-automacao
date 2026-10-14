@@ -182,12 +182,12 @@ export function paginaDaPeca(p: Peca, env: Env) {
             <Aviso>
               <strong>Como este texto foi feito.</strong>{' '}
               {p.gerado
-                ? 'Montado a partir dos números apurados pelo coletor, por uma função que dá sempre o mesmo texto para os mesmos dados. Sem modelo de linguagem, e sem número que não esteja na apuração.'
+                ? 'Montado a partir dos números apurados pelo coletor, sem número que não esteja na apuração.'
                 : p.secao === 'artigos'
-                  ? `Escrito e assinado por ${p.autor}, que responde pelo que ensina aqui. Lido pelo editor antes de publicar; nada foi redigido por máquina.`
+                  ? `Escrito e assinado por ${p.autor}, que responde pelo que ensina aqui. Revisado antes de publicar.`
                   : p.fonte
-                    ? `Lida na fonte, escolhida e escrita por ${p.autor}, com crédito e link. Nada aqui foi traduzido ou redigido por máquina.`
-                    : `Escrita por ${p.autor} a partir de dado próprio do Instituto. Nada aqui foi redigido por máquina.`}
+                    ? `Lida na fonte e escrita em português por ${p.autor}, com crédito e link. Os números do texto são conferidos contra a fonte antes de publicar.`
+                    : `Escrita por ${p.autor} a partir de dado próprio do Instituto.`}
             </Aviso>
           </footer>
         </div>

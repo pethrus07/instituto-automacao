@@ -29,11 +29,11 @@ export type Veredito = 'chega' | 'a_caminho' | 'nao_chega' | 'sem_efeito';
  *   cc-by    licença Creative Commons com atribuição
  *   cedida   o autor ou dono cedeu por escrito
  *   propria  fotografia ou desenho nosso
- *
- * Não existe "peguei da matéria". Imagem de veículo é obra dele, e a regra do
- * projeto é a mesma para texto e para imagem: a licença governa, não o formato.
+ *   fonte    a imagem que acompanha a matéria original (a og:image dela),
+ *            reproduzida com crédito ao veículo e link para a matéria — é a
+ *            thumb da notícia automática (14/10/2026). Se o dono pedir, sai.
  */
-export type LicencaImagem = 'press' | 'cc-by' | 'cedida' | 'propria';
+export type LicencaImagem = 'press' | 'cc-by' | 'cedida' | 'propria' | 'fonte';
 
 export type Imagem = {
   /** nome do arquivo em publico/imagens/ */
@@ -183,7 +183,7 @@ export type Autor = {
 export const SECOES: readonly Secao[] = ['noticias', 'artigos', 'relatorios', 'giro'];
 export const TEMAS: readonly Tema[] = ['industria', 'processos'];
 export const VEREDITOS: readonly Veredito[] = ['chega', 'a_caminho', 'nao_chega', 'sem_efeito'];
-export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria'];
+export const LICENCAS_IMAGEM: readonly LicencaImagem[] = ['press', 'cc-by', 'cedida', 'propria', 'fonte'];
 export const NIVEIS: readonly Nivel[] = ['iniciante', 'intermediario', 'avancado'];
 
 /**
@@ -219,4 +219,5 @@ export const ROTULO_LICENCA: Record<LicencaImagem, string> = {
   'cc-by': 'CC BY',
   cedida: 'imagem cedida',
   propria: 'Instituto Automação',
+  fonte: 'reprodução',
 };
