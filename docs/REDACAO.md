@@ -107,7 +107,7 @@ aqui). Leia `/blueprints#veredito` e as notícias de `conteudo/noticias/` de
 | Número | todo inteiro do texto tem de estar na matéria original. Não converta unidade nem moeda por conta própria |
 | Cópia | 10 palavras seguidas iguais às da fonte reprovam (citação vai em *itálico* ou entre aspas) |
 | Inglês | palavra em inglês fora de citação é tradução pela metade |
-| Thumb | arquivo existe, ≤ 600 KB, ≥ 800 px, crédito, licença e alt descritivo |
+| Thumb | arquivo existe, ≤ 600 KB, ≥ 700 px, crédito, licença e alt descritivo |
 | Tamanho | título 30–120, título curto ≤ 53, lead 80–320, corpo 250–1.000 palavras |
 | Nossa parte | `## O que isso muda aqui` com ≥ 400 caracteres e veredito |
 | Validade | fonte de até 10 dias |

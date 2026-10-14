@@ -137,7 +137,7 @@ async function lerFonte(url: string, slug: string) {
 
   /* A thumb: a og:image da matéria, que é a imagem que o próprio veículo
      escolheu para representar a notícia. Vai para jpg, no máximo 1600 px de
-     largura, e precisa de 800 px no mínimo — imagem pequena esticada na
+     largura, e precisa de 700 px no mínimo (a The Robot Report publica 770) — imagem pequena esticada na
      manchete da capa é pior que nenhuma. */
   const og = meta(html, 'og:image:secure_url') ?? meta(html, 'og:image') ?? meta(html, 'twitter:image');
   let imagem: { arquivo: string; largura: number; altura: number; kb: number } | null = null;
@@ -149,7 +149,7 @@ async function lerFonte(url: string, slug: string) {
     else {
       const bruto = Buffer.from(await ri.arrayBuffer());
       const m = await sharp(bruto).metadata();
-      if (!m.width || m.width < 800) semImagem = `a og:image tem ${m.width ?? '?'} px de largura — o mínimo é 800`;
+      if (!m.width || m.width < 700) semImagem = `a og:image tem ${m.width ?? "?"} px de largura — o mínimo é 700`;
       else {
         const hoje = dataDeHoje();
         const arquivo = `${hoje}-${slug}.jpg`;
@@ -200,7 +200,9 @@ function noticiasNovas(): string[] {
   const saida = execFileSync('git', ['status', '--porcelain', '--', 'conteudo/noticias'], { cwd: RAIZ, encoding: 'utf8' });
   return saida
     .split('\n')
-    .filter((l) => /^(\?\?|A |AM| M|M )/.test(l))
+    /* Só arquivo NOVO. Notícia antiga modificada (a que perdeu a manchete no
+       `destaque`) não é da redação de hoje e não tem leitura para conferir. */
+    .filter((l) => /^(\?\?|A |AM)/.test(l))
     .map((l) => join(RAIZ, l.slice(3).trim()))
     .filter((f) => f.endsWith('.md'));
 }
@@ -229,7 +231,7 @@ export function revisar(caminho: string, textoDaFonte: string | null): Achado {
   if (palavras < 250 || palavras > 1000) erros.push(`corpo com ${palavras} palavras (250 a 1.000)`);
 
   /* --- a parte que é nossa */
-  const muda = /^## O que isso muda aqui\s*\n([\s\S]*?)(?=\n## |\s*$)/m.exec(n.corpo)?.[1] ?? '';
+  const muda = /^## O que isso muda aqui\s*\n([\s\S]*?)(?=\n## |(?![\s\S]))/m.exec(n.corpo)?.[1] ?? '';
   if (!muda) erros.push('falta a seção "## O que isso muda aqui" — é a razão de o site existir');
   else if (muda.trim().length < 400) erros.push(`"O que isso muda aqui" com ${muda.trim().length} caracteres — no mínimo 400, com um argumento de verdade`);
   if (!n.campo('veredito')) erros.push('falta o veredito');
@@ -249,7 +251,8 @@ export function revisar(caminho: string, textoDaFonte: string | null): Achado {
 
   /* --- sobra de rascunho e de máquina */
   const tudo = `${titulo}\n${lead}\n${n.corpo}`;
-  if (/\b(TODO|PREENCHER|XXX|lorem ipsum)\b|\[(inserir|fonte|link)\]/i.test(tudo)) erros.push('sobrou marcador de rascunho');
+  /* TODO e XXX em maiúscula só: "todo" é palavra do português. */
+  if (/\b(TODO|PREENCHER|XXX)\b/.test(tudo) || /lorem ipsum|\[(inserir|fonte|link)\]/i.test(tudo)) erros.push('sobrou marcador de rascunho');
   if (/como (um )?modelo de linguagem|como uma IA|não tenho acesso|minha data de corte|\bclaro!|espero que (isso|isto) ajude/i.test(tudo)) erros.push('sobrou fala de assistente no texto');
   const semCitacao = n.corpo.replace(/\*[^*\n]+\*/g, ' ').replace(/"[^"\n]+"|“[^”\n]+”/g, ' ');
   const en = (semCitacao.match(PALAVRAS_EN) ?? []).length;
@@ -305,7 +308,7 @@ function porNaManchete(caminho: string) {
 
 /* ===================================================== o comando ========== */
 
-const executar = /redacao\.ts$/.test(process.argv[1] ?? '');
+const executar = /(^|[\\/])redacao\.ts$/.test(process.argv[1] ?? '');
 
 if (executar) {
   try {
