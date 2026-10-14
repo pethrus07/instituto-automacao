@@ -791,3 +791,40 @@ A ordem é **fórmula publicada**, não opinião: 3 pontos por fonte que falou d
 fora falou e o Brasil não, +1 se é imprensa brasileira, desempate pelo mais recente. Só setor,
 só imprensa, sem assunto já publicado (pelo assunto, não pela URL — senão a versão brasileira de
 uma notícia já dada voltava). Precisa dos mesmos segredos do Giro.
+
+## 20 · A redação automática (14/10/2026)
+
+O Instituto publica notícia sozinho. O manual operacional é `docs/REDACAO.md`; a decisão está no
+ROADMAP §2l. Aqui fica o encaixe na arquitetura.
+
+```
+coletor (cron 15 min) ──▶ D1 ──▶ /pauta.json (público, s-maxage 300)
+                                     │
+rotina do Claude Code (nuvem) ◀──────┘
+   npm run redacao -- candidatas · fonte · [escreve o .md] · conferir · destaque
+   npm run compilar · npm test · git push
+                                     │
+.github/workflows/publicar.yml ◀─────┘  compila · testa · db:zero · QA · wrangler deploy
+```
+
+- **O Worker continua sem modelo.** Nada de chave de API no Worker nem no GitHub: quem escreve
+  é uma sessão de Claude Code fora da produção, e o que ela entrega é arquivo no git, sujeito às
+  mesmas travas de qualquer texto.
+- **`/pauta.json`** (`src/db.ts › pautaDoDia`) devolve um item por assunto do setor nos últimos
+  `dias` (1–14), com `urls` de todo o assunto: quem consome descarta o que já virou notícia por
+  qualquer fonte. A fórmula de ordem fica no consumidor (`scripts/redacao.ts`, igual à de
+  `scripts/pauta.ts`).
+- **`conteudo/descartadas.txt`** é o livro do que a redação recusou — a URL não volta à pauta.
+- **A thumb** sai da og:image da matéria, convertida com `sharp` (devDependency) para jpg de até
+  1600 px e ≤ 580 KB. Licença `fonte` = reprodução com crédito.
+- **A manchete** é `destaque: true`; `npm run redacao -- destaque` tira das outras e põe numa.
+- **Giro e Publicar dividem a fila** `concurrency: producao` — dois deploys nunca se atropelam.
+
+### Armadilhas
+- **`conferir` só olha arquivo NOVO** (`??`/`A` no git status). Notícia antiga modificada pelo
+  `destaque` não tem leitura da fonte e reprovaria.
+- **Na regex do "muda aqui", fim de texto é `(?![\s\S])`**, não `$` — com a flag `m`, `$` para
+  no fim do primeiro parágrafo.
+- **Marcador de rascunho em maiúscula só**: `TODO` com `/i` casa com "todo".
+- **Captura de tela da capa pode mostrar a manchete como bloco escuro**: é a imagem
+  `decoding="async"` ainda não pintada; espere `img.complete` antes de concluir que quebrou.

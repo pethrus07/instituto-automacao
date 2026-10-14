@@ -531,6 +531,39 @@ segunda, a pauta pergunta todo sábado e o banco é copiado todo domingo, sem ni
 > as consultas diretas do QA) — o QA agora espera o reinício e repete o pedido que caiu por
 > conexão. O registro do servidor local aparece no fluxo quando algo falha.
 
+## 2l · 14/10 — a notícia sai sozinha (e o "sem IA" sai do site)
+
+**Decisão do Pedro, 14/10:** *"as notícias devem ir sozinhas para lá, passando pelo seu crivo de
+qualidade, inclusive a thumb e a notícia principal. É essencial que o Instituto ande sozinho.
+Pode desconsiderar o papo de sem IA, tire isso do site e das regras."* Reverte a decisão de 03/09
+(zero IA em produção) **para a notícia**. O Worker continua sem modelo nenhum: quem escreve é uma
+rotina agendada do Claude Code, na nuvem, pela assinatura do Pedro, e o que ela produz entra
+pelo mesmo caminho de sempre — arquivo no git, compilador, testes, QA, deploy.
+
+| Peça | O que é |
+|---|---|
+| `/pauta.json` | a pauta do dia, pública — a mesma fórmula da pauta de sábado; a rotina não precisa de credencial |
+| `npm run redacao` | `candidatas` · `fonte` (lê a matéria, confere robots, baixa a og:image em jpg ≥ 700 px) · `conferir` · `destaque` · `descartar` |
+| a revisão (`conferir`) | número fora da fonte, 10 palavras copiadas, inglês fora de citação, tamanho, thumb, "O que isso muda aqui" ≥ 400 caracteres, fala de assistente — reprova. Teste próprio: `scripts/testar-redacao.ts` |
+| `.github/workflows/publicar.yml` | todo push no main que mexe no site: compila, testa, QA inteiro, deploy |
+| autora | **Redação do Instituto** — nome de pessoa só em texto que a pessoa leu (decisão do Pedro) |
+| thumb | licença nova `fonte` (reprodução da og:image da matéria, crédito ao dono) |
+| manual | `docs/REDACAO.md` — é o que a rotina lê |
+
+**O que saiu do site:** a linha "Sem IA" do alto, o rodapé "escritos por gente", o "Não há
+inteligência artificial em produção" de Blueprints (o "Como funciona" virou Colher · Escolher ·
+Escrever e conferir · Publicar), o "nada foi redigido por máquina" do pé de cada texto, o "não é
+modelo de linguagem" dos cinco Giros e do aviso do Giro, e das regras de Escrever e Apoie.
+
+**Primeira edição (14/10):** Promise Robotics × D.R. Horton (manchete) e Siemens × Skeleton.
+Descartada a da Timken (publieditorial). Na primeira passada a revisão tinha três furos — media
+só o 1º parágrafo do "muda aqui", confundia "todo" com `TODO`, e conferia notícia antiga
+modificada — os três viraram caso de teste.
+
+**Falta para rodar sem ninguém:** conectar o GitHub à conta do Claude
+(https://claude.ai/connect-github) para a rotina na nuvem clonar e dar push. Até lá, a edição é
+feita numa sessão local pelo mesmo manual.
+
 ---
 
 ## 3 · O juridiquês, por escrito
@@ -698,7 +731,7 @@ em dezembro; dataset com DOI junto dele.
 | Voz é um eixo da fonte, não um tipo | 01/09 |
 | Giro semanal com destaque por fórmula publicada; **a auditoria de números aborta** | 01/09 |
 | Repositório privado agora, público depois | 30/08 |
-| **Zero IA em produção; toda peça tem autor; o git é o CMS** | 03/09 |
+| ~~Zero IA em produção~~ (revertido para a notícia em 14/10, §2l); toda peça tem autor; o git é o CMS | 03/09 · 14/10 |
 | **Escuro não segue o sistema**; só no botão | 05/09 |
 | Evento só com data conferida no site oficial | 04/09 |
 | **Peça paga sai rotulada em toda superfície; notícia e Giro não se vendem** | 11/09 |
@@ -720,7 +753,8 @@ em dezembro; dataset com DOI junto dele.
 | **Editor sim, backoffice não: o envio cai numa caixa de entrada e publicar continua sendo commit** | 24/09 · 27/09 |
 | **O plano editorial é trilha → série (3, 5, 10) → pauta com esqueleto; e há o avulso** | 24/09 · 27/09 |
 | **A máquina pergunta, a pessoa escolhe: a pauta semanal ordena por fórmula publicada** | 27/09 |
-| **Sem IA no editor — nem para "melhorar" o texto de quem assina** | 24/09 |
+| **Sem IA no editor — nem para "melhorar" o texto de quem assina** (o editor de /escrever segue assim) | 24/09 |
+| **A notícia sai sozinha, escrita pela rotina do Claude e assinada pela Redação do Instituto; o que não passa na revisão não sai** | 14/10 |
 
 ## 8 · Backlog sem data
 
@@ -744,5 +778,5 @@ em dezembro; dataset com DOI junto dele.
 > dia entrar modelo de linguagem no caminho, é outra decisão — e muda o que o site promete em
 > seis lugares.
 
-IA em produção · quatro núcleos · teto de custo e chave de API (o antigo A1) · tradução
+IA no Worker (a notícia automática é escrita fora dele, §2l) · quatro núcleos · teto de custo e chave de API (o antigo A1) · tradução
 integral de terceiro · backoffice fora do git · o "Tema" no rodapé · a coluna lateral da peça.
