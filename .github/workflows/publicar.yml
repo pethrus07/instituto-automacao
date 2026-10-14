@@ -19,6 +19,7 @@ on:
     branches: [main]
     paths:
       - 'conteudo/**'
+      - '!conteudo/descartadas.txt' # descarte da redação não muda o site
       - 'publico/**'
       - 'src/**'
       - 'design/**'
