@@ -35,7 +35,7 @@ import { Secao, Vazio, EventoNaAgenda, PecaDestaque, PecaCard, PecaLinha, Lista,
 import { ldJson, organizacaoLd, siteLd } from '../ui/jsonld';
 import { CACHE } from '../config';
 import { laFora, listarAgenda, naoChegaram } from '../db';
-import { destaque, recentes, ultimoGiro, porSecao, artigoDaCapa, autores, pecasDoAutor } from '../conteudo';
+import { destaque, recentes, ultimoGiro, porSecao, artigoDaCapa, autores, pecasDoAutor, todas } from '../conteudo';
 import { parceiroDaCapa } from '../parceiros';
 import { novaApp, pagina } from './app';
 
@@ -53,7 +53,11 @@ capa.get('/', async (c) => {
   const quemEscreve = autores().filter((a) => pecasDoAutor(a).length > 0);
   const eventos = await listarAgenda(c.env.DB, {}, 3);
   // o que muda sozinho, todo dia: o que o coletor trouxe e o relógio da semana
-  const [fora, relogio] = await Promise.all([laFora(c.env.DB, 5), naoChegaram(c.env.DB)]);
+  const [foraBruto, relogio] = await Promise.all([laFora(c.env.DB, 10), naoChegaram(c.env.DB)]);
+  /* O que já virou notícia aqui não é mais "sem leitura nossa" (14/10/2026:
+     a redação automática publica do mesmo feed que esta faixa lista). */
+  const lidas = new Set(todas().map((p) => p.fonte?.url.replace(/\/$/, '')).filter(Boolean));
+  const fora = { ...foraBruto, itens: foraBruto.itens.filter((i) => !lidas.has(i.url.replace(/\/$/, ''))).slice(0, 5) };
   const base = c.env.SITE_URL;
 
   c.header('Cache-Control', CACHE.listagem);
