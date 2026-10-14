@@ -1,2 +1,10 @@
 # Pautas descartadas pela redação: a URL não volta para a pauta.
 https://www.therobotreport.com/timken-precision-drives-puts-motion-challenge-first-humanoid-robots/ 2026-10-14 publieditorial da Timken, sem fato novo
+https://www.therobotreport.com/nysofa-expands-partnership-intuition-robotics-bring-elliq-more-seniors/ 2026-10-14 robô de companhia para idosos, fora do escopo industrial
+https://www.therobotreport.com/hello-robot-ak-robotics-discuss-how-robots-navigate-crowded-indoor-spaces-robobusiness/ 2026-10-14 chamada de painel em feira, release vazio
+https://spectrum.ieee.org/mars-rover-distance-record 2026-10-14 entrevista sobre robô de exploração espacial, fora do escopo
+https://spectrum.ieee.org/ai-ethics-deepmind-philosopher-shevlin 2026-10-14 perfil sobre ética de IA, sem aplicação industrial
+https://blog.n8n.io/spotlight-you-com/ 2026-10-14 tutorial de blog de ferramenta, sem notícia
+https://www.home-assistant.io/blog/2026/10/13/ledvance-joins-works-with-home-assistant/ 2026-10-14 automação residencial, parceria sem número
+https://spectrum.ieee.org/anthropic-engineer-ai-agent 2026-10-14 perfil de engenheiro, fora do escopo industrial
+https://blog.n8n.io/devops-automation-tools/ 2026-10-14 lista de ferramentas de DevOps
