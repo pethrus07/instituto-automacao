@@ -121,3 +121,20 @@ foto), os testes e o QA inteiro no GitHub.
 Notícia errada no ar se corrige **no próprio arquivo** e se commita com
 `correcao: <o que mudou>`. O git guarda a versão anterior. Pedido de dono de
 imagem para tirar: troque a imagem ou tire o bloco `imagem:` e commite.
+
+## A rotina agendada
+
+Rotina do Claude Code na nuvem (claude.ai/code/routines), ambiente `Default`, modelo
+`claude-sonnet-5-5`, repositório `pethrus07/instituto-automacao`, ferramentas Bash, Read, Write,
+Edit, Glob, Grep e WebFetch. Roda **duas vezes por dia, 07:30 e 15:30 em São Paulo**
+(`30 10,18 * * *` em UTC), até 2 notícias por execução.
+
+O pedido que ela recebe é curto de propósito — o que vale é este manual: ler este arquivo inteiro
+e as notícias de 24/09 e 14/10 para o tom; seguir os passos 1 a 9; nunca afrouxar trava nem mexer
+em `scripts/`, `src/`, `qa/` ou `.github/`; nunca assinar com nome de pessoa; nunca pôr trailer
+`Co-Authored-By`; sem pauta boa, não publicar; terminar com o resumo do que publicou e do que
+descartou.
+
+**Pré-requisito:** o GitHub conectado à conta do Claude do Pedro
+(https://claude.ai/connect-github). Sem isso a rotina nem é salva (`github_token_missing`,
+conferido em 14/10).
