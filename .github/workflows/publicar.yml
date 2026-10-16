@@ -24,6 +24,7 @@ on:
       - 'src/**'
       - 'design/**'
       - 'scripts/compilar.ts'
+      - 'qa/**'
       - 'wrangler.toml'
       - 'package.json'
       - 'package-lock.json'

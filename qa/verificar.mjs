@@ -634,7 +634,10 @@ for (const p of comImagem) {
   const r = await pegar(`/imagens/${im.arquivo}`);
   checar('A', `imagem servida como asset estático · ${im.arquivo}`, r.status === 200 && /^image\//.test(r.cab['content-type'] ?? ''), `${r.status} ${r.cab['content-type'] ?? ''}`);
   const pagina = await pegar(`/${p.secao}/${p.slug}`);
-  checar('C', `crédito visível e licença no HTML da peça · ${p.slug}`, pagina.corpo.includes(`Imagem: ${im.credito}`) && pagina.corpo.includes(`data-licenca="${im.licenca}"`));
+  /* O crédito chega ESCAPADO no HTML: "Robotics & Automation News" vira
+     "Robotics &amp; Automation News" (16/10/2026, a primeira fonte com "&"). */
+  const creditoHtml = String(im.credito).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  checar('C', `crédito visível e licença no HTML da peça · ${p.slug}`, pagina.corpo.includes(`Imagem: ${creditoHtml}`) && pagina.corpo.includes(`data-licenca="${im.licenca}"`));
   const src = `/imagens/${im.arquivo}`.replace(/[.]/g, '\\.');
   checar('C', `<img> da peça tem alt · ${p.slug}`, new RegExp(`<img[^>]+src="${src}"[^>]*\\balt="[^"]+"`).test(pagina.corpo));
 }
