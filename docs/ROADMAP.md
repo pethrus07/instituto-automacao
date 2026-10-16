@@ -572,6 +572,15 @@ Digest, ABB, Mundo Logística.
 (https://claude.ai/connect-github) para a rotina na nuvem clonar e dar push. Até lá, a edição é
 feita numa sessão local pelo mesmo manual.
 
+## 2m · 16/10 — aparecer no Google
+
+Em 16/10 o site ainda não aparecia na busca, e "Instituto Automação" disputa o nome com o
+"Instituto da Automação" (cursos da AURESIDE) e o antigo Instituto de Automação do CTI. Feito:
+título da capa com o assunto, descrição com o que se pesquisa, `alternateName` no WebSite,
+`/sitemap-noticias.xml` (Google News, últimos 2 dias), IndexNow (Bing e quem lê dele) avisado
+depois de cada deploy. **Falta o Search Console** — o Pedro cria a propriedade com a conta Google
+dele e manda o código da tag HTML; ela entra em `GOOGLE_VERIFICACAO` (`src/ui/seo.ts`).
+
 ---
 
 ## 3 · O juridiquês, por escrito
