@@ -100,6 +100,27 @@ ${urls.map((u) => `  <url><loc>${x(u.loc)}</loc>${u.mod ? `<lastmod>${x(u.mod.sl
 </urlset>`;
 }
 
+/**
+ * O sitemap do Google News (16/10/2026): só as notícias dos últimos 2 dias,
+ * que é a janela que o Google News lê. Com a redação publicando todo dia, é o
+ * caminho mais curto para a notícia entrar na busca de notícias. Vazio é
+ * válido — dia sem notícia não é erro.
+ */
+export function sitemapNoticias(env: Env): string {
+  const base = env.SITE_URL;
+  const limite = Date.now() - 2 * 86_400_000;
+  const recentes = porSecao('noticias').filter((p) => Date.parse(p.data) >= limite - 86_400_000);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+${recentes
+  .map(
+    (p) =>
+      `  <url><loc>${x(base + caminho(p))}</loc><news:news><news:publication><news:name>Instituto Automação</news:name><news:language>pt</news:language></news:publication><news:publication_date>${x(p.data.slice(0, 10))}</news:publication_date><news:title>${x(p.titulo)}</news:title></news:news></url>`,
+  )
+  .join('\n')}
+</urlset>`;
+}
+
 export function robots(env: Env): string {
   // Homologação não entra em índice nenhum: o endereço não é o definitivo.
   if (env.HOMOLOG === '1') return `User-agent: *\nDisallow: /\n`;
@@ -113,5 +134,6 @@ Disallow: /autores/escrever
 Disallow: /apoie/enviar
 
 Sitemap: ${env.SITE_URL}/sitemap.xml
+Sitemap: ${env.SITE_URL}/sitemap-noticias.xml
 `;
 }

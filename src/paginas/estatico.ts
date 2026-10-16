@@ -6,7 +6,8 @@ import { CSS, CSS_ARTIGO, CSS_ESCREVER, CSS_HASH, CSS_ROTA } from '../estilo';
 import { favicon } from '../ui/marca';
 import { pautaDoDia, saudeColeta } from '../db';
 import { todas, SECOES, type Secao } from '../conteudo';
-import { feed, robots, sitemap } from '../feed';
+import { feed, robots, sitemap, sitemapNoticias } from '../feed';
+import { INDEXNOW_CHAVE } from '../ui/seo';
 import { CACHE } from '../config';
 import { novaApp } from './app';
 
@@ -75,6 +76,18 @@ estatico.get('/sitemap.xml', async (c) => {
   c.header('Content-Type', 'application/xml; charset=utf-8');
   c.header('Cache-Control', CACHE.listagem);
   return c.body(await sitemap(c.env));
+});
+
+estatico.get('/sitemap-noticias.xml', (c) => {
+  c.header('Content-Type', 'application/xml; charset=utf-8');
+  c.header('Cache-Control', CACHE.listagem);
+  return c.body(sitemapNoticias(c.env));
+});
+
+// IndexNow: o buscador confere que o aviso é nosso lendo a chave aqui
+estatico.get(`/${INDEXNOW_CHAVE}.txt`, (c) => {
+  c.header('Content-Type', 'text/plain; charset=utf-8');
+  return c.body(INDEXNOW_CHAVE);
 });
 
 estatico.get('/robots.txt', (c) => {

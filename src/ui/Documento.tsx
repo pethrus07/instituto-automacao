@@ -19,7 +19,7 @@ import { CSS_ROTA } from '../estilo';
 import { simbolo } from './marca';
 import { TEMA_SCRIPT } from './tema';
 import { dataHoje } from './pecas';
-import { NOME_SITE, absoluta, descricaoCurta, origemDe, tituloDaAba } from './seo';
+import { GOOGLE_VERIFICACAO, NOME_SITE, absoluta, descricaoCurta, origemDe, tituloDaAba } from './seo';
 import type { Secao } from '../conteudo';
 
 export type ImagemOg = { url: string; largura?: number; altura?: number; alt?: string };
@@ -86,6 +86,7 @@ export const Documento = (p: Props) => {
         <title>{titulo}</title>
         {descricao && <meta name="description" content={descricao} />}
         {p.naoIndexar && <meta name="robots" content="noindex, follow" />}
+        {GOOGLE_VERIFICACAO && <meta name="google-site-verification" content={GOOGLE_VERIFICACAO} />}
         {p.url && <link rel="canonical" href={p.url} />}
 
         {/* Open Graph: o que aparece quando alguém compartilha */}

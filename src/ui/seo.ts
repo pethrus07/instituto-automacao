@@ -5,6 +5,20 @@
 
 export const NOME_SITE = 'Instituto Automação';
 
+/* O título da CAPA na busca (16/10/2026): só o nome não diz do que o site
+   trata, e "Instituto Automação" disputa a busca com homônimos (o "Instituto
+   da Automação" da AURESIDE, o antigo Instituto de Automação do CTI). O
+   assunto no título é o que separa. */
+export const TITULO_CAPA = `${NOME_SITE} · notícias de automação industrial e robótica`;
+
+/* O código da verificação do Google Search Console (a tag
+   <meta name="google-site-verification">). Vazio = a tag não sai. */
+export const GOOGLE_VERIFICACAO = '';
+
+/* IndexNow: a chave que avisa Bing (e quem lê dele) a cada publicação. É
+   pública por desenho — o protocolo exige servi-la em /<chave>.txt. */
+export const INDEXNOW_CHAVE = '9c3e9259ba47e755ba52100047e2b9a7';
+
 /**
  * O título da aba e do resultado de busca. O Google corta perto de 60
  * caracteres; um título de peça tem 100. Quando a peça declara `titulo_curto`,
@@ -12,7 +26,7 @@ export const NOME_SITE = 'Instituto Automação';
  */
 export function tituloDaAba(titulo: string, curto?: string): string {
   const base = (curto ?? titulo).trim();
-  return base === NOME_SITE ? base : `${base} — ${NOME_SITE}`;
+  return base === NOME_SITE ? TITULO_CAPA : `${base} — ${NOME_SITE}`;
 }
 
 /**

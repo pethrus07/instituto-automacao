@@ -57,6 +57,8 @@ export function siteLd(base: string) {
     '@id': `${base}/#site`,
     url: `${base}/`,
     name: NOME_SITE,
+    // o nome que o Google pode mostrar no resultado, e as grafias que alguém digita
+    alternateName: ['institutoautomacao.com.br', 'Instituto Automacao'],
     description: DESCRICAO_SITE,
     inLanguage: 'pt-BR',
     publisher: { '@id': `${base}/#organizacao` },

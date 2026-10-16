@@ -65,7 +65,7 @@ capa.get('/', async (c) => {
     pagina(
       <Documento
         titulo="Instituto Automação"
-        descricao="O que o setor de automação publica lá fora, lido daqui: notícias escolhidas e escritas em português, artigos que ensinam e relatórios com dado próprio."
+        descricao="Notícias de automação industrial, robótica e IA na indústria, em português, todo dia: o que o setor publica lá fora e o que isso muda no Brasil."
         url={base + '/'}
         imagemOg={principal?.imagem ? { url: principal.og, largura: principal.imagem.largura, altura: principal.imagem.altura, alt: principal.imagem.alt } : undefined}
         ld={[ldJson(organizacaoLd(base)), ldJson(siteLd(base))]}
