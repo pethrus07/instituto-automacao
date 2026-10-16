@@ -7,7 +7,7 @@ import { favicon } from '../ui/marca';
 import { pautaDoDia, saudeColeta } from '../db';
 import { todas, SECOES, type Secao } from '../conteudo';
 import { feed, robots, sitemap, sitemapNoticias } from '../feed';
-import { INDEXNOW_CHAVE } from '../ui/seo';
+import { GOOGLE_ARQUIVO, INDEXNOW_CHAVE } from '../ui/seo';
 import { CACHE } from '../config';
 import { novaApp } from './app';
 
@@ -82,6 +82,12 @@ estatico.get('/sitemap-noticias.xml', (c) => {
   c.header('Content-Type', 'application/xml; charset=utf-8');
   c.header('Cache-Control', CACHE.listagem);
   return c.body(sitemapNoticias(c.env));
+});
+
+// Search Console: o Google confere que o site é nosso lendo este arquivo
+estatico.get(`/${GOOGLE_ARQUIVO}`, (c) => {
+  c.header('Content-Type', 'text/html; charset=utf-8');
+  return c.body(`google-site-verification: ${GOOGLE_ARQUIVO}`);
 });
 
 // IndexNow: o buscador confere que o aviso é nosso lendo a chave aqui

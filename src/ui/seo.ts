@@ -15,6 +15,12 @@ export const TITULO_CAPA = `${NOME_SITE} · notícias de automação industrial 
    <meta name="google-site-verification">). Vazio = a tag não sai. */
 export const GOOGLE_VERIFICACAO = '';
 
+/* A verificação do Search Console escolhida (16/10/2026): o ARQUIVO HTML do
+   Google, servido pelo Worker no endereço exato — os assets de publico/
+   tirariam o ".html" com redirecionamento. Não remover: sem ele a propriedade
+   deixa de estar verificada. */
+export const GOOGLE_ARQUIVO = 'googleeaa5fe9b68547918.html';
+
 /* IndexNow: a chave que avisa Bing (e quem lê dele) a cada publicação. É
    pública por desenho — o protocolo exige servi-la em /<chave>.txt. */
 export const INDEXNOW_CHAVE = '9c3e9259ba47e755ba52100047e2b9a7';
