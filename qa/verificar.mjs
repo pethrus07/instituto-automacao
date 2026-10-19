@@ -552,7 +552,20 @@ for (const f of ['/feed.xml', '/feed/noticias.xml']) {
   const r = respostas[f];
   checar('C', `${f} é XML bem formado`, (r.cab['content-type'] ?? '').includes('rss+xml') && r.corpo.startsWith('<?xml') && !/&(?!(amp|lt|gt|quot|apos|#\d+);)/.test(r.corpo.replace(/<\?xml[^>]*>/, '')));
 }
-checar('B', 'o feed traz as peças', pecas.every((p) => respostas['/feed.xml'].corpo.includes(`/${p.secao}/${p.slug}`)));
+/* O feed traz as 40 MAIS RECENTES (src/feed.ts), não todas: desde 16/10/2026,
+   com a redação publicando todo dia, o site passou de 40 textos e a regra
+   antiga ("toda peça está no feed") reprovou quatro publicações seguidas.
+   O que se confere: a quantidade certa, e que nada mais novo que a 40ª ficou
+   de fora (empate de data na borda pode cair para qualquer lado). */
+{
+  const LIMITE_FEED = 40;
+  const corpoFeed = respostas['/feed.xml'].corpo;
+  const itensFeed = (corpoFeed.match(/<item>/g) ?? []).length;
+  const recentes = [...pecas].sort((a, b) => String(b.meta.data).localeCompare(String(a.meta.data)));
+  const corte = recentes[LIMITE_FEED - 1]?.meta.data;
+  const devem = corte ? recentes.filter((p) => String(p.meta.data) > String(corte)) : recentes;
+  checar('B', `o feed traz as ${LIMITE_FEED} peças mais recentes`, itensFeed === Math.min(LIMITE_FEED, pecas.length) && devem.every((p) => corpoFeed.includes(`/${p.secao}/${p.slug}`)), `${itensFeed} itens no feed, ${pecas.length} peças`);
+}
 const mapa = respostas['/sitemap.xml'];
 medidas.sitemapUrls = (mapa.corpo.match(/<loc>/g) ?? []).length;
 checar('B', 'o sitemap lista todas as peças', pecas.every((p) => mapa.corpo.includes(`/${p.secao}/${p.slug}<`)));
@@ -821,7 +834,7 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
   checar('B', 'Relatórios e Agenda têm nota dizendo o que são', (capaHtml.match(/class="secao__nota"/g) ?? []).length >= 3 && /conferida no site oficial/.test(capaHtml) && /dado próprio/.test(capaHtml));
   checar('B', 'o botão de tema está na navegação, não no rodapé', /<nav class="navbar"[\s\S]*id="tema"[\s\S]*<\/nav>/.test(capaHtml) && !/<footer[\s\S]*id="tema"/.test(capaHtml));
   checar('B', 'o botão de tema tem texto além do ícone', /class="navbar__tema-texto">Tema</.test(capaHtml));
-  checar('B', 'a linha de data está no alto de toda página', ['/', '/agenda', '/autores', '/apoie'].every((r) => /class="dateline__data">[A-Z][a-zç-]+(-feira)?, \d{1,2} de [a-zç]+ de \d{4}</.test(respostas[r].corpo)));
+  checar('B', 'a linha de data está no alto de toda página', ['/', '/agenda', '/autores', '/apoie'].every((r) => /class="dateline__data">[A-ZÀ-Ý][a-zà-ÿ-]+, \d{1,2} de [a-zà-ÿ]+ de \d{4}</.test(respostas[r].corpo)));
   checar('B', 'o rodapé tem a coluna do Instituto (quem escreve, escreva, apoie) e o colofão', /Quem escreve<\/a>/.test(capaHtml) && /Escreva no Instituto<\/a>/.test(capaHtml) && /href="\/apoie">Apoie<\/a>/.test(capaHtml) && /class="rodape__colofao"/.test(capaHtml));
   checar('B', 'a faixa "Quem escreve" está na capa e termina no convite', /class="autores-faixa"/.test(capaHtml) && /autor-card--convite/.test(capaHtml));
 

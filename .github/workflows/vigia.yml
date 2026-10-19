@@ -68,7 +68,7 @@ jobs:
           # calado. Dois dias sem notícia nova é o alarme.
           DIAS=$(echo "$SAUDE" | python3 -c "import json,sys,datetime; d=json.load(sys.stdin).get('ultima_noticia'); print((datetime.date.today()-datetime.date.fromisoformat(d)).days if d else 99)")
           if [ "$DIAS" -gt 2 ]; then
-            echo "::error::Última notícia há ${DIAS} dias. A redação automática parou: confira o notebook e os registros em Projetos/_redacao-instituto/logs."
+            echo "::error::A notícia mais nova NO AR é de ${DIAS} dias atrás. Duas causas possíveis: o fluxo Publicar está falhando (veja a aba Actions; as notícias ficam no git sem ir ao ar) ou a redação automática parou (veja Projetos/_redacao-instituto/logs no notebook)."
             exit 1
           fi
           echo "✓ última notícia há ${DIAS} dia(s)"
