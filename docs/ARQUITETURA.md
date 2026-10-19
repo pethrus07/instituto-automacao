@@ -828,3 +828,10 @@ rotina do Claude Code (nuvem) ◀──────┘
 - **Marcador de rascunho em maiúscula só**: `TODO` com `/i` casa com "todo".
 - **Captura de tela da capa pode mostrar a manchete como bloco escuro**: é a imagem
   `decoding="async"` ainda não pintada; espere `img.complete` antes de concluir que quebrou.
+- **Regra de QA que supõe site pequeno quebra calada quando o site cresce** (16–19/10/2026).
+  "o feed traz as peças" exigia TODAS no RSS, que mostra as 40 mais recentes: com a redação
+  publicando todo dia, o site passou de 40 textos e quatro publicações seguidas caíram, com as
+  notícias presas no git. Toda regra que compara "todas as peças" com uma página que tem LIMITE
+  (feed, capa, "outras da seção") tem de conferir o limite, não o total.
+- **Regex de data em português precisa de acento**: `[A-Z][a-zç-]+` reprovava "Sábado" — o QA
+  falhava todo sábado, e só no sábado. Usar `[A-ZÀ-Ý][a-zà-ÿ-]+` e testar os 7 dias.
