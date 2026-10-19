@@ -30,3 +30,5 @@ https://spectrum.ieee.org/electric-truck-battery-design-simulation 2026-10-18 p�
 https://spectrum.ieee.org/video-friday-reconfigurable-robots 2026-10-18 vídeo e lista semanal
 https://www.designworldonline.com/stafford-introduces-machinable-flange-collars-for-shaft-mounting/ 2026-10-18 release de produto sem relevância
 https://www.engineering.com/mait-group-partners-with-sigmetrix-on-variation-management/ 2026-10-18 parceria sem número
+https://roboticsandautomationnews.com/2026/10/19/mercedes-benz-and-nvidia-deepen-partnership-on-automated-driving/106015/ 2026-10-19 direção automatizada em carro de passeio, fora do escopo industrial
+https://www.engineering.com/nvidia-introduces-rtx-spark-laptops-for-local-ai-and-accelerated-computing/ 2026-10-19 notebook de IA para consumo, não é automação industrial
