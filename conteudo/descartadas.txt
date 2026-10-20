@@ -33,3 +33,9 @@ https://www.engineering.com/mait-group-partners-with-sigmetrix-on-variation-mana
 https://roboticsandautomationnews.com/2026/10/19/mercedes-benz-and-nvidia-deepen-partnership-on-automated-driving/106015/ 2026-10-19 direção automatizada em carro de passeio, fora do escopo industrial
 https://www.engineering.com/nvidia-introduces-rtx-spark-laptops-for-local-ai-and-accelerated-computing/ 2026-10-19 notebook de IA para consumo, não é automação industrial
 https://embrapii.org.br/centros-de-competencia-embrapii-tecnologias-para-construir-o-futuro-da-industria/ 2026-10-20 release institucional sem fato novo; centros em quântica, saúde e 5G, quase nada de automação
+https://www.therobotreport.com/avenda-health-expands-unfold-ai-platform-support-intraoperative-prostate-cancer-care/ 2026-10-20 IA médica (câncer de próstata), fora do escopo
+https://www.therobotreport.com/robobusiness-rebrands-as-robotics-summit-expo-west/ 2026-10-20 mudança de nome de evento, release vazio
+https://roboticsandautomationnews.com/2026/10/20/data-visualization-consulting-how-a-dashboard-audit-works-and-what-it-uncovers/106133/ 2026-10-20 conteúdo patrocinado/genérico
+https://www.therobotreport.com/2027-trr50-robotics-innovation-awards-open-nominations/ 2026-10-20 prêmio, release vazio
+https://roboticsandautomationnews.com/2026/10/20/what-is-electrical-contracting-a-beginners-guide/106126/ 2026-10-20 guia genérico patrocinado
+https://www.eenewseurope.com/en/learn-stm32-programming-with-micropython-or-arduino/ 2026-10-20 curso/lista, fora do escopo
