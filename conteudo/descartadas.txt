@@ -32,3 +32,4 @@ https://www.designworldonline.com/stafford-introduces-machinable-flange-collars-
 https://www.engineering.com/mait-group-partners-with-sigmetrix-on-variation-management/ 2026-10-18 parceria sem número
 https://roboticsandautomationnews.com/2026/10/19/mercedes-benz-and-nvidia-deepen-partnership-on-automated-driving/106015/ 2026-10-19 direção automatizada em carro de passeio, fora do escopo industrial
 https://www.engineering.com/nvidia-introduces-rtx-spark-laptops-for-local-ai-and-accelerated-computing/ 2026-10-19 notebook de IA para consumo, não é automação industrial
+https://embrapii.org.br/centros-de-competencia-embrapii-tecnologias-para-construir-o-futuro-da-industria/ 2026-10-20 release institucional sem fato novo; centros em quântica, saúde e 5G, quase nada de automação
