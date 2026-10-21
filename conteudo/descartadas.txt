@@ -39,3 +39,5 @@ https://roboticsandautomationnews.com/2026/10/20/data-visualization-consulting-h
 https://www.therobotreport.com/2027-trr50-robotics-innovation-awards-open-nominations/ 2026-10-20 prêmio, release vazio
 https://roboticsandautomationnews.com/2026/10/20/what-is-electrical-contracting-a-beginners-guide/106126/ 2026-10-20 guia genérico patrocinado
 https://www.eenewseurope.com/en/learn-stm32-programming-with-micropython-or-arduino/ 2026-10-20 curso/lista, fora do escopo
+https://www.engineering.com/honeywell-launches-agentic-ai-platform-for-facility-operations/ 2026-10-21 sem imagem utilizável: og:image com 650 px (mínimo 700)
+https://www.engineering.com/fanuc-opens-largest-u-s-robotics-training-center/ 2026-10-21 sem imagem utilizável: og:image com 650 px (mínimo 700)
