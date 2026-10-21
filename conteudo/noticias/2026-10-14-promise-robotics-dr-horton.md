@@ -12,7 +12,6 @@ imagem:
   credito:   Promise Robotics
   licenca:   press
   alt:       Braço robótico KUKA azul com uma ferramenta da Promise Robotics fixa peças sobre uma estrutura de vigas de madeira numa linha de montagem, diante de painéis azuis de uma microfábrica
-destaque: true
 veredito: a_caminho
 fonte:
   nome: The Robot Report

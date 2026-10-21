@@ -41,3 +41,9 @@ https://roboticsandautomationnews.com/2026/10/20/what-is-electrical-contracting-
 https://www.eenewseurope.com/en/learn-stm32-programming-with-micropython-or-arduino/ 2026-10-20 curso/lista, fora do escopo
 https://www.engineering.com/honeywell-launches-agentic-ai-platform-for-facility-operations/ 2026-10-21 sem imagem utilizável: og:image com 650 px (mínimo 700)
 https://www.engineering.com/fanuc-opens-largest-u-s-robotics-training-center/ 2026-10-21 sem imagem utilizável: og:image com 650 px (mínimo 700)
+https://www.engineering.com/voxel51-3-0-expands-platform-for-physical-ai-datasets/ 2026-10-21 sem imagem utilizável (og:image de 438 px, mínimo 700)
+https://www.designworldonline.com/technical-thinking-technology-right-above-our-feet/ 2026-10-21 coluna de opinião
+https://roboticsandautomationnews.com/2026/10/21/best-security-awareness-training-platforms-for-manufacturing-and-engineering-teams/106175/ 2026-10-21 lista patrocinada, fora do tema
+https://roboticsandautomationnews.com/2026/10/21/best-mimecast-alternatives-for-manufacturing-and-industrial-businesses/106170/ 2026-10-21 lista patrocinada, fora do tema
+https://roboticsandautomationnews.com/2026/10/21/wayken-manufactures-thermal-management-components-for-power-electronics/106164/ 2026-10-21 conteudo patrocinado de fabricante
+https://www.engineering.com/ai-that-understands-physics/ 2026-10-21 artigo de opinião assinado pelo CEO de fornecedor, não é notícia
