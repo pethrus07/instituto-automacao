@@ -12,7 +12,6 @@ imagem:
   credito:   Robotiq
   licenca:   press
   alt:       Garra robótica preta de dois dedos com a marca Robotiq, cabo saindo por cima e sensores de tato nas pontas dos dedos
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Robotics & Automation News
