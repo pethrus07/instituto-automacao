@@ -12,7 +12,6 @@ imagem:
   credito:   Agility Robotics
   licenca:   press
   alt:       Robô humanoide Digit visto de costas e de lado, com corpo branco e verde-água, braços articulados e uma bateria preta nas costas com visor numérico
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Robotics & Automation News
