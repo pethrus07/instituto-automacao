@@ -50,3 +50,10 @@ https://www.engineering.com/ai-that-understands-physics/ 2026-10-21 artigo de op
 https://www.engineering.com/rochester-supports-long-life-intel-x86-processor-systems/ 2026-10-22 sem imagem utilizável (og:image 650 px)
 https://www.designworldonline.com/amazon-takes-on-another-industry-robotics/ 2026-10-22 episódio patrocinado de podcast, sem fato nem número
 https://www.engineering.com/php2shell-for-manufacturers-the-danger-goes-deeper-than-a-website/ 2026-10-23 sem imagem utilizável (og:image 640 px)
+https://www.eenewseurope.com/en/spacex-weekly-starship-launches-2027/ 2026-10-23 fora do escopo: lançamentos espaciais
+https://www.eenewseurope.com/en/emudhra-certificate-compromise-php2shell/ 2026-10-23 fora do escopo: segurança de certificados
+https://www.therobotreport.com/webinar-discuss-how-fcc-robotics-ruling-affects-automation-buyers/ 2026-10-23 webinar
+https://www.automatedwarehouseonline.com/webinar-what-buyers-need-to-know-about-the-fcc-robot-ruling/ 2026-10-23 webinar
+https://roboticsandautomationnews.com/2026/10/23/what-should-drivers-do-when-an-accident-report-contains-errors/106280/ 2026-10-23 fora do escopo
+https://roboticsandautomationnews.com/2026/10/23/can-a-crash-claim-include-the-cost-of-replacing-a-childs-car-seat/106276/ 2026-10-23 fora do escopo
+https://roboticsandautomationnews.com/2026/10/23/how-to-clean-a-g1000-and-every-other-glass-cockpit-without-wrecking-the-screen/106270/ 2026-10-23 fora do escopo
