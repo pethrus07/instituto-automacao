@@ -62,3 +62,18 @@ https://www.eenewseurope.com/en/nuclear-restarts-holtec-constellation-nextera/ 2
 https://spectrum.ieee.org/video-friday-rubiks-cube-robot 2026-10-25 lista de vídeos
 https://www.designworldonline.com/preben-hansen-of-platinum-tooling-at-imts/ 2026-10-25 entrevista/vídeo de feira, sem fato
 https://www.engineering.com/aiaa-forms-team-to-define-cfd-priorities-through-2045/ 2026-10-25 simulação aeroespacial, fora do escopo
+https://www.engineering.com/trimble-adds-dual-gnss-receivers-to-earthworks-platform/ 2026-10-25 release curto (182 palavras), sem número além de data; matéria sem substância para 250 palavras
+https://www.engineering.com/nvidia-dsx-advances-ai-factory-deployment-across-europe/ 2026-10-25 release da NVIDIA sobre data center de IA; sem imagem utilizável (650 px) e fora do foco de automação industrial
+https://roboticsandautomationnews.com/2026/10/23/why-automated-cutting-lines-are-winning-over-small-furniture-workshops/106260/ 2026-10-25 artigo de opinião/patrocinado com cara de publieditorial, valores em libras e dados anedóticos
+https://blog.n8n.io/ai-agent-memory-how-llm-agents-manage-state-in-production/ 2026-10-25 post de blog de produto, não é notícia
+https://roboticsandautomationnews.com/2026/10/23/the-overlooked-interface-how-hmis-shape-automation-in-gmp-production/106256/ 2026-10-25 artigo de opinião/explicativo, sem fato novo
+https://www.engineering.com/ge-vernova-to-supply-gas-turbine-for-cote-divoire-power-plant/ 2026-10-25 sem imagem utilizável (650 px); usina na Costa do Marfim sem ligação com o Brasil
+https://roboticsandautomationnews.com/2026/10/23/eth-scientists-set-to-bring-terminator-style-robots-to-life-with-lab-grown-muscles/106249/ 2026-10-25 pesquisa de laboratório com músculo de camundongo; sem aplicação industrial, tom sensacionalista
+https://www.engineering.com/cadence-and-nokia-advance-ai-driven-electronic-system-design/ 2026-10-25 projeto de eletrônica/EDA para telecom; fora do foco de automação industrial
+https://roboticsandautomationnews.com/2026/10/23/the-true-cost-of-aerial-equipment-rental-in-automated-facilities/106241/ 2026-10-25 artigo patrocinado/publieditorial sobre aluguel de equipamento
+https://www.eenewseurope.com/en/llm-d-1-0-targets-lower-ai-inference-costs/ 2026-10-25 infraestrutura de inferência de TI; sem relação com automação industrial
+https://www.designworldonline.com/zero-max-adds-ip68-protection-to-crown-gear-drives/ 2026-10-25 release de produto curto, sem fato novo de mercado
+https://www.designworldonline.com/allient-defense-receives-ausa-best-in-show-award/ 2026-10-25 prêmio, release vazio
+https://www.designworldonline.com/line-vac-methods-for-controlling-material-discharge-dust-and-velocity/ 2026-10-25 texto explicativo de fornecedor, não é notícia
+https://www.designworldonline.com/igus-expands-robot-cables-for-continuous-torsional-movement/ 2026-10-25 release de produto curto, sem número nem efeito de mercado
+https://roboticsandautomationnews.com/2026/10/22/uk-operators-search-6-7-times-more-for-crm-and-erp-than-for-cash-cycle-tools-as-factory-robots-pass-five-million/106236/ 2026-10-25 pesquisa de buscas de marketing no Reino Unido; sem relação com operação no Brasil
