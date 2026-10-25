@@ -253,6 +253,13 @@ export function revisar(caminho: string, textoDaFonte: string | null): Achado {
   const tudo = `${titulo}\n${lead}\n${n.corpo}`;
   /* TODO e XXX em maiúscula só: "todo" é palavra do português. */
   if (/\b(TODO|PREENCHER|XXX)\b/.test(tudo) || /lorem ipsum|\[(inserir|fonte|link)\]/i.test(tudo)) erros.push('sobrou marcador de rascunho');
+
+  /* Intertítulo só com "##", e "###" só debaixo de um "##": a página tem um
+     h1 (o título) e o QA reprova salto de nível. Pegar aqui, no notebook,
+     sai mais barato que derrubar a publicação no GitHub (25/10/2026). */
+  const niveis = [...n.corpo.matchAll(/^(#{1,6})\s/gm)].map((m) => m[1]!.length);
+  if (niveis.some((x) => x === 1)) erros.push('o corpo usa "# " — o título já é o h1; intertítulo é "## "');
+  if (niveis.some((x, i) => x > (i === 0 ? 2 : niveis[i - 1]! + 1))) erros.push('intertítulo pula nível (ex.: "###" sem um "##" antes) — o QA reprova');
   if (/como (um )?modelo de linguagem|como uma IA|não tenho acesso|minha data de corte|\bclaro!|espero que (isso|isto) ajude/i.test(tudo)) erros.push('sobrou fala de assistente no texto');
   const semCitacao = n.corpo.replace(/\*[^*\n]+\*/g, ' ').replace(/"[^"\n]+"|“[^”\n]+”/g, ' ');
   const en = (semCitacao.match(PALAVRAS_EN) ?? []).length;

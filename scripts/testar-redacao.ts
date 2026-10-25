@@ -82,6 +82,9 @@ conferir('fala de assistente reprova', tem(erros(escrever('assistente', fm() + c
 conferir('imagem que não existe reprova', tem(erros(escrever('sem-imagem', fm().replace('2026-10-14-siemens-skeleton-supercapacitores.jpg', 'nao-existe.jpg') + corpo(MUDA))), 'não está em publico/imagens'), true);
 conferir('marcador de rascunho reprova', tem(erros(escrever('rascunho', fm() + corpo(MUDA) + '\n\nTODO: conferir o preço.')), 'rascunho'), true);
 conferir('mas "todo" em português não é marcador', erros(escrever('todo', fm() + corpo(MUDA) + '\n\nVale para todo integrador.')), []);
+conferir('intertítulo que pula nível reprova', tem(erros(escrever('salto', fm() + corpo(MUDA).replace('## O que isso muda aqui', '### Detalhe\n\nTexto.\n\n## O que isso muda aqui'))), 'pula nível'), true);
+conferir('"# " no corpo reprova (o h1 é o título)', tem(erros(escrever('h1', fm() + '# Outro título\n\n' + corpo(MUDA))), 'h1'), true);
+conferir('"###" debaixo de "##" passa', erros(escrever('sub', fm() + corpo(MUDA).replace('## O que isso muda aqui', '## Contexto\n\nTexto.\n\n### Detalhe\n\nTexto.\n\n## O que isso muda aqui'))), []);
 conferir('o teste não alterou a notícia boa', readFileSync(boa, 'utf8').includes('18 meses'), true);
 
 console.log(`\n${ok} ok · ${falhou} falha(s)`);

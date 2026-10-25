@@ -835,3 +835,9 @@ rotina do Claude Code (nuvem) ◀──────┘
   (feed, capa, "outras da seção") tem de conferir o limite, não o total.
 - **Regex de data em português precisa de acento**: `[A-Z][a-zç-]+` reprovava "Sábado" — o QA
   falhava todo sábado, e só no sábado. Usar `[A-ZÀ-Ý][a-zà-ÿ-]+` e testar os 7 dias.
+- **Regra de vocabulário do site lia título de notícia como voz do site** (25/10/2026): "Quanto
+  custa soprar peça com ar comprimido" segurou três publicações pela regra da palavra "peça".
+  Desde então as regras de vocabulário (P6 e "peça") usam `vozDoSite()` no QA: a página sem o
+  corpo do texto e sem título, título curto, lead, alt e crédito vindos do conteúdo. Conferido
+  por mutação (a palavra posta no rodapé reprova). E `npm run redacao -- conferir` passou a
+  barrar intertítulo que pula nível, que o QA reprovaria lá no GitHub.

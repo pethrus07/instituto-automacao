@@ -348,8 +348,33 @@ for (const secao of ['noticias', 'relatorios', 'giro']) {
 }
 
 const todasAsPaginas = Object.entries(respostas).filter(([, r]) => (r.cab['content-type'] ?? '').includes('text/html'));
-for (const morto of ['paginacao', 'selo--pendente', 'linha-item', 'grade-sec', 'nucleo-card', '?v=nao_chega', 'Revisão pendente', 'tradução automática']) {
-  const onde = todasAsPaginas.filter(([, r]) => r.corpo.includes(morto)).map(([c]) => c);
+/* O que morreu da v1 não volta — mas SÓ na voz do site. Desde 14/10/2026 a
+   redação escreve notícia todo dia, e uma notícia sobre "tradução automática"
+   por IA é pauta provável: procurar a frase no corpo da notícia seguraria a
+   publicação. O corpo do texto (div.obra) fica de fora, como na regra da
+   palavra "peça" (25/10/2026). */
+const semCorpoDoTexto = (h) => h.replace(/<div class="obra"[^>]*>[\s\S]*?<\/div>/g, ' ');
+/* A VOZ DO SITE: a página sem o corpo do texto e sem o que veio do conteúdo
+   (título, título curto, lead, alt e crédito de cada peça), que é voz do
+   autor mesmo quando aparece na listagem ou no topo. Usada pelas regras que
+   vigiam o vocabulário do site (P6 aqui, "peça" mais abaixo).
+   ⚠️ A normalização (entidades, espaço inquebrável) fica só aqui dentro: já
+   esteve no soTexto que a regra da moeda usa, e o espaço inquebrável virado
+   comum fez "R$ 900" parecer solto em 25 páginas (25/10/2026). */
+const normalTexto = (t) => String(t ?? '').replace(/&quot;/g, '"').replace(/&#39;|&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&nbsp;| /g, ' ').replace(/\*\*|__/g, '').replace(/\s+/g, ' ').trim();
+const textosDoConteudo = pecas
+  .flatMap((p) => [p.meta.titulo, p.meta.titulo_curto, p.meta.lead, p.meta.imagem?.alt, p.meta.imagem?.credito])
+  .map(normalTexto)
+  .filter((t) => t && t.length > 3)
+  .sort((a, b) => b.length - a.length);
+const vozDoSite = (h) =>
+  textosDoConteudo.reduce((acc, c) => acc.split(c).join(' '), normalTexto(semCorpoDoTexto(h).replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')));
+for (const morto of ['paginacao', 'selo--pendente', 'linha-item', 'grade-sec', 'nucleo-card', '?v=nao_chega']) {
+  const onde = todasAsPaginas.filter(([, r]) => semCorpoDoTexto(r.corpo).includes(morto)).map(([c]) => c);
+  checar('B', `P6 · nenhuma página tem "${morto}"`, onde.length === 0, onde.join(', '));
+}
+for (const morto of ['Revisão pendente', 'tradução automática']) {
+  const onde = todasAsPaginas.filter(([, r]) => vozDoSite(r.corpo).includes(morto)).map(([c]) => c);
   checar('B', `P6 · nenhuma página tem "${morto}"`, onde.length === 0, onde.join(', '));
 }
 
@@ -937,11 +962,18 @@ titulo('B · Conformidade — autores, artigos, parceiro, ficha, tema na navega�
          EDITORIAL da voz do site — não banir a palavra do vocabulário;
        · o glossário fica de fora: lá "a peça" é a peça de trabalho que o robô
          toca, e trocar quebraria o verbete. */
+  /* Terceira exceção, de 25/10/2026: o que vem do CONTEÚDO também é voz do
+     autor, mesmo fora do corpo. "Quanto custa soprar peça com ar comprimido"
+     é título de notícia, e aparece na listagem, no topo da página e na capa;
+     a regra o lia como voz do site e segurou três publicações. Então título,
+     título curto, lead, alt e crédito de cada peça saem do texto antes de
+     procurar a palavra — o que sobra é a voz do site, que é o que se vigia. */
+  /* (a voz do site — sem corpo do texto e sem o que veio do conteúdo — é a
+     função vozDoSite, lá no P6) */
   const soTexto = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ');
-  const semObra = (h) => h.replace(/<div class="obra"[^>]*>[\s\S]*?<\/div>/g, ' ');
   const comPeca = todasAsPaginas
     .filter(([rota]) => rota !== '/glossario')
-    .filter(([, r]) => /\bpeças?\b/i.test(soTexto(semObra(r.corpo))))
+    .filter(([, r]) => /\bpeças?\b/i.test(vozDoSite(r.corpo)))
     .map(([rota]) => rota);
   checar('B', '"peça" não é a palavra do SITE em página nenhuma (corpo do texto e glossário à parte: lá é peça de máquina)', comPeca.length === 0, comPeca.join(', '));
 
