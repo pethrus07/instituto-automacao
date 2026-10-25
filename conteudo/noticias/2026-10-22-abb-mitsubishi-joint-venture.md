@@ -12,7 +12,6 @@ imagem:
   credito:   Automação Industrial
   licenca:   fonte
   alt:       Fachada de vidro de um prédio com o logotipo vermelho da ABB visto de fora, com pessoas caminhando em movimento na calçada e um trem passando ao fundo
-destaque: true
 veredito: sem_efeito
 fonte:
   nome: Automação Industrial
