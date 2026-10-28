@@ -78,3 +78,10 @@ https://www.designworldonline.com/line-vac-methods-for-controlling-material-disc
 https://www.designworldonline.com/igus-expands-robot-cables-for-continuous-torsional-movement/ 2026-10-25 release de produto curto, sem número nem efeito de mercado
 https://roboticsandautomationnews.com/2026/10/22/uk-operators-search-6-7-times-more-for-crm-and-erp-than-for-cash-cycle-tools-as-factory-robots-pass-five-million/106236/ 2026-10-25 pesquisa de buscas de marketing no Reino Unido; sem relação com operação no Brasil
 https://www.engineering.com/siemens-nvidia-develop-ai-workflow-for-pcb-inspection/ 2026-10-26 sem og:image
+https://www.eenewseurope.com/en/bmw-ix5-460kw-charging-new-x5-range/ 2026-10-28 carro de passeio, fora do escopo de automação
+https://www.eenewseurope.com/en/nasa-plans-final-solar-array-upgrades-for-iss/ 2026-10-28 espacial, fora do escopo
+https://logweb.com.br/manaus-sediara-encontro-nacional-sobre-descarbonizacao-portuaria-em-novembro/ 2026-10-28 anúncio de evento, sem fato técnico
+https://www.engineering.com/amd-and-meta-deepen-work-on-ai-infrastructure/ 2026-10-28 infraestrutura de IA de data center, sem ligação com indústria
+https://roboticsandautomationnews.com/2026/10/28/avride-delivery-robots-expand-to-four-us-cities-through-wonder-partnership/106416/ 2026-10-28 robô de entrega urbana nos EUA, sem efeito para indústria
+https://www.engineering.com/advantech-opens-new-north-american-headquarters-in-california/ 2026-10-28 release vazio: abertura de sede
+https://roboticsandautomationnews.com/2026/10/28/leiden-university-study-finds-autonomous-uv-c-robot-meets-disinfection-standards/106410/ 2026-10-28 desinfecção hospitalar, fora do escopo
