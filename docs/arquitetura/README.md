@@ -11,7 +11,17 @@ cada uma numa notação padrão:
 
 Site que traz para o português, no mesmo dia, o que o mundo publica sobre automação. Coleta, pauta e notícia andam sozinhas; tudo entra pelo git e passa por trava de qualidade antes de ir ao ar.
 
-![Instituto Automação · notícia do setor em português](./instituto-automacao.svg)
+### Quem usa e para quê (UML)
+
+![Casos de uso · Instituto Automação · notícia do setor em português](./instituto-automacao-1-casos-de-uso.svg)
+
+### Da pauta do dia à notícia no ar (BPMN 2.0)
+
+![Processo · Instituto Automação · notícia do setor em português](./instituto-automacao-2-processo.svg)
+
+### Arquitetura (C4, containers)
+
+![Arquitetura · Instituto Automação · notícia do setor em português](./instituto-automacao-3-arquitetura.svg)
 
 Editável: [`instituto-automacao.excalidraw`](./instituto-automacao.excalidraw), abre em [excalidraw.com](https://excalidraw.com) ou no VS Code com a extensão Excalidraw.
 
