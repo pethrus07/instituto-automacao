@@ -85,3 +85,15 @@ https://www.engineering.com/amd-and-meta-deepen-work-on-ai-infrastructure/ 2026-
 https://roboticsandautomationnews.com/2026/10/28/avride-delivery-robots-expand-to-four-us-cities-through-wonder-partnership/106416/ 2026-10-28 robô de entrega urbana nos EUA, sem efeito para indústria
 https://www.engineering.com/advantech-opens-new-north-american-headquarters-in-california/ 2026-10-28 release vazio: abertura de sede
 https://roboticsandautomationnews.com/2026/10/28/leiden-university-study-finds-autonomous-uv-c-robot-meets-disinfection-standards/106410/ 2026-10-28 desinfecção hospitalar, fora do escopo
+https://www.engineering.com/ge-vernova-to-acquire-trench-to-expand-grid-equipment-capabilities/ 2026-10-29 og:image com 604 px, abaixo do mínimo de 700
+https://www.engineering.com/mtc-selects-caracols-robotic-metal-am-platform/ 2026-10-29 og:image com 650 px, abaixo do mínimo de 700
+https://www.eenewseurope.com/en/microsoft-xbox-console-trade-ins/ 2026-10-29 fora do escopo (consoles de jogos)
+https://roboticsandautomationnews.com/2026/10/29/10-top-custom-energy-management-development-companies-to-know-in-2026/106448/ 2026-10-29 lista patrocinada
+https://www.engineering.com/cognite-names-adnoc-gas-and-upstream-ai-impact-award-winners/ 2026-10-29 prêmio, release vazio
+https://www.therobotreport.com/what-symbotic-growth-with-walmart-teaches-robotics-startups-about-anchor-customers/ 2026-10-29 artigo de opinião de autor convidado
+https://www.designworldonline.com/humanoids-building-humanoids-and-new-robots-for-agriculture-equipment-in-kansas/ 2026-10-29 página sem matéria (140 palavras, vídeo)
+https://www.eenewseurope.com/en/semicon-europa-2026-puts-advanced-packaging-and-ai-in-focus/ 2026-10-29 feira de semicondutores, fora do escopo
+https://www.eenewseurope.com/en/a20-pro-apple-ipad-mini-oled-ai/ 2026-10-29 eletrônica de consumo, fora do escopo
+https://www.eenewseurope.com/en/kioxia-brings-e1-l-qlc-ssds-to-hyperscale-data-centres/ 2026-10-29 SSD para data center, fora do escopo
+https://blog.n8n.io/why-were-moving-n8ns-automation-team-beyond-the-service-desk-model/ 2026-10-29 blog corporativo, opinião
+https://www.engineering.com/dassault-completes-arisglobal-acquisition-to-unify-ai-platform/ 2026-10-29 software para ciências da vida, fora do escopo
