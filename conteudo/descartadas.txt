@@ -97,3 +97,5 @@ https://www.eenewseurope.com/en/a20-pro-apple-ipad-mini-oled-ai/ 2026-10-29 elet
 https://www.eenewseurope.com/en/kioxia-brings-e1-l-qlc-ssds-to-hyperscale-data-centres/ 2026-10-29 SSD para data center, fora do escopo
 https://blog.n8n.io/why-were-moving-n8ns-automation-team-beyond-the-service-desk-model/ 2026-10-29 blog corporativo, opinião
 https://www.engineering.com/dassault-completes-arisglobal-acquisition-to-unify-ai-platform/ 2026-10-29 software para ciências da vida, fora do escopo
+https://www.engineering.com/siemens-and-pg-expand-ai-quality-inspection-deployment/ 2026-10-29 sem og:image
+https://www.automatedwarehouseonline.com/berkshire-grey-unveils-enhanced-ai-capabilities/ 2026-10-29 release de produto sem dado novo verificável
