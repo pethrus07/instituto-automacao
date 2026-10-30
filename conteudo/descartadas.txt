@@ -106,3 +106,15 @@ https://www.automacaoindustrial.info/siemens-brasil-abre-programa-de-estagio-par
 https://www.eenewseurope.com/en/latam-airlines-quvia-in-flight-wifi/ 2026-10-30 conectividade de avião, fora do escopo
 https://www.eenewseurope.com/en/raltron-crystal-filters-support-leo-satellite-broadband-networks/ 2026-10-30 componente de satélite, fora do escopo
 https://www.engineering.com/purdue-engineer-named-2026-aps-fellow-for-materials-research/ 2026-10-30 prêmio acadêmico, fora do escopo
+https://www.engineering.com/siemens-introduces-packaged-microgrid-switchboard/ 2026-10-30 sem og:image
+https://roboticsandautomationnews.com/2026/10/30/what-automotive-plants-need-from-an-mes-in-2026/106471/ 2026-10-30 conteudo de fornecedor (Eyelit) sem fato novo
+https://roboticsandautomationnews.com/2026/10/30/opinion-the-riskiest-automation-decisions-happen-before-deployment/106474/ 2026-10-30 opiniao
+https://spectrum.ieee.org/video-friday-whole-body-manipulation 2026-10-30 lista de videos
+https://blog.n8n.io/throttling-vs-rate-limiting/ 2026-10-30 post de blog tecnico, nao e noticia
+https://www.engineering.com/eos-partners-with-bizu-space-on-aerospace-3d-printing/ 2026-10-30 parceria sem numero, fora do foco
+https://www.engineering.com/oracle-plans-arm-agi-cpu-for-oci-in-2027/ 2026-10-30 nuvem/CPU, fora do escopo
+https://www.engineering.com/microchip-adds-ethercat-and-tsn-support-to-polarfire-devices/ 2026-10-30 og:image com 650 px (minimo 700)
+https://www.engineering.com/allplan-max-2027-launched-for-engineering-workflows/ 2026-10-30 software BIM/construcao, fora do foco
+https://www.engineering.com/cadence-joins-does-genesis-mission-consortium/ 2026-10-30 adesao a consorcio, release vazio
+https://www.therobotreport.com/2026-robotics-handbook-looks-at-humanoids/ 2026-10-30 divulgacao de publicacao propria da fonte
+https://www.therobotreport.com/robobusiness-2026-recap/ 2026-10-30 podcast
