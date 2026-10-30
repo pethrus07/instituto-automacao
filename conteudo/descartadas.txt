@@ -99,3 +99,10 @@ https://blog.n8n.io/why-were-moving-n8ns-automation-team-beyond-the-service-desk
 https://www.engineering.com/dassault-completes-arisglobal-acquisition-to-unify-ai-platform/ 2026-10-29 software para ciências da vida, fora do escopo
 https://www.engineering.com/siemens-and-pg-expand-ai-quality-inspection-deployment/ 2026-10-29 sem og:image
 https://www.automatedwarehouseonline.com/berkshire-grey-unveils-enhanced-ai-capabilities/ 2026-10-29 release de produto sem dado novo verificável
+https://www.home-assistant.io/blog/2026/10/29/what-the-heck-2026-everyone-at-home-gets-a-say/ 2026-10-30 automação residencial, fora do escopo industrial
+https://roboticsandautomationnews.com/2026/10/28/interview-with-faraday-future-chairman-moving-from-chinese-robot-sourcing-to-us-manufacturing/106438/ 2026-10-30 entrevista, sem fato novo
+https://www.designworldonline.com/meet-the-2026-leap-awards-judging-panel/ 2026-10-30 lista de jurados de prêmio
+https://www.automacaoindustrial.info/siemens-brasil-abre-programa-de-estagio-para-2027-com-bolsa-auxilio-de-r-2241/ 2026-10-30 vaga de estágio, release de recrutamento
+https://www.eenewseurope.com/en/latam-airlines-quvia-in-flight-wifi/ 2026-10-30 conectividade de avião, fora do escopo
+https://www.eenewseurope.com/en/raltron-crystal-filters-support-leo-satellite-broadband-networks/ 2026-10-30 componente de satélite, fora do escopo
+https://www.engineering.com/purdue-engineer-named-2026-aps-fellow-for-materials-research/ 2026-10-30 prêmio acadêmico, fora do escopo

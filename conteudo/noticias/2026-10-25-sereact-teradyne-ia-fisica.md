@@ -12,7 +12,6 @@ imagem:
   credito:   Teradyne Robotics
   licenca:   fonte
   alt:       Braço robótico Universal Robots com a marca Sereact segura um sapato preto na garra, ao lado de uma caixa de sapato aberta sobre a mesa; ao fundo, um segundo braço com garra
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Automated Warehouse
