@@ -12,7 +12,6 @@ imagem:
   credito:   The Robot Report
   licenca:   fonte
   alt:       Página do site da Casa Branca com o título do decreto sobre ajuste das importações de robótica e maquinário industrial, em letras brancas sobre fundo azul-escuro
-destaque: true
 veredito: a_caminho
 fonte:
   nome: The Robot Report

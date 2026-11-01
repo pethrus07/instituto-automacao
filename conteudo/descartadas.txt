@@ -118,3 +118,8 @@ https://www.engineering.com/allplan-max-2027-launched-for-engineering-workflows/
 https://www.engineering.com/cadence-joins-does-genesis-mission-consortium/ 2026-10-30 adesao a consorcio, release vazio
 https://www.therobotreport.com/2026-robotics-handbook-looks-at-humanoids/ 2026-10-30 divulgacao de publicacao propria da fonte
 https://www.therobotreport.com/robobusiness-2026-recap/ 2026-10-30 podcast
+https://www.diyrobocars.com/2026/11/01/giving-away-drones-and-rc-planes-in-the-sf-bay-area/?utm_source=rss&utm_medium=rss&utm_campaign=giving-away-drones-and-rc-planes-in-the-sf-bay-area 2026-11-01 sorteio de drones, sem relação com automação industrial
+https://roboticsandautomationnews.com/2026/10/30/global-ocean-robotics-day-highlights-advances-in-autonomous-underwater-robots/106546/ 2026-11-01 simpósio acadêmico sem produto, número ou efeito prático para o Brasil
+https://www.therobotreport.com/28-zero-day-findings-in-less-than-two-days-what-ai-speed-discovery-means-for-robotics/ 2026-11-01 conteúdo patrocinado (VicOne)
+https://spectrum.ieee.org/ai-slop-trust-science 2026-11-01 ensaio sobre IA e ciência, fora do tema
+https://www.engineering.com/quality-manufacturing-corporation-transforms-its-3d-inspection-data-into-practical-insights/ 2026-11-01 estudo de caso de fornecedor (PolyWorks), sem notícia
