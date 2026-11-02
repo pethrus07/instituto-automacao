@@ -1,7 +1,7 @@
 # Instituto Automação · roadmap
 
 Fila curta, em ordem. Atualizado em 01/11/2026.
-O diário de decisões até esta data (o que era este arquivo) está em [HISTORICO.md](HISTORICO.md).
+O diário de decisões até esta data (o que era este arquivo, citado como HISTORICO) é interno e fica fora do repositório.
 Cada item diz quem destrava: Pedro, sócio ou código.
 
 ## Estado em 01/11/2026

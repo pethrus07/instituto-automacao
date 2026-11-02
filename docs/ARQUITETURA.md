@@ -105,8 +105,7 @@ instituto-automacao/
 ├── schema.sql fontes.sql vozes.sql seed.sql      o banco e as sementes
 ├── wrangler.toml           o Worker, o D1, o cron, os assets, o ambiente homolog
 ├── docs/                   este arquivo, CONCEPCAO-V2, EXECUCAO-V2, ROADMAP, FONTES, arquivo-v1/
-├── README.md               como rodar e o ciclo de trabalho
-└── acordo interno               o combinado com o sócio
+└── README.md               como rodar e o ciclo de trabalho
 ```
 
 ---

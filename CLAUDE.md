@@ -5,8 +5,8 @@ sócio. Um Worker só da Cloudflare (Hono + D1): o coletor colhe fontes a cada 1
 mora em `conteudo/**.md`, o compilador gera o bundle, o git publica.
 
 **A fonte da verdade é `docs/ROADMAP.md`** (fila curta Agora / Depois / Talvez), não memória nem
-este arquivo. O diário de decisões até 01/11/2026 está em `docs/HISTORICO.md` (§2k e §2l são as
-mais citadas). Pendência nova vai para o ROADMAP; decisão datada, para o HISTORICO.
+este arquivo. O diário de decisões até 01/11/2026 (o "HISTORICO" citado por seção) é interno e fica fora do
+repositório. Pendência nova vai para o ROADMAP; decisão datada, para o HISTORICO.
 
 ## Onde está a arquitetura
 

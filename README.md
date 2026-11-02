@@ -92,4 +92,4 @@ What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 
-All rights reserved.
+All rights reserved. Published as portfolio; not licensed for reuse. See [LICENSE](LICENSE).

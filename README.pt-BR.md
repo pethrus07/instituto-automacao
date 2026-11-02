@@ -91,4 +91,4 @@ O funcionamento inteiro, com as armadilhas conhecidas, está em
 
 ## Licença
 
-Todos os direitos reservados.
+Todos os direitos reservados. Publicado como portfólio; sem licença de reuso. Veja [LICENSE](LICENSE).
