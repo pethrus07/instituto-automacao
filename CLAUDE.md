@@ -30,7 +30,7 @@ npm run dev           # compila e sobe em http://localhost:8787
 ```
 
 - Banco do zero completo (schema + sementes + migrações 007/008): `npm run db:zero` — é o que o CI usa.
-- Banco que já tem dado: `npm run db:migrar`, nunca `db:local` (item colhido não volta).
+- Banco que já tem dado: `npm run db:migrar` (aplica só as migrações pendentes, anotadas na tabela `_migracao`), nunca `db:local`. Banco criado antes do script: rode `npm run db:migrar -- --base` uma vez. Remoto: `db:migrar:homolog` / `db:migrar:remoto`, sempre com `-- --simular` antes.
 - `npm test` — as 7 suítes de unidade (obra, pautas, feed, robots, giro, assunto, redação); não toca em produção.
 - `npm run tipos` — `tsc --noEmit` nas duas configurações.
 - `npm run qa` — QA por medição contra o site rodando (`npm run dev` em outra aba); sai 1 se

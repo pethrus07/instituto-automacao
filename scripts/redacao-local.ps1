@@ -52,6 +52,12 @@ if ($Instalar) {
 }
 
 # ------------------------------------------------------------------ a execução
+# A saída do claude.exe e do npm vem em UTF-8, mas o PowerShell lê a saída de
+# programa externo pela página de código do console (850/437): "notícia" virava
+# "not├¡cia" no log. Lendo como UTF-8, o log sai com acento (o Out-File já grava
+# em UTF-8).
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 New-Item -ItemType Directory -Force $Logs | Out-Null
 $log = Join-Path $Logs ((Get-Date -Format 'yyyy-MM-dd_HHmm') + '.log')
 function Registrar($t) { "$(Get-Date -Format 'HH:mm:ss') $t" | Tee-Object -FilePath $log -Append | Out-Host }
