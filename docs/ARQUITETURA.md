@@ -365,7 +365,7 @@ Por **termo raro compartilhado**. O que sobrevive à tradução é o nome própr
    continua sendo de 30 dias.
 
 Não é IA: é contagem de palavra e interseção de conjunto, roda no cron, e o mesmo corpus dá
-sempre o mesmo agrupamento. Embeddings estão mortos no ROADMAP §9 — seriam IA em produção.
+sempre o mesmo agrupamento. Embeddings estão mortos no HISTORICO §9 — seriam IA em produção.
 
 ⚠️ **Fórum e rede social não ancoram `publicado_original`** (`podeAncorarOriginal`): thread de
 comunidade não é a fronteira publicando, e deixá-la marcar o original faria o relógio medir o
@@ -383,7 +383,7 @@ passou de 0 para 2 atrasos apurados em 23/09.
 2 atrasos apurados sobre 1.581 assuntos, mediana de **6 dias**. O número é pequeno e o motivo
 **não é o algoritmo**: dos 101 itens brasileiros da base, só 2 têm par estrangeiro plausível —
 as fontes brasileiras escrevem sobre o Brasil (fábrica nova, BNDES, feira daqui), não sobre o
-que saiu lá fora. Mais fontes brasileiras é o que destrava a medida, e está no ROADMAP §5.
+que saiu lá fora. Mais fontes brasileiras é o que destrava a medida, e está no ROADMAP (Depois).
 
 Até 11/09 o relógio media ZERO, e sempre tinha medido: a chave antiga era o título inteiro
 ordenado, que só agrupa com conjunto idêntico de palavras. A faixa saiu da capa por decisão de
@@ -460,9 +460,9 @@ regrava-se; mudar frase antes de regravar é de graça.
 | | Local | Homologação | Produção |
 |---|---|---|---|
 | Comando | `npm run dev` (compila + `wrangler dev --test-scheduled`) | `npm run deploy:homolog` | `npm run deploy` |
-| Conta | — | Pedro (ryzecode08), `account_id` explícito no `wrangler.toml` | sócio (A2) — `database_id` ainda `PREENCHER-APOS-CRIAR` |
+| Conta | — | ryzecode08 (Desbravando), `account_id` explícito no `wrangler.toml` | conta pessoal do Pedro desde 28/09/2026 (HISTORICO §2i), `account_id` explícito no `[env.producao]` |
 | D1 | `.wrangler/state` | `instituto-homolog` | `instituto` |
-| URL | `http://127.0.0.1:8787` | `instituto-automacao-homolog.desbravando-utv.workers.dev` | o domínio do sócio |
+| URL | `http://127.0.0.1:8787` | `instituto-automacao-homolog.desbravando-utv.workers.dev` | `institutoautomacao.com.br` (domínio do sócio) |
 | `HOMOLOG` | — | `"1"`: robots fecha tudo, `X-Robots-Tag: noindex` em tudo, `/saude` diz `homologacao` | — |
 | Banco | `db:local` + sementes, ou `db:migrar` | `db:homolog` (sementes) e `db:migrar:homolog` | `db:remoto` + sementes e `db:migrar:remoto` |
 | Cron | à mão, `/__scheduled` | a cada 15 min, de verdade | idem |
@@ -599,7 +599,7 @@ com `numeros:` listando os inteiros do dossiê; o compilador audita a prosa.
   aborta em dossiê vazio.
 - **Semana reconstruída para trás não é medição.** Feed RSS só carrega os últimos itens: colher
   hoje a semana passada mede *quando o coletor rodou*, não o que foi publicado. Foi por isso que
-  a s36 não pôde ser publicada (ROADMAP §2c).
+  a s36 não pôde ser publicada (HISTORICO §2c).
 - **Dígito solto vira ímã de assunto.** "2026.9.1" tokeniza em `2026`, `9`, `1`, e um `9` em
   comum juntou 37 threads de fórum num assunto só. Por isso `ehCodigo()` exige 4+ casas e
   faixa fora de ano.
@@ -795,12 +795,12 @@ uma notícia já dada voltava). Precisa dos mesmos segredos do Giro.
 ## 20 · A redação automática (14/10/2026)
 
 O Instituto publica notícia sozinho. O manual operacional é `docs/REDACAO.md`; a decisão está no
-ROADMAP §2l. Aqui fica o encaixe na arquitetura.
+HISTORICO §2l. Aqui fica o encaixe na arquitetura.
 
 ```
 coletor (cron 15 min) ──▶ D1 ──▶ /pauta.json (público, s-maxage 300)
                                      │
-rotina do Claude Code (nuvem) ◀──────┘
+Claude Code no notebook (2x/dia) ◀───┘
    npm run redacao -- candidatas · fonte · [escreve o .md] · conferir · destaque
    npm run compilar · npm test · git push
                                      │

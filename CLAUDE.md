@@ -4,19 +4,19 @@ Site de notícias do setor de automação (institutoautomacao.com.br), sociedade
 sócio. Um Worker só da Cloudflare (Hono + D1): o coletor colhe fontes a cada 15 min, o conteúdo
 mora em `conteudo/**.md`, o compilador gera o bundle, o git publica.
 
-**A fonte da verdade é `docs/ROADMAP.md`** (plano, decisões por data, backlog por dono), não
-memória nem este arquivo. Leia o topo e as seções mais recentes (§2k, §2l) antes de mexer.
+**A fonte da verdade é `docs/ROADMAP.md`** (fila curta Agora / Depois / Talvez), não memória nem
+este arquivo. O diário de decisões até 01/11/2026 está em `docs/HISTORICO.md` (§2k e §2l são as
+mais citadas). Pendência nova vai para o ROADMAP; decisão datada, para o HISTORICO.
 
 ## Onde está a arquitetura
 
 - `docs/ARQUITETURA.md` — o funcionamento inteiro: pastas, requisição, cron, banco, conteúdo,
   QA, ambientes, receitas, vocabulário. §18 = armadilhas conhecidas; §20 = redação automática.
 - `docs/REDACAO.md` — manual da rotina que escreve e publica notícia sozinha (desde 14/10/2026).
-- `README.md` — como rodar, ciclo de trabalho, rotas, estrutura, documentos que valem.
+- `README.md` (inglês) e `README.pt-BR.md` — visão geral, como rodar e testar, estrutura, limites.
 - `docs/CONCEPCAO-V2.md`, `docs/EXECUCAO-V2.md`, `docs/FONTES.md`, `design/SISTEMA.md`,
   `design/marca/MARCA.md`, `acordo interno`. `docs/arquivo-v1/` é histórico.
-- ⚠️ A tabela de ambientes em ARQUITETURA §13 ainda diz produção = conta do sócio. Está velha:
-  produção é a conta pessoal do Pedro desde 28/09 (ROADMAP §2i).
+- Produção é a conta pessoal do Pedro desde 28/09 (HISTORICO §2i); ARQUITETURA §13 já diz isso.
 
 ## Rodar e testar (comandos conferidos)
 
@@ -31,7 +31,7 @@ npm run dev           # compila e sobe em http://localhost:8787
 
 - Banco do zero completo (schema + sementes + migrações 007/008): `npm run db:zero` — é o que o CI usa.
 - Banco que já tem dado: `npm run db:migrar`, nunca `db:local` (item colhido não volta).
-- `npm test` — suítes de unidade (obra, pautas, feed, robots, giro, assunto, redação).
+- `npm test` — as 7 suítes de unidade (obra, pautas, feed, robots, giro, assunto, redação); não toca em produção.
 - `npm run tipos` — `tsc --noEmit` nas duas configurações.
 - `npm run qa` — QA por medição contra o site rodando (`npm run dev` em outra aba); sai 1 se
   falhar. `npm run qa -- 8788` = outra porta; `npm run qa -- https://…` = site publicado.
@@ -53,7 +53,7 @@ fica para trás e devolve semana zerada sem parecer defeito.
 - Agendados (GitHub Actions, horário de São Paulo): `giro-semanal.yml` segunda 09:00 ·
   `pauta-semanal.yml` sábado 09:00 · `copia-do-banco.yml` domingo 03:00 · `vigia.yml` de hora em
   hora. Giro e Publicar dividem a fila `concurrency: producao`.
-- O site anda sozinho desde 11/10 com o segredo `CLOUDFLARE_API_TOKEN` no GitHub (ROADMAP §2k).
+- O site anda sozinho desde 11/10 com o segredo `CLOUDFLARE_API_TOKEN` no GitHub (HISTORICO §2k).
 - O cron do Worker roda a cada 15 min em homolog e produção (`wrangler.toml`).
 
 ## Convenções e armadilhas do repo (ARQUITETURA §18, §20 e README)
@@ -75,9 +75,9 @@ fica para trás e devolve semana zerada sem parecer defeito.
   só em texto que a pessoa leu.
 - Mensagens de commit seguem o padrão do histórico: `noticias: …`, `correcao: …`, `giro: …`,
   `docs: …`, `fix(qa): …`.
-- **IA no conteúdo:** desde 14/10 a notícia é escrita por rotina do Claude Code (ROADMAP §2l).
+- **IA no conteúdo:** desde 14/10 a notícia é escrita por rotina do Claude Code (HISTORICO §2l).
   O Worker continua sem modelo e sem chave de API. A regra antiga "zero IA em produção" foi
-  revertida para a notícia — vale o ROADMAP, não memória antiga.
+  revertida para a notícia — vale o HISTORICO §2l, não memória antiga.
 
 ## Cloudflare
 

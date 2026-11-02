@@ -1,7 +1,7 @@
 # A redação automática
 
 Desde 14/10/2026 o Instituto publica notícia sozinho, todo dia. Este arquivo é
-o manual da rotina que faz isso: uma sessão agendada do Claude Code, na nuvem,
+o manual da rotina que faz isso: uma sessão agendada do Claude Code no notebook do Pedro,
 que lê este documento e segue os passos. Também serve para quem quiser fazer o
 mesmo à mão.
 
