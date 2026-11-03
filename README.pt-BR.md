@@ -17,7 +17,7 @@ A notícia de automação sai primeiro em inglês, alemão e japonês. Quem oper
 fica sabendo tarde ou não fica. O site encurta esse caminho e mede quanto tempo um assunto leva
 para chegar aqui (o "relógio").
 
-## Como funciona
+## O que faz
 
 - **Colher.** Um Cloudflare Worker colhe a cada 15 minutos os feeds de mais de 20 fontes do setor. Ele
   obedece o `robots.txt` de cada uma, agrupa itens por assunto e grava no D1.
@@ -58,7 +58,7 @@ npm run revisao       # Playwright: CLS, axe, alvos de toque, links, screenshots
 
 Em 01/11/2026: `npm test` passou 147 de 147 verificações, nas 7 suítes.
 
-## Estrutura
+## Pastas
 
 ```
 conteudo/      notícias, artigos, relatórios, Giro, autores e artes (Markdown + SVG)

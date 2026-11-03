@@ -17,7 +17,7 @@ Automation news comes out first in English, German and Japanese. People running 
 Brazil hear about it late, or not at all. The site shortens that path and measures how long a
 topic takes to reach Brazil (the "clock").
 
-## How it works
+## What it does
 
 - **Collect.** A Cloudflare Worker fetches the feeds of more than 20 industry sources every
   15 minutes. It obeys each site's `robots.txt`, groups items by topic and stores them in D1.
