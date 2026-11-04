@@ -123,3 +123,10 @@ https://roboticsandautomationnews.com/2026/10/30/global-ocean-robotics-day-highl
 https://www.therobotreport.com/28-zero-day-findings-in-less-than-two-days-what-ai-speed-discovery-means-for-robotics/ 2026-11-01 conteúdo patrocinado (VicOne)
 https://spectrum.ieee.org/ai-slop-trust-science 2026-11-01 ensaio sobre IA e ciência, fora do tema
 https://www.engineering.com/quality-manufacturing-corporation-transforms-its-3d-inspection-data-into-practical-insights/ 2026-11-01 estudo de caso de fornecedor (PolyWorks), sem notícia
+https://www.engineering.com/rotor-clip-qualifies-new-sealing-rings-for-aerospace-systems/ 2026-11-04 anéis de vedação aeroespaciais: fora do escopo de automação
+https://logweb.com.br/thermo-fisher-amplia-operacao-criogenica-para-estudos-clinicos-no-brasil/ 2026-11-04 logística criogênica para estudos clínicos: não é automação
+https://www.eenewseurope.com/en/wireless-charging-drawer-freepower-fabuwood/ 2026-11-04 carregador sem fio em gaveta de cozinha: não é automação industrial
+https://roboticsandautomationnews.com/2026/11/03/hipaa-security-rule-update-readiness/106691/ 2026-11-04 regra de saúde dos EUA: fora do escopo
+https://roboticsandautomationnews.com/2026/11/03/humanoid-robots-in-warehouses-vs-amrs-which-automation-makes-sense-in-2026/106685/ 2026-11-04 texto comparativo de opinião, sem fato novo
+https://www.therobotreport.com/ben-waters-on-the-latest-wireless-charging-strategies/ 2026-11-04 podcast/entrevista
+https://www.eenewseurope.com/en/rosstat-cyberattack-hackers-claim-23tb-data-theft/ 2026-11-04 ciberataque a órgão de estatística russo: fora do escopo
