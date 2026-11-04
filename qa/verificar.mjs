@@ -254,7 +254,9 @@ const tabelas = sql(`SELECT name FROM sqlite_master WHERE type='table' AND name 
 /* `submissao` e `submissao_arquivo` entraram em 27/09/2026 (migração 009): a
    caixa de entrada do editor de /escrever. NÃO é banco de conteúdo — nada dali
    vai ao ar sem `npm run submissoes` escrever o arquivo no git. */
-const esperadas = ['assinante', 'assunto', 'assunto_token', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item', 'submissao', 'submissao_arquivo'];
+/* `_migracao` entrou em 01/11/2026 (scripts/migrar): anota que migração já foi
+   aplicada em cada banco. É controle, não conteúdo. */
+const esperadas = ['_migracao', 'assinante', 'assunto', 'assunto_token', 'contato', 'correcao', 'evento', 'fonte', 'glossario', 'item', 'submissao', 'submissao_arquivo'];
 checar('B', `as ${esperadas.length} tabelas da v2, e só elas`, JSON.stringify(tabelas) === JSON.stringify(esperadas), tabelas.join(', '));
 for (const morta of ['obra', 'giro', 'custo_dia']) checar('B', `a tabela ${morta} não existe mais`, !tabelas.includes(morta));
 
