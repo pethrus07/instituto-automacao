@@ -130,3 +130,11 @@ https://roboticsandautomationnews.com/2026/11/03/hipaa-security-rule-update-read
 https://roboticsandautomationnews.com/2026/11/03/humanoid-robots-in-warehouses-vs-amrs-which-automation-makes-sense-in-2026/106685/ 2026-11-04 texto comparativo de opinião, sem fato novo
 https://www.therobotreport.com/ben-waters-on-the-latest-wireless-charging-strategies/ 2026-11-04 podcast/entrevista
 https://www.eenewseurope.com/en/rosstat-cyberattack-hackers-claim-23tb-data-theft/ 2026-11-04 ciberataque a órgão de estatística russo: fora do escopo
+https://www.eenewseurope.com/en/french-data-tax-parliamentary-vote/ 2026-11-04 imposto sobre dados na França: política fiscal, fora do escopo
+https://www.therobotreport.com/robotics-startup-radar-2026/ 2026-11-04 lista de startups, não notícia
+https://www.therobotreport.com/how-globallogic-helped-haystack-robotics-build-uv-disinfection-robot/ 2026-11-04 estudo de caso patrocinado de consultoria
+https://www.engineering.com/carbon-and-arkema-develop-elastomeric-resins-for-dls/ 2026-11-04 pagina com so 118 palavras, sem materia para apurar
+https://www.designworldonline.com/automationdirect-expands-linear-actuator-lineup-for-compact-motion/ 2026-11-04 release de produto com 155 palavras na fonte, insuficiente para o minimo de 250
+https://www.engineering.com/jsw-greentech-selects-siemens-xcelerator-for-commercial-evs/ 2026-11-04 imagem de 650 px, abaixo do minimo de 700 px; release de adocao de software
+https://www.engineering.com/rochester-extends-lifecycle-support-for-nxp-mpc56x-processors/ 2026-11-04 release vazio de distribuidor de componentes
+https://www.engineering.com/rochester-extends-availability-of-nxp-qoriq-p-series-processors/ 2026-11-04 release vazio de distribuidor de componentes
