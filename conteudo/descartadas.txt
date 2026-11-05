@@ -140,3 +140,4 @@ https://www.engineering.com/rochester-extends-lifecycle-support-for-nxp-mpc56x-p
 https://www.engineering.com/rochester-extends-availability-of-nxp-qoriq-p-series-processors/ 2026-11-04 release vazio de distribuidor de componentes
 https://www.engineering.com/boston-dynamics-unveils-upgraded-stretch-gen-2-robot/ 2026-11-05 og:image com 650 px, abaixo do mínimo de 700; sem imagem não publica
 https://www.eenewseurope.com/en/analog-devices-completes-alif-semiconductor-acquisition-to-boost-edge-ai/ 2026-11-05 aquisição de semicondutores sem número técnico; imagem é só logotipo
+https://www.engineering.com/siemens-aims-for-80-percent-automation-in-german-plant/ 2026-11-05 página paywall, só 118 palavras
