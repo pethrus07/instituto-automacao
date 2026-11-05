@@ -138,3 +138,5 @@ https://www.designworldonline.com/automationdirect-expands-linear-actuator-lineu
 https://www.engineering.com/jsw-greentech-selects-siemens-xcelerator-for-commercial-evs/ 2026-11-04 imagem de 650 px, abaixo do minimo de 700 px; release de adocao de software
 https://www.engineering.com/rochester-extends-lifecycle-support-for-nxp-mpc56x-processors/ 2026-11-04 release vazio de distribuidor de componentes
 https://www.engineering.com/rochester-extends-availability-of-nxp-qoriq-p-series-processors/ 2026-11-04 release vazio de distribuidor de componentes
+https://www.engineering.com/boston-dynamics-unveils-upgraded-stretch-gen-2-robot/ 2026-11-05 og:image com 650 px, abaixo do mínimo de 700; sem imagem não publica
+https://www.eenewseurope.com/en/analog-devices-completes-alif-semiconductor-acquisition-to-boost-edge-ai/ 2026-11-05 aquisição de semicondutores sem número técnico; imagem é só logotipo
