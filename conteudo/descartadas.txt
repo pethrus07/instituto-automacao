@@ -143,3 +143,10 @@ https://www.eenewseurope.com/en/analog-devices-completes-alif-semiconductor-acqu
 https://www.engineering.com/siemens-aims-for-80-percent-automation-in-german-plant/ 2026-11-05 página paywall, só 118 palavras
 https://www.designworldonline.com/line-and-motor-reactors-support-vfd-protection-in-ac-drives/ 2026-11-06 release de produto de 166 palavras (catálogo de reatores), sem fato novo nem número suficiente para matéria
 https://www.engineering.com/trimble-adds-cloud-drone-processing-to-worksmanager/ 2026-11-06 release de produto curto (188 palavras) de software para construção civil, fora do escopo de automação industrial
+https://www.engineering.com/arrowflys-ai-engineering-board-turns-big-questions-into-practical-direction/ 2026-11-06 conteúdo patrocinado/institucional de fornecedor, sem fato novo
+https://www.eenewseurope.com/en/jensen-huang-spy-plot-nvidia-china/ 2026-11-06 espionagem e exportação de chips, fora do escopo de automação
+https://www.abinee.org.br/aworkshop-pd-e-inovacao/ 2026-11-06 workshop/evento, release vazio
+https://roboticsandautomationnews.com/2026/11/06/from-nameplate-to-data-record-getting-asset-labels-right-in-regulated-manufacturing/106764/ 2026-11-06 artigo de opinião/patrocinado sobre etiquetas, sem fato
+https://www.eenewseurope.com/en/avnet-silica-teltonika-networks-distribution-emea/ 2026-11-06 acordo de distribuição na EMEA, release vazio
+https://spectrum.ieee.org/video-friday-home-cable-robot 2026-11-06 coletânea de vídeos
+https://www.automatedwarehouseonline.com/warehouses-got-smart-but-yard-outside-did-not/ 2026-11-06 texto de opinião/patrocinado sobre pátio
