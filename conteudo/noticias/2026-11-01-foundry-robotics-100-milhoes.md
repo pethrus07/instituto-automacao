@@ -12,7 +12,6 @@ imagem:
   credito:   Foundry Robotics
   licenca:   press
   alt:       Três homens numa bancada de fábrica olham a tela de um notebook, com braços robóticos colaborativos em primeiro plano e outras células ao fundo
-destaque: true
 veredito: sem_efeito
 fonte:
   nome: Robotics & Automation News
