@@ -12,7 +12,6 @@ imagem:
   credito:   Automha
   licenca:   fonte
   alt:       Satélite de paletes em corredor de estante de armazém de alta densidade
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Automated Warehouse

@@ -152,3 +152,7 @@ https://spectrum.ieee.org/video-friday-home-cable-robot 2026-11-06 coletânea de
 https://www.automatedwarehouseonline.com/warehouses-got-smart-but-yard-outside-did-not/ 2026-11-06 texto de opinião/patrocinado sobre pátio
 https://www.engineering.com/honeywell-and-rws-advance-ai-powered-cooling-optimization/ 2026-11-08 sem imagem utilizável (og:image 650 px)
 https://www.therobotreport.com/arm-institute-members-grows-more-than-500-organizations/ 2026-11-08 release de marco de associados de consórcio dos EUA, sem efeito prático no Brasil
+https://www.eenewseurope.com/en/softbank-and-sceye-plan-stratospheric-network-across-japan/ 2026-11-09 telecomunicações por plataforma estratosférica, fora do escopo
+https://www.cimm.com.br/portal/noticia/exibir_noticia/27862-blaser-tem-novo-diretor-brasil-aposta-tecnologia-aumentar-eficiencia-usinagem 2026-11-09 troca de diretor, release sem fato técnico
+https://roboticsandautomationnews.com/2026/11/09/opinion-supervised-autonomy-in-robotics-starts-with-the-robots-worst-day/106840/ 2026-11-09 opinião
+https://roboticsandautomationnews.com/2026/11/09/honda-launches-10000-challenge-to-improve-human-robot-collaboration-in-factories/106834/ 2026-11-09 concurso, release sem efeito prático
