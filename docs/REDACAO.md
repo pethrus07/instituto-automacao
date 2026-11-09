@@ -124,7 +124,8 @@ imagem para tirar: troque a imagem ou tire o bloco `imagem:` e commite.
 
 ## A rotina agendada
 
-Roda **no notebook do Pedro**, pelo Agendador de Tarefas do Windows, **às 07:30 e às 15:30**
+Roda **no notebook do Pedro**, pelo Agendador de Tarefas do Windows, **às 15:30, uma vez por dia** (até 09/11/2026 eram duas,
+07:30 e 15:30; ficou uma para gastar menos da conta compartilhada do Claude)
 (se o notebook estiver desligado no horário, roda quando ligar). Quem escreve é o Claude Code
 que vem com a extensão do VS Code, sem janela (`claude -p`), modelo `claude-sonnet-5-5`, num
 **clone só da redação** em `Projetos/_redacao-instituto/instituto-automacao` — nunca na pasta em

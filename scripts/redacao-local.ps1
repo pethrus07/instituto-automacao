@@ -8,7 +8,7 @@
   o GitHub faz o QA e o deploy (publicar.yml).
 
     .\scripts\redacao-local.ps1                 roda agora
-    .\scripts\redacao-local.ps1 -Instalar       cria a tarefa no Agendador (07:30 e 15:30)
+    .\scripts\redacao-local.ps1 -Instalar       cria a tarefa no Agendador (15:30; 1 vez por dia desde 09/11/2026)
     .\scripts\redacao-local.ps1 -Desinstalar    remove a tarefa
 
   Registro de cada execução: <clone>\..\logs\AAAA-MM-DD_HHMM.log
@@ -39,15 +39,16 @@ if ($Instalar) {
   $destino = Join-Path $Base 'redacao-local.ps1'
   Copy-Item $PSCommandPath $destino -Force   # a tarefa roda a cópia, que não some com um git reset
   $acao = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$destino`""
+  # 1 vez por dia desde 09/11/2026 (era 07:30 e 15:30): a conta do Claude é compartilhada e o
+  # limite semanal estourou em 08/11; o Pedro pediu a automação mais barata e espaçada.
   $gatilhos = @(
-    (New-ScheduledTaskTrigger -Daily -At '07:30'),
     (New-ScheduledTaskTrigger -Daily -At '15:30')
   )
   $config = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Hours 1) -MultipleInstances IgnoreNew
   Register-ScheduledTask -TaskName $Tarefa -Action $acao -Trigger $gatilhos -Settings $config `
     -Description 'Escreve, confere e publica as notícias do Instituto Automação (docs/REDACAO.md).' -Force | Out-Null
-  Write-Host "Tarefa criada: $Tarefa (07:30 e 15:30; se perder o horário, roda ao ligar)"
+  Write-Host "Tarefa criada: $Tarefa (15:30; se perder o horário, roda ao ligar)"
   return
 }
 
