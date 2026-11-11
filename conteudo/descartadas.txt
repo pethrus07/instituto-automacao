@@ -157,3 +157,10 @@ https://www.cimm.com.br/portal/noticia/exibir_noticia/27862-blaser-tem-novo-dire
 https://roboticsandautomationnews.com/2026/11/09/opinion-supervised-autonomy-in-robotics-starts-with-the-robots-worst-day/106840/ 2026-11-09 opinião
 https://roboticsandautomationnews.com/2026/11/09/honda-launches-10000-challenge-to-improve-human-robot-collaboration-in-factories/106834/ 2026-11-09 concurso, release sem efeito prático
 https://roboticsandautomationnews.com/2026/11/10/gritt-and-mastec-partner-to-bring-physical-ai-to-renewable-energy-construction-sites/106945/ 2026-11-10 parceria sem número nem prazo, release vazio
+https://www.eenewseurope.com/en/starlink-5g-network-qualcomm/ 2026-11-11 telecom 5G de consumo, fora do escopo
+https://www.cimm.com.br/portal/noticia/exibir_noticia/27867-infraestrutura-75-industriais-consideram-transporte-principal-gargalo-brasil 2026-11-11 pesquisa de logistica e infraestrutura, sem automacao
+https://www.designworldonline.com/technical-thinking-for-the-kids/ 2026-11-11 coluna de opiniao
+https://www.engineering.com/trimble-adds-ai-assisted-scheduling-to-connect-platform/ 2026-11-11 agendamento de construcao civil, fora do escopo
+https://www.engineering.com/siemens-adds-agentic-ai-to-hyperlynx-verification-workflows/ 2026-11-11 software de projeto de placas (EDA), nao e automacao industrial
+https://www.engineering.com/cadence-launches-orcad-xplore-design-platform/ 2026-11-11 software de projeto de placas (EDA), nao e automacao industrial
+https://spectrum.ieee.org/human-centered-ai-product-design 2026-11-11 artigo de opiniao sobre design de produto
