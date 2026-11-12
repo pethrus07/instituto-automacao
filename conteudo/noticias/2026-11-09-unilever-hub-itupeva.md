@@ -12,7 +12,6 @@ imagem:
   credito:   Portal Logweb
   licenca:   fonte
   alt:       Vista interna do hub logístico da Unilever em Itupeva, com estantes altas de armazenagem e corredores do sistema automatizado
-destaque: true
 veredito: chega
 fonte:
   nome: Portal Logweb
