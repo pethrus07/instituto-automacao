@@ -164,3 +164,11 @@ https://www.engineering.com/trimble-adds-ai-assisted-scheduling-to-connect-platf
 https://www.engineering.com/siemens-adds-agentic-ai-to-hyperlynx-verification-workflows/ 2026-11-11 software de projeto de placas (EDA), nao e automacao industrial
 https://www.engineering.com/cadence-launches-orcad-xplore-design-platform/ 2026-11-11 software de projeto de placas (EDA), nao e automacao industrial
 https://spectrum.ieee.org/human-centered-ai-product-design 2026-11-11 artigo de opiniao sobre design de produto
+https://www.engineering.com/mondelez-and-accenture-apply-agentic-ai-to-order-to-cash/ 2026-11-13 sem imagem utilizavel (og:image 605 px)
+https://www.therobotreport.com/six-agibot-g2-robots-complete-1730-tasks-in-24-hour-shanghai-convenience-store-trial/ 2026-11-13 conteudo patrocinado pela AGIBOT
+https://www.engineering.com/binder-expands-m5-portfolio-with-field-wireable-connectors/ 2026-11-13 sem imagem utilizavel (og:image 650 px)
+https://logweb.com.br/santos-brasil-investimentos-ampliacao-porto-santos/ 2026-11-13 expansao portuaria sem foco em automacao
+https://www.abinee.org.br/abinee-e-gs1/ 2026-11-13 acordo institucional sobre comercio irregular de celulares, fora do tema
+https://www.designworldonline.com/what-drc-reports-tell-you-and-what-they-dont/ 2026-11-13 texto explicativo/opiniao sobre projeto de PCB, fora do tema
+https://www.designworldonline.com/ai-data-centers-and-the-power-needed-to-support-them-an-interview-with-jabils-david-eckerson/ 2026-11-13 entrevista
+https://www.designworldonline.com/exair-expands-air-knife-lineup-for-different-applications/ 2026-11-13 release promocional de catalogo, 163 palavras
