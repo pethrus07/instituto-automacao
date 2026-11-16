@@ -172,3 +172,5 @@ https://www.abinee.org.br/abinee-e-gs1/ 2026-11-13 acordo institucional sobre co
 https://www.designworldonline.com/what-drc-reports-tell-you-and-what-they-dont/ 2026-11-13 texto explicativo/opiniao sobre projeto de PCB, fora do tema
 https://www.designworldonline.com/ai-data-centers-and-the-power-needed-to-support-them-an-interview-with-jabils-david-eckerson/ 2026-11-13 entrevista
 https://www.designworldonline.com/exair-expands-air-knife-lineup-for-different-applications/ 2026-11-13 release promocional de catalogo, 163 palavras
+https://spectrum.ieee.org/zero-day-robotics-vulnerabilities-vicone-security 2026-11-16 página paywall/sem texto suficiente
+https://www.engineering.com/sew-eurodrive-expands-pxg-portfolio-with-economy-gear-units/ 2026-11-16 sem imagem utilizável (og:image com 578 px)
