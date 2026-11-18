@@ -12,7 +12,6 @@ imagem:
   credito:   Robotics & Automation News
   licenca:   fonte
   alt:       Dois homens se cumprimentam em um estande de feira ao lado de um pedestal branco com um drone preto de estrutura aberta em cima
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Robotics & Automation News
