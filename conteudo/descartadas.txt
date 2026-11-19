@@ -175,3 +175,6 @@ https://www.designworldonline.com/exair-expands-air-knife-lineup-for-different-a
 https://spectrum.ieee.org/zero-day-robotics-vulnerabilities-vicone-security 2026-11-16 página paywall/sem texto suficiente
 https://www.engineering.com/sew-eurodrive-expands-pxg-portfolio-with-economy-gear-units/ 2026-11-16 sem imagem utilizável (og:image com 578 px)
 https://www.eenewseurope.com/en/system-check-share-your-opinion-on-raspberry-pi/ 2026-11-16 pesquisa de opinião, não é notícia
+https://www.engineering.com/fanuc-america-earns-top-workplace-recognition-for-15th-year/ 2026-11-19 prêmio de ambiente de trabalho, não é notícia de automação
+https://www.engineering.com/keysight-and-cohere-validate-multi-uav-sensing-for-6g/ 2026-11-19 telecom 6G e drones, fora do escopo
+https://www.eenewseurope.com/en/now-on-jumpstarter-elektor-esp32-energy-meter-v2-0-puts-your-power-consumption-in-focus/ 2026-11-19 campanha de kit hobby, release promocional
