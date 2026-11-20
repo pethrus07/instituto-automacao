@@ -178,3 +178,5 @@ https://www.eenewseurope.com/en/system-check-share-your-opinion-on-raspberry-pi/
 https://www.engineering.com/fanuc-america-earns-top-workplace-recognition-for-15th-year/ 2026-11-19 prêmio de ambiente de trabalho, não é notícia de automação
 https://www.engineering.com/keysight-and-cohere-validate-multi-uav-sensing-for-6g/ 2026-11-19 telecom 6G e drones, fora do escopo
 https://www.eenewseurope.com/en/now-on-jumpstarter-elektor-esp32-energy-meter-v2-0-puts-your-power-consumption-in-focus/ 2026-11-19 campanha de kit hobby, release promocional
+https://roboticsandautomationnews.com/2026/11/20/how-to-choose-a-reliable-p2p-lending-software-development-partner/107393/ 2026-11-20 não é automação industrial: software de crédito P2P
+https://www.therobotreport.com/california-dmv-bars-waymo-avs-from-operating-on-the-states-freeways/ 2026-11-20 regulação de robotáxi nos EUA, fora do escopo de automação industrial
