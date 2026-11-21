@@ -180,3 +180,7 @@ https://www.engineering.com/keysight-and-cohere-validate-multi-uav-sensing-for-6
 https://www.eenewseurope.com/en/now-on-jumpstarter-elektor-esp32-energy-meter-v2-0-puts-your-power-consumption-in-focus/ 2026-11-19 campanha de kit hobby, release promocional
 https://roboticsandautomationnews.com/2026/11/20/how-to-choose-a-reliable-p2p-lending-software-development-partner/107393/ 2026-11-20 não é automação industrial: software de crédito P2P
 https://www.therobotreport.com/california-dmv-bars-waymo-avs-from-operating-on-the-states-freeways/ 2026-11-20 regulação de robotáxi nos EUA, fora do escopo de automação industrial
+https://logweb.com.br/black-friday-vendas-se-espalham-por-novembro-nuvemshop/ 2026-11-21 e-commerce/varejo, fora do escopo de automação
+https://www.cimm.com.br/portal/noticia/exibir_noticia/27892-economia-circular-movimenta-907-bilhoes-brasil-mostra-estudo-apresentado-cop 2026-11-21 estudo de economia circular, fora do escopo de automação
+https://www.automacaoindustrial.info/modernizar-sem-perder-a-estabilidade-um-olhar-para-a-inovacao-na-industria/ 2026-11-21 texto de opinião/genérico
+https://logweb.com.br/west-cargo-adquire-caminhao-eletrico-eactros-600-mercedes-benz/ 2026-11-21 compra de caminhão elétrico por transportadora, fora do escopo
