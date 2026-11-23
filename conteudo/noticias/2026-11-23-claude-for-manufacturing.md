@@ -12,7 +12,6 @@ imagem:
   credito:   Robotics & Automation News
   licenca:   fonte
   alt:       Duas pessoas num mezanino, uma delas com um notebook, observam um longo corredor de linha de montagem com máquinas azuis e brancas
-destaque: true
 veredito: a_caminho
 fonte:
   nome: Robotics & Automation News

@@ -184,3 +184,9 @@ https://logweb.com.br/black-friday-vendas-se-espalham-por-novembro-nuvemshop/ 20
 https://www.cimm.com.br/portal/noticia/exibir_noticia/27892-economia-circular-movimenta-907-bilhoes-brasil-mostra-estudo-apresentado-cop 2026-11-21 estudo de economia circular, fora do escopo de automação
 https://www.automacaoindustrial.info/modernizar-sem-perder-a-estabilidade-um-olhar-para-a-inovacao-na-industria/ 2026-11-21 texto de opinião/genérico
 https://logweb.com.br/west-cargo-adquire-caminhao-eletrico-eactros-600-mercedes-benz/ 2026-11-21 compra de caminhão elétrico por transportadora, fora do escopo
+https://roboticsandautomationnews.com/2026/11/23/who-pays-the-bills-after-a-rear-end-crash-in-minneapolis/107504/ 2026-11-23 fora do tema: seguro e acidente de carro
+https://roboticsandautomationnews.com/2026/11/23/how-location-analytics-solutions-optimize-office-floor-space/107501/ 2026-11-23 fora do tema: espaço de escritório, conteúdo genérico
+https://www.engineering.com/aicte-nemetschek-sign-mou-for-aec-skills-development/ 2026-11-23 release vazio: memorando na Índia para construção civil
+https://www.engineering.com/one-order-every-process-what-facturee-brings-to-u-s-manufacturers/ 2026-11-23 release de plataforma para fabricantes dos EUA, sem fato
+https://www.engineering.com/ptc-expands-fedramp-offerings-for-federal-agencies/ 2026-11-23 fora do tema: conformidade de nuvem para agências federais dos EUA
+https://www.eenewseurope.com/en/eu-backs-global-electrification-pledge-at-cop31/ 2026-11-23 política climática, sem consequência industrial concreta
