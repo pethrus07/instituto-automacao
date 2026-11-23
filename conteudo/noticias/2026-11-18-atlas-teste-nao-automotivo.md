@@ -12,7 +12,6 @@ imagem:
   credito:   Boston Dynamics
   licenca:   fonte
   alt:       O humanoide Atlas, em pé, ao lado do robô amarelo Spot, de quatro patas, diante de grandes tanques de aço inoxidável numa fábrica
-destaque: true
 veredito: sem_efeito
 fonte:
   nome: The Robot Report
