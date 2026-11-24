@@ -840,3 +840,9 @@ Claude Code no notebook (2x/dia) ◀───┘
   corpo do texto e sem título, título curto, lead, alt e crédito vindos do conteúdo. Conferido
   por mutação (a palavra posta no rodapé reprova). E `npm run redacao -- conferir` passou a
   barrar intertítulo que pula nível, que o QA reprovaria lá no GitHub.
+- **"Zero IA no bundle" não pode procurar palavra** (23/11/2026): o bundle leva o texto das
+  notícias, e "Anthropic lança o Claude for Manufacturing" (slug `claude-for-manufacturing`)
+  derrubou duas publicações e o Giro pela regra P1, que procurava "anthropic" e "claude-". P1
+  procura assinatura de código (`api.anthropic.com`, `anthropic-version`, `@anthropic-ai/`, chaves
+  de API, `api.openai.com`). Mesmo padrão das quedas de outubro: regra que lê texto tem de saber
+  que parte do texto é da redação.
