@@ -217,7 +217,12 @@ try {
   const arquivos = readdirSync(join(RAIZ, 'dist')).filter((n) => n.endsWith('.js'));
   const bundle = arquivos.map((n) => readFileSync(join(RAIZ, 'dist', n), 'utf8')).join('\n');
   medidas.bundleKB = (Buffer.byteLength(bundle) / 1024).toFixed(0);
-  for (const marca of ['anthropic', 'ANTHROPIC_API_KEY', 'IA_CONTA', 'IA_SIMULAR', 'claude-']) {
+  /* Assinaturas de CÓDIGO que chama modelo, não palavras. O bundle leva o
+     texto das notícias, e desde a redação diária notícia sobre IA é pauta
+     comum: "Claude for Manufacturing" (23/11/2026, slug claude-for-manufacturing)
+     derrubou duas publicações e o Giro com as marcas antigas "anthropic" e
+     "claude-". O Worker continua sem modelo; isto é o que denunciaria um. */
+  for (const marca of ['api.anthropic.com', 'anthropic-version', '@anthropic-ai/', 'ANTHROPIC_API_KEY', 'api.openai.com', 'OPENAI_API_KEY', 'IA_CONTA', 'IA_SIMULAR']) {
     checar('A', `P1 · bundle não contém "${marca}"`, !bundle.includes(marca), 'IA em produção é a decisão que a v2 desfez');
   }
   checar('A', 'o bundle leva as peças compiladas', pecas.every((p) => bundle.includes(p.slug)), 'peça em conteudo/ que não chegou ao bundle não existe para o leitor');
